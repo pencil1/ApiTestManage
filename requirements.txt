@@ -20,8 +20,5 @@ sqlalchemy-migrate==0.11.0
 Werkzeug==0.12.1
 WTForms==2.1
 wxpy==0.3.9.8
-xlrd==1.0.0
-XlsxWriter==0.9.6
 xlutils==2.0.0
-xlwt==1.2.0
 xmltodict==0.11.0
