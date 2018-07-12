@@ -197,8 +197,9 @@ class RunCase(object):
                 pro_config = self.merge_config(pro_config, scene_config)
 
                 for case in ApiCase.query.filter_by(scene_id=scene).order_by(ApiCase.num.asc()).all():
-                    pro_config['testcases'].append(
-                        self.get_case(case, Project.query.filter_by(id=scene_data.project_id).first()))
+                    if case.status == 'true':
+                        pro_config['testcases'].append(
+                            self.get_case(case, Project.query.filter_by(id=scene_data.project_id).first()))
                 temp_case.append(copy.deepcopy(pro_config))
             return temp_case
         if self.case_data:
@@ -208,10 +209,10 @@ class RunCase(object):
                 _config = []
             else:
                 _config = json.loads(config_data.variables)
-
-            if config_data.func_address:
-                pro_config['config']['import_module_functions'] = [
-                    'func_list.{}'.format(config_data.func_address.replace('.py', ''))]
+            if config_data:
+                if config_data.func_address:
+                    pro_config['config']['import_module_functions'] = [
+                        'func_list.{}'.format(config_data.func_address.replace('.py', ''))]
 
             pro_config = self.merge_config(pro_config, _config)
             for case in self.case_data[1]:
@@ -238,11 +239,6 @@ class RunCase(object):
         res['stat']['failures'] = "{} ({}%)".format(res['stat']['failures'],
                                                     int(res['stat']['failures'] / res['stat']['testsRun'] * 100))
 
-        import collections
-        tree = lambda: collections.defaultdict(tree)
-        some_dict = tree()
-        some_dict = some_dict.update(res)
-        print(some_dict)
         for num, rec in enumerate(res['records']):
             # try:
             # if not rec['meta_data'].get('url'):
@@ -260,14 +256,13 @@ class RunCase(object):
                         rec['meta_data']['request_body'] = '暂不支持显示文件上传的request_body'
                     else:
                         rec['meta_data']['request_body'] = rec['meta_data']['request_body'].decode('unicode-escape')
-                        # rec['meta_data']['request_body'] = bytes.decode(rec['meta_data']['request_body'])
-            if rec['meta_data'].get('response_body'):
-                if isinstance(rec['meta_data']['response_body'], bytes):
-                    rec['meta_data']['response_body'] = bytes.decode(rec['meta_data']['response_body'])
-                    # except Exception as e:
-                    #     print(e)
-            if not rec['meta_data'].get('response_headers'):
-                rec['meta_data']['response_headers'] = 'None'
+
+            # if rec['meta_data'].get('response_body'):
+            #     if isinstance(rec['meta_data']['response_body'], bytes):
+            #         rec['meta_data']['response_body'] = bytes.decode(rec['meta_data']['response_body'])
+
+            # if not rec['meta_data'].get('response_headers'):
+            #     rec['meta_data']['response_headers'] = 'None'
 
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
         jump_res = json.dumps(res, ensure_ascii=False)

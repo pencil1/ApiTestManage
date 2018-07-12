@@ -697,7 +697,7 @@ FILE_ADDRESS = os.path.abspath('..') + r'/files/'
 
 def _check_file_path():
     if not os.path.exists(REPORT_ADDRESS):
-        os.makedirs(REPORT_ADDRESS)
+        os.makedirs(FUNC_ADDRESS)
     if not os.path.exists(FUNC_ADDRESS):
         os.makedirs(FUNC_ADDRESS)
     if not os.path.exists(FILE_ADDRESS):

@@ -32,8 +32,6 @@ scheduler = BackgroundScheduler(jobstores=jobstores, executors=executors)
 
 
 def config_log():
-    if not os.path.exists(os.path.abspath('..') + r'/logs/'):
-        os.makedirs(os.path.abspath('..') + r'/logs/')
     log_file_str = os.path.abspath('..') + r'/logs/' + 'logger-' + time.strftime('%Y-%m-%d',
                                                                                  time.localtime(time.time())) + '.log'
     handler = logging.FileHandler(log_file_str, encoding='UTF-8')

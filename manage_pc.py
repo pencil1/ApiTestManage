@@ -1,8 +1,8 @@
 # encoding: utf-8
 """
-@author: lileilei
-@file: manage.py
-@time: 2017/7/13 16:39
+@author: pencil
+@file: manage_linux.py
+@time: 2018/7/12 16:39
 """
 import os
 from app import create_app, db
@@ -31,14 +31,8 @@ manager.add_command('runserver', Server(host='127.0.0.1', port='8080'))  # hostè
 
 # manager.add_command('runserver', WSGIServer(('192.168.13.253', '8080'), app))
 
-def app_start():
-    # sched.start()
-    http_server = WSGIServer(('127.0.0.1', 8080), app)
-    http_server.serve_forever()
-
 
 if __name__ == '__main__':
     # app.run(host='127.0.0.1', port=8080, debug=False)
     manager.run(default_command='runserver')
     # manager.run(default_command='shell')
-    # app_start()

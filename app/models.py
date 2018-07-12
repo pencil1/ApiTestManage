@@ -115,7 +115,7 @@ class ApiCase(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
     num = db.Column(db.Integer(), nullable=True)
-
+    status = db.Column(db.String())
     name = db.Column(db.String())
     up_func = db.Column(db.String())
     down_func = db.Column(db.String())

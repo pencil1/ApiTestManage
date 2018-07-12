@@ -69,5 +69,6 @@ target/
 .idea/
 
 # Windows:
-
+data.sqlite
 /migrations/
+/func_list/

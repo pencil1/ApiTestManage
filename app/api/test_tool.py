@@ -1,8 +1,11 @@
+import types
+
 from . import api
 import json
 from flask import jsonify, request
 from ..util.tool_func import *
 from app.models import *
+
 
 @api.route('/buildIdentity')
 def build_identity():
@@ -32,11 +35,25 @@ def del_sql():
     return jsonify({'data': '1', 'status': 1})
 
 
-@api.route('/runCmd')
+def is_function(tup):
+    """ Takes (name, object) tuple, returns True if it is a function.
+    """
+    name, item = tup
+    return isinstance(item, types.FunctionType)
+
+
+@api.route('/runCmd', methods=['POST'])
 def run_cmd():
+    import importlib
+
     data = request.json
-    _data = data.get('dictData')
-    return jsonify({'msg': '111', 'status': 1})
+    name = data.get('funcName')
+    import_path = 'func_list.build_in_func'
+    func_list = importlib.reload(importlib.import_module(import_path))
+    module_functions_dict = dict(filter(is_function, vars(func_list).items()))
+    module_functions_dict[name]()
+
+    return jsonify({'msg': '完成', 'status': 1})
     # identity_data = [{'identity': b} for b in list(set([identity_generator() for j in range(100)]))]
     # return jsonify({'data': identity_data, 'status': 1, 'title': ['身份证']})
 

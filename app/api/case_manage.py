@@ -92,14 +92,14 @@ def add_cases():
         return jsonify({'msg': '设置前后置函数后必须引用函数文件', 'status': 0})
 
     case_url = data.get('caseUrl')
-    if not case_url:
-        return jsonify({'msg': '接口url不能为空', 'status': 0})
-    elif re.search('\${(.*?)}', case_url, flags=0) and not func_address:
-        return jsonify({'msg': 'url引用函数后，基础信息处必须引用函数文件', 'status': 0})
-
+    # if not case_url:
+    #     return jsonify({'msg': '接口url不能为空', 'status': 0})
+    # elif re.search('\${(.*?)}', case_url, flags=0) and not func_address:
+    #     return jsonify({'msg': 'url引用函数后，基础信息处必须引用函数文件', 'status': 0})
+    #
     case_variable = data.get('caseVariable')
-    if re.search('\${(.*?)}', case_variable, flags=0) and not func_address:
-        return jsonify({'msg': '参数引用函数后，基础信息处必须引用函数文件', 'status': 0})
+    # if re.search('\${(.*?)}', case_variable, flags=0) and not func_address:
+    #     return jsonify({'msg': '参数引用函数后，基础信息处必须引用函数文件', 'status': 0})
 
     project_id = Project.query.filter_by(name=project_name).first().id
     module_id = Module.query.filter_by(name=gather_name, project_id=project_id).first().id
@@ -204,7 +204,6 @@ def run_case():
     case_data_id.sort(key=lambda x: x[0])
 
     old_case_data = [ApiMsg.query.filter_by(id=c[1]).first() for c in case_data_id]
-
     d = RunCase(project_names=project_name, case_data=[config_name, old_case_data])
     res = json.loads(d.run_case())
     return jsonify({'msg': '测试完成', 'data': res, 'status': 1})
@@ -247,7 +246,8 @@ def find_cases():
              'variableType': c.variable_type,
              'variables': variable, 'extract': json.loads(c.extract),
              'validate': json.loads(c.validate),
-             'statusCase': {'extract': [True, False], 'variable': [True, False], 'validate': [True, False]}})
+             'statusCase': {'extract': [True, True], 'variable': [True, True], 'validate': [True, True]},
+             'status': True, 'case_name':''})
     return jsonify({'data': _case, 'total': total, 'status': 1})
 
 
