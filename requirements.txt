@@ -2,6 +2,7 @@ alembic==0.8.10
 amqp==2.2.2
 APScheduler==3.4.0
 Babel==2.5.1
+bcrypt==3.1.4
 beautifulsoup4==4.5.1
 billiard==3.5.0.3
 bleach==1.4
@@ -55,13 +56,14 @@ Mako==1.0.6
 Markdown==2.3.1
 MarkupSafe==1.0
 olefile==0.44
-paramiko==2.1.1
+paramiko==2.4.1
 passlib==1.7.1
 pbr==3.1.1
 psycopg2==2.7.4
 pyasn1==0.1.9
 pycparser==2.17
 Pygments==1.6
+PyNaCl==1.2.1
 pypng==0.0.18
 PyQRCode==1.2.1
 python-dateutil==2.6.1
