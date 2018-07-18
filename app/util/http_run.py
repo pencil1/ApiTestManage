@@ -91,14 +91,7 @@ class RunCase(object):
             temp_case_data['request']['headers'] = {h['key']: h['value'] for h in json.loads(api_case.headers)
                                                     if h['key']}
 
-        if api_case.status_url == '0':
-            temp_case_data['request']['url'] = pro_config.host + api_case.url
-        elif api_case.status_url == '1':
-            temp_case_data['request']['url'] = pro_config.host_two + api_case.url
-        elif api_case.status_url == '2':
-            temp_case_data['request']['url'] = pro_config.host_three + api_case.url
-        elif api_case.status_url == '3':
-            temp_case_data['request']['url'] = pro_config.host_four + api_case.url
+        temp_case_data['request']['url'] = getattr(pro_config, HOST[api_case.status_url]) + api_case.url
 
         if api_case.func_address:
             temp_case_data['import_module_functions'] = [
@@ -133,9 +126,10 @@ class RunCase(object):
             else:
                 _extract_temp = api_case.extract
 
-            temp_case_data['extract'] = [{ext['key']: ext['value']} for ext in json.loads(_extract_temp) if ext.get('key')]
+            temp_case_data['extract'] = [{ext['key']: ext['value']} for ext in json.loads(_extract_temp) if
+                                         ext.get('key')]
 
-        if self.run_type or json.loads(scene_case.status_validate)[0]:
+        if not self.run_type or json.loads(scene_case.status_validate)[0]:
             if not self.run_type or json.loads(scene_case.status_validate)[1]:
                 _validate_temp = scene_case.validate
             else:
