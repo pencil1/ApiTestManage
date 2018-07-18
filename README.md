@@ -8,8 +8,8 @@ python => 3
 开发环境：运行manage_pc.py
 生产环境：运行manage_linux.py
 
-### 开发环境下的一些配置
-由于懒，直接把flaskapi.conf文件替换nginx下的nginx.con
+### 生产环境下的一些配置
+由于懒，直接把flaskapi.conf文件替换nginx下的nginx.conf
 
 运行下面命令即可启动
 
