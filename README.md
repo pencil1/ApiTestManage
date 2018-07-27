@@ -18,11 +18,11 @@ python => 3
 ### 数据库的迁移
 
 第一次使用：
-初始化：(venv)  python manage.py db init 这个命令会在项目下创建 migrations 文件夹，所有迁移脚本都存放其中。
+初始化：(venv)  python manage_pc.py db init 这个命令会在项目下创建 migrations 文件夹，所有迁移脚本都存放其中。
 
-创建第一个版本：(venv) $ python manage.py db migrate
+创建第一个版本：(venv) $ python manage_pc.py db migrate
 
-运行升级 (venv) $ python manage.py db upgrade
+运行升级 (venv) $ python manage_pc.py db upgrade
 
 后缀更新：
 更新表格的字段 (models.py)

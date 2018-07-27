@@ -698,7 +698,7 @@ HOST = {'0': 'host', '1': 'host_two', '2': 'host_three', '3': 'host_four'}
 
 def _check_file_path():
     if not os.path.exists(REPORT_ADDRESS):
-        os.makedirs(FUNC_ADDRESS)
+        os.makedirs(REPORT_ADDRESS)
     if not os.path.exists(FUNC_ADDRESS):
         os.makedirs(FUNC_ADDRESS)
     if not os.path.exists(FILE_ADDRESS):

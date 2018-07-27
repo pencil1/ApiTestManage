@@ -64,11 +64,9 @@ class RunCase(object):
     def pro_config(project_id):
         pro_cfg_data = {'config': {'name': 'config_name', 'request': {}}, 'testcases': [], 'name': 'config_name'}
         project_config = Project.query.filter_by(id=project_id).first()
-        if json.loads(project_config.headers):
-            # self.all_data['config']['request']['headers'] = {}
-            pro_cfg_data['config']['request']['headers'] = {h['key']: h['value'] for h in
-                                                            json.loads(project_config.headers) if
-                                                            h['key'] != ''}
+
+        pro_cfg_data['config']['request']['headers'] = {h['key']: h['value'] for h in
+                                                        json.loads(project_config.headers) if h.get('key')}
 
         pro_cfg_data['config']['variables'] = json.loads(project_config.variables)
         return pro_cfg_data
@@ -226,6 +224,7 @@ class RunCase(object):
                         #     rec['meta_data']['response_headers'] = 'None'
 
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
+        print(res)
         jump_res = json.dumps(res, ensure_ascii=False)
         if self.run_type:
             self.new_report_id = Report.query.filter_by(

@@ -17,11 +17,16 @@ def add_scene():
     ids = data.get('ids')
     func_address = data.get('funcAddress')
     project = data.get('project')
-    project_id = Project.query.filter_by(name=project).first().id
+    project_data = Project.query.filter_by(name=project).first()
+    project_id = project_data.id
     num = auto_num(data.get('num'), Scene, project_id=project_id)
     variable = data.get('variable')
     cases = data.get('cases')
 
+    merge_variable = json.dumps(json.loads(variable) + json.loads(project_data.variables))
+    _temp_check = extract_variables(convert(json.loads(merge_variable)))
+    if _temp_check:
+        return jsonify({'msg': '参数引用${}在业务变量和项目公用变量均没找到'.format(',$'.join(_temp_check)), 'status': 0})
     if re.search('\${(.*?)}', '{}{}'.format(variable, json.dumps(cases)), flags=0) and not func_address:
         return jsonify({'msg': '参数引用函数后，必须引用函数文件', 'status': 0})
 

@@ -121,6 +121,19 @@ def check_case(case_data, func_address):
                     return '函数“{}”在文件引用中没有定义'.format(func)
 
 
+def convert(variable):
+    _temp = json.dumps(variable)
+    content = {v['key']: v['value'] for v in variable if v['key'] != ''}
+    for variable_name in extract_variables(_temp):
+        if content.get(variable_name):
+            # content contains one or several variables
+            _temp = _temp.replace(
+                "${}".format(variable_name),
+                str(content.get(variable_name)), 1
+            )
+    return _temp
+
+
 def merge_config(pro_config, scene_config):
     for _s in scene_config:
         for _p in pro_config['config']['variables']:
@@ -129,20 +142,10 @@ def merge_config(pro_config, scene_config):
         else:
             pro_config['config']['variables'].append(_s)
 
-    _temp = json.dumps(pro_config['config']['variables'])
-    content = {v['key']: v['value'] for v in pro_config['config']['variables'] if v['key'] != ''}
-    for variable_name in extract_variables(_temp):
-        if content.get(variable_name):
-            # content contains one or several variables
-            _temp = _temp.replace(
-                "${}".format(variable_name),
-                str(content.get(variable_name)), 1
-            )
-    # pro_config['config']['variables'] = json.loads(_j)
+    _temp = convert(pro_config['config']['variables'])
 
     pro_config['config']['variables'] = [{v['key']: v['value']} for v in json.loads(_temp)
                                          if v['key'] != '']
-
     return pro_config
 
 
