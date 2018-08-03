@@ -2,7 +2,7 @@ from flask import jsonify, request
 from flask_login import current_user
 
 from app.models import *
-from app.util.case_change.core import HarParser
+from app.util.case_change.core import HarParser, postman_parser
 from . import api
 from ..util.http_run import RunCase
 from ..util.utils import *
@@ -272,30 +272,37 @@ def file_change():
     gather_name = data.get('gatherName')
     if not gather_name and not project_name:
         return jsonify({'msg': '项目和模块不能为空', 'status': 0})
+    import_format = data.get('importFormat')
+    if not import_format:
+        return jsonify({'msg': '请选择文件格式', 'status': 0})
 
+    import_format = 'har' if import_format == 'HAR' else 'json'
     project_data = Project.query.filter_by(name=project_name).first()
     host = [project_data.host, project_data.host_two, project_data.host_three, project_data.host_four]
     project_id = project_data.id
     module_id = Module.query.filter_by(name=gather_name, project_id=project_id).first().id
 
     import_api_address = data.get('importApiAddress')
-    har_parser = HarParser(import_api_address)
+    if not import_api_address:
+        return jsonify({'msg': '请上传文件', 'status': 0})
+    har_parser = HarParser(import_api_address, import_format)
+    case_num = auto_num(data.get('caseNum'), ApiMsg, module_id=module_id)
+    # har_parser = postman_parser(import_api_address)
+    # for msg in har_parser:
     for msg in har_parser.testset:
-        status_url = msg['test']['url'].replace(msg['test']['name'], '')
-        msg['test']['url'] = msg['test']['name']
-        if status_url in host:
-            status_url = host.index(status_url)
+        # status_url = msg['test']['url'].replace(msg['test']['name'], '')
+        # msg['test']['url'] = msg['test']['name']
+        # print(msg['test']['status_url'])
+        for h in host:
+            if msg['status_url'] in h:
+                msg['status_url'] = host.index(h)
+                break
         else:
-            status_url = '0'
-        # new_cases = ApiMsg(name=case_name, module_id=module_id, validate=case_validate, num=case_num,
-        #                    status_url=status_url, func_address=func_address, up_func=up_func,
-        #                    down_func=down_func, desc=case_desc, method=case_method,
-        #                    url=case_url, headers=case_header, variable_type=variable_type,
-        #                    variables=case_variable, extract=case_extract)
-        case_num = auto_num(data.get('caseNum'), ApiMsg, module_id=module_id)
-        new_case = ApiMsg(module_id=module_id, num=case_num, status_url=status_url, **msg['test'])
+            msg['status_url'] = '0'
+        new_case = ApiMsg(module_id=module_id, num=case_num, **msg)
         db.session.add(new_case)
         db.session.commit()
+        case_num += 1
 
     return jsonify({'msg': '导入成功', 'status': 1})
 

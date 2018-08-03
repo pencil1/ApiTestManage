@@ -208,7 +208,6 @@ class RunCase(object):
                 rec['meta_data']['response_headers'] = dict(res['records'][num]['meta_data']['response_headers'])
             if rec['meta_data'].get('request_headers'):
                 rec['meta_data']['request_headers'] = dict(res['records'][num]['meta_data']['request_headers'])
-
             if rec['meta_data'].get('request_body'):
                 if isinstance(rec['meta_data']['request_body'], bytes):
                     if b'filename=' in rec['meta_data']['request_body']:
@@ -216,12 +215,11 @@ class RunCase(object):
                     else:
                         rec['meta_data']['request_body'] = rec['meta_data']['request_body'].decode('unicode-escape')
 
-                        # if rec['meta_data'].get('response_body'):
-                        #     if isinstance(rec['meta_data']['response_body'], bytes):
-                        #         rec['meta_data']['response_body'] = bytes.decode(rec['meta_data']['response_body'])
-
-                        # if not rec['meta_data'].get('response_headers'):
-                        #     rec['meta_data']['response_headers'] = 'None'
+            if rec['meta_data'].get('response_body'):
+                if isinstance(rec['meta_data']['response_body'], bytes):
+                    rec['meta_data']['response_body'] = bytes.decode(rec['meta_data']['response_body'])
+            if not rec['meta_data'].get('response_headers'):
+                rec['meta_data']['response_headers'] = 'None'
 
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
         print(res)
