@@ -51,17 +51,17 @@ def get_report():
         d = json.loads(f.read())
 
     if state == 'success':
-        _d = copy.deepcopy(d['records'])
-        d['records'].clear()
+        _d = copy.deepcopy(d['details'])
+        d['details'].clear()
         for d1 in _d:
-            if d1['status'] == 'success':
-                d['records'].append(d1)
+            if d1['success']:
+                d['details'].append(d1)
     elif state == 'error':
-        _d = copy.deepcopy(d['records'])
-        d['records'].clear()
+        _d = copy.deepcopy(d['details'])
+        d['details'].clear()
         for d1 in _d:
-            if d1['status'] == 'error':
-                d['records'].append(d1)
+            if not d1['success']:
+                d['details'].append(d1)
     return jsonify(d)
 
 

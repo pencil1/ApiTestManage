@@ -1,9 +1,11 @@
 from flask import jsonify, current_app
 from . import api
+import traceback
 
 
 @api.app_errorhandler(Exception)
 def page_not_found(e):
+    # e = traceback.format_exc()
     current_app.logger.exception(e)
     # response = jsonify({'error': 'not found','data':e})
     # response.status_code = 404

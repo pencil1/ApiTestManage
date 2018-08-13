@@ -8,7 +8,7 @@ gunicorn的配置文件
 gevent.monkey.patch_all()
 
 debug = True
-loglevel = 'error'
+loglevel = 'info'
 bind = '192.168.6.19:8080'
 
 # 启动的进程数

@@ -144,6 +144,7 @@ class RunCase(object):
             for scene in scene_ids:
                 scene_data = Scene.query.filter_by(id=scene).first()
                 pro_config = self.pro_config(scene_data.project_id)
+                pro_config['config']['name'] = scene_data.name
 
                 if scene_data.func_address:
                     pro_config['config']['import_module_functions'] = [
@@ -193,36 +194,56 @@ class RunCase(object):
         res = main_ate(d)
 
         res['time']['duration'] = "%.2f" % res['time']['duration']
+        res['stat']['successes_1'] = res['stat']['successes']
+        res['stat']['failures_1'] = res['stat']['failures']
+        res['stat']['errors_1'] = res['stat']['errors']
         res['stat']['successes'] = "{} ({}%)".format(res['stat']['successes'],
                                                      int(res['stat']['successes'] / res['stat']['testsRun'] * 100))
         res['stat']['failures'] = "{} ({}%)".format(res['stat']['failures'],
                                                     int(res['stat']['failures'] / res['stat']['testsRun'] * 100))
+        res['stat']['errors'] = "{} ({}%)".format(res['stat']['errors'],
+                                                  int(res['stat']['errors'] / res['stat']['testsRun'] * 100))
+        res['stat']['successes_scene'] = 0
+        res['stat']['failures_scene'] = 0
+        for num_1, res_1 in enumerate(res['details']):
+            if res_1['success']:
+                res['stat']['successes_scene'] += 1
+            else:
+                res['stat']['failures_scene'] += 1
+            for num_2, rec_2 in enumerate(res_1['records']):
+                if isinstance(rec_2['meta_data']['response']['content'], bytes):
+                    rec_2['meta_data']['response']['content'] = bytes.decode(rec_2['meta_data']['response']['content'])
+                if rec_2['meta_data']['request'].get('body'):
+                    if isinstance(rec_2['meta_data']['request']['body'], bytes):
+                        rec_2['meta_data']['request']['body'] = bytes.decode(rec_2['meta_data']['request']['body'])
 
-        for num, rec in enumerate(res['records']):
-            # try:
-            # if not rec['meta_data'].get('url'):
-            #     rec['meta_data']['url'] = self.temporary_url[num] + '\n(url请求失败，这为原始url，)'
-            if 'Linux' in platform.platform():
-                rec['meta_data']['response_time(ms)'] = rec['meta_data'].get('response_time_ms')
-            if rec['meta_data'].get('response_headers'):
-                rec['meta_data']['response_headers'] = dict(res['records'][num]['meta_data']['response_headers'])
-            if rec['meta_data'].get('request_headers'):
-                rec['meta_data']['request_headers'] = dict(res['records'][num]['meta_data']['request_headers'])
-            if rec['meta_data'].get('request_body'):
-                if isinstance(rec['meta_data']['request_body'], bytes):
-                    if b'filename=' in rec['meta_data']['request_body']:
-                        rec['meta_data']['request_body'] = '暂不支持显示文件上传的request_body'
-                    else:
-                        rec['meta_data']['request_body'] = rec['meta_data']['request_body'].decode('unicode-escape')
+                if rec_2['meta_data']['response'].get('cookies'):
+                    rec_2['meta_data']['response']['cookies'] = dict(
+                        res['details'][0]['records'][0]['meta_data']['response']['cookies'])
+                    # for num, rec in enumerate(res['details'][0]['records']):
+                    # try:
+                    # if not rec['meta_data'].get('url'):
+                    #     rec['meta_data']['url'] = self.temporary_url[num] + '\n(url请求失败，这为原始url，)'
+                    # if 'Linux' in platform.platform():
+                    #     rec['meta_data']['response_time(ms)'] = rec['meta_data'].get('response_time_ms')
+                    # if rec['meta_data'].get('response_headers'):
+                    #     rec['meta_data']['response_headers'] = dict(res['records'][num]['meta_data']['response_headers'])
+                    # if rec['meta_data'].get('request_headers'):
+                    #     rec['meta_data']['request_headers'] = dict(res['records'][num]['meta_data']['request_headers'])
+                    # if rec['meta_data'].get('request_body'):
+                    #     if isinstance(rec['meta_data']['request_body'], bytes):
+                    #         if b'filename=' in rec['meta_data']['request_body']:
+                    #             rec['meta_data']['request_body'] = '暂不支持显示文件上传的request_body'
+                    #         else:
+                    #             rec['meta_data']['request_body'] = rec['meta_data']['request_body'].decode('unicode-escape')
 
-            if rec['meta_data'].get('response_body'):
-                if isinstance(rec['meta_data']['response_body'], bytes):
-                    rec['meta_data']['response_body'] = bytes.decode(rec['meta_data']['response_body'])
-            if not rec['meta_data'].get('response_headers'):
-                rec['meta_data']['response_headers'] = 'None'
+                    # if rec['meta_data'].get('response_body'):
+                    #     if isinstance(rec['meta_data']['response_body'], bytes):
+                    #         rec['meta_data']['response_body'] = bytes.decode(rec['meta_data']['response_body'])
+                    # if not rec['meta_data'].get('response_headers'):
+                    #     rec['meta_data']['response_headers'] = 'None'
 
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
-        print(res)
         jump_res = json.dumps(res, ensure_ascii=False)
         if self.run_type:
             self.new_report_id = Report.query.filter_by(
