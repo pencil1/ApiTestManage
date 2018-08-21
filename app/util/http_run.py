@@ -89,12 +89,21 @@ class RunCase(object):
             temp_case_data['request']['headers'] = {h['key']: h['value'] for h in json.loads(api_case.headers)
                                                     if h['key']}
 
-        temp_case_data['request']['url'] = getattr(pro_config, HOST[api_case.status_url]) + api_case.url
+        temp_case_data['request']['url'] = getattr(pro_config, HOST[api_case.status_url]) + api_case.url.split('?')[0]
 
         if api_case.func_address:
             temp_case_data['import_module_functions'] = [
                 'func_list.{}'.format(api_case.func_address.replace('.py', ''))]
         # if self.run_type:
+        if not self.run_type or json.loads(scene_case.status_param)[0]:
+            if not self.run_type or json.loads(scene_case.status_param)[1]:
+                _param = json.loads(scene_case.param)
+
+            else:
+                _param = json.loads(api_case.param)
+            temp_case_data['request']['params'] = {param['key']: param['value'] for param in
+                                                   _param if param.get('key')}
+
         if not self.run_type or json.loads(scene_case.status_variables)[0]:
             if not self.run_type or json.loads(scene_case.status_variables)[1]:
                 _variables = json.loads(scene_case.variables)
@@ -102,21 +111,20 @@ class RunCase(object):
             else:
                 _variables = json.loads(api_case.variables)
 
-            if api_case.method == 'GET':
-                temp_case_data['request']['params'] = {variable['key']: variable['value'] for variable in
-                                                       _variables if variable.get('key')}
-            else:
-                if api_case.variable_type == 'data':
-                    for variable in _variables:
-                        if variable['param_type'] == 'string' and variable.get('key'):
-                            temp_case_data['request']['data'].update({variable['key']: variable['value']})
-                        elif variable['param_type'] == 'file' and variable.get('key'):
-                            temp_case_data['request']['files'].update({variable['key']: (
-                                variable['value'].split('/')[-1], open(variable['value'], 'rb'),
-                                CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
+            # if api_case.method == 'GET':
 
-                else:
-                    temp_case_data['request']['json'] = _variables
+            # else:
+            if api_case.variable_type == 'data' and api_case.method != 'GET':
+                for variable in _variables:
+                    if variable['param_type'] == 'string' and variable.get('key'):
+                        temp_case_data['request']['data'].update({variable['key']: variable['value']})
+                    elif variable['param_type'] == 'file' and variable.get('key'):
+                        temp_case_data['request']['files'].update({variable['key']: (
+                            variable['value'].split('/')[-1], open(variable['value'], 'rb'),
+                            CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
+
+            else:
+                temp_case_data['request']['json'] = _variables
 
         if not self.run_type or json.loads(scene_case.status_extract)[0]:
             if not self.run_type or json.loads(scene_case.status_extract)[1]:

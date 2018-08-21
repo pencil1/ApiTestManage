@@ -60,15 +60,36 @@ def run_cmd():
 
 @api.route('/dealData', methods=['POST'])
 def deal_data():
-    data = request.json
-    _data = data.get('dictData')
-    test = json.loads(_data)
-    d = TraverseDict()
-    d.get_dict_keys_path(test)
-    d.data_tidy(test)
-    d.get_dict_keys_path(test)
-    d.data_tidy(test)
-    return jsonify({'data': json.dumps(test), 'status': 1, 'msg': '优化成功'})
+    # data = ApiMsg.query.all()
+    # for d in data:
+    #     if not d.param:
+    #         d.param = '[]'
+    #     if d.method == 'GET':
+    #         # print(d)
+    #         d1 = d.variables
+    #         d.param = d1
+    #         d.variables = '[]'
+    #     db.session.commit()
+
+    data1 = ApiCase.query.all()
+    for d in data1:
+        if ApiMsg.query.filter_by(id=d.apiMsg_id).first().method == 'GET':
+            d1 = d.variables
+            d.param = d1
+            d.variables = '[]'
+        else:
+            d.param = '[]'
+        d.status_param = '[true, true]'
+        db.session.commit()
+    # data = request.json
+    # _data = data.get('dictData')
+    # test = json.loads(_data)
+    # d = TraverseDict()
+    # d.get_dict_keys_path(test)
+    # d.data_tidy(test)
+    # d.get_dict_keys_path(test)
+    # d.data_tidy(test)
+    return jsonify({'status': 1, 'msg': '优化成功'})
 
 
 @api.route('/findSqlList')

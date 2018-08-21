@@ -96,6 +96,7 @@ def add_cases():
     #     return jsonify({'msg': 'url引用函数后，基础信息处必须引用函数文件', 'status': 0})
     #
     case_variable = data.get('caseVariable')
+    param = data.get('param')
     # if re.search('\${(.*?)}', case_variable, flags=0) and not func_address:
     #     return jsonify({'msg': '参数引用函数后，基础信息处必须引用函数文件', 'status': 0})
 
@@ -127,6 +128,7 @@ def add_cases():
         old_case_data.url = case_url
         old_case_data.headers = case_header
         old_case_data.variables = case_variable
+        old_case_data.param = param
         old_case_data.extract = case_extract
         old_case_data.module_id = module_id
         db.session.commit()
@@ -140,7 +142,7 @@ def add_cases():
         else:
             new_cases = ApiMsg(name=case_name, module_id=module_id, validate=case_validate, num=case_num,
                                status_url=status_url, func_address=func_address, up_func=up_func,
-                               down_func=down_func, desc=case_desc, method=case_method,
+                               down_func=down_func, desc=case_desc, method=case_method, param=param,
                                url=case_url, headers=case_header, variable_type=variable_type,
                                variables=case_variable, extract=case_extract)
             db.session.add(new_cases)
@@ -157,7 +159,7 @@ def edit_case():
 
     _data = {'caseName': _edit.name, 'caseNum': _edit.num, 'caseDesc': _edit.desc, 'caseUrl': _edit.url,
              'caseMethod': _edit.method, 'funcAddress': _edit.func_address, 'status_url': int(_edit.status_url),
-             'variableType': _edit.variable_type,
+             'variableType': _edit.variable_type, 'param': json.loads(_edit.param),
              'caseHeader': json.loads(_edit.headers), 'caseVariable': variable,
              'caseExtract': json.loads(_edit.extract), 'caseValidate': json.loads(_edit.validate), }
 
@@ -178,7 +180,7 @@ def copy_case():
 
     _data = {'caseName': _edit.name, 'caseNum': _edit.num, 'caseDesc': _edit.desc, 'caseUrl': _edit.url,
              'caseMethod': _edit.method, 'funcAddress': _edit.func_address, 'status_url': int(_edit.status_url),
-             'variableType': _edit.variable_type,
+             'variableType': _edit.variable_type,'param': json.loads(_edit.param),
              'caseHeader': json.loads(_edit.headers), 'caseVariable': variable,
              'caseExtract': json.loads(_edit.extract), 'caseValidate': json.loads(_edit.validate), }
     if _edit.up_func:
@@ -244,6 +246,7 @@ def find_cases():
              'variableType': c.variable_type,
              'variables': variable, 'extract': json.loads(c.extract),
              'validate': json.loads(c.validate),
+             'param': json.loads(c.param),
              'statusCase': {'extract': [True, True], 'variable': [True, True], 'validate': [True, True]},
              'status': True, 'case_name': c.name, 'down_func':'', 'up_func':''})
     return jsonify({'data': _case, 'total': total, 'status': 1})

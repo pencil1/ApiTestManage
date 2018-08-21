@@ -103,6 +103,7 @@ class ApiMsg(db.Model):
     down_func = db.Column(db.String())
     method = db.Column(db.String(), nullable=True)
     variables = db.Column(db.String())
+    param = db.Column(db.String())
     url = db.Column(db.String(), nullable=True)
     extract = db.Column(db.String())
     validate = db.Column(db.String())
@@ -120,6 +121,8 @@ class ApiCase(db.Model):
     up_func = db.Column(db.String())
     down_func = db.Column(db.String())
 
+    param = db.Column(db.String(), default=u'[]')
+    status_param = db.Column(db.String, default=u'[true, true]')
     variables = db.Column(db.String())
     status_variables = db.Column(db.String)
     extract = db.Column(db.String())

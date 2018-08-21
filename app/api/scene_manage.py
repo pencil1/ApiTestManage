@@ -60,9 +60,11 @@ def add_scene():
 
                 old_api_case.extract = json.dumps(c['extract'])
                 old_api_case.validate = json.dumps(c['validate'])
+                old_api_case.param = json.dumps(c['param'])
                 old_api_case.status_variables = json.dumps(c['statusCase']['variable'])
                 old_api_case.status_extract = json.dumps(c['statusCase']['extract'])
                 old_api_case.status_validate = json.dumps(c['statusCase']['validate'])
+                old_api_case.status_param = json.dumps(c['statusCase']['param'])
                 old_api_case.name = c['case_name']
                 old_api_case.status = json.dumps(c['status'])
                 old_api_case.up_func = c['up_func']
@@ -79,11 +81,12 @@ def add_scene():
                     variable = c['variables']
                 else:
                     variable = json.dumps(c['variables'])
-                new_case = ApiCase(num=num1, variables=variable, extract=json.dumps(c['extract']),
+                new_case = ApiCase(num=num1, variables=variable, extract=json.dumps(c['extract']),param=json.dumps(c['param']),
                                    validate=json.dumps(c['validate']), scene_id=ids, apiMsg_id=c['caseId'],
                                    status_variables=json.dumps(c['statusCase']['variable']),
                                    status_extract=json.dumps(c['statusCase']['extract']),
                                    status_validate=json.dumps(c['statusCase']['validate']),
+                                   status_param=json.dumps(c['statusCase']['param']),
                                    status=json.dumps(c['status']),
                                    name=c['case_name'], up_func=c['up_func'], down_func=c['down_func'])
                 db.session.add(new_case)
@@ -107,11 +110,12 @@ def add_scene():
                 else:
                     variable = json.dumps(c['variables'])
                 # if c.statusCase
-                new_case = ApiCase(num=num1, variables=variable, extract=json.dumps(c['extract']),
+                new_case = ApiCase(num=num1, variables=variable, extract=json.dumps(c['extract']),param=json.dumps(c['param']),
                                    validate=json.dumps(c['validate']), scene_id=scene_id, apiMsg_id=c['caseId'],
                                    status_variables=json.dumps(c['statusCase']['variable']),
                                    status_extract=json.dumps(c['statusCase']['extract']),
                                    status_validate=json.dumps(c['statusCase']['validate']),
+                                   status_param=json.dumps(c['statusCase']['param']),
                                    status=json.dumps(c['status']),
                                    name=c['case_name'], up_func=c['up_func'], down_func=c['down_func'])
                 db.session.add(new_case)
@@ -185,15 +189,18 @@ def edit_scene():
                           'id': case.id,
                           'status': json.loads(case.status),
                           'variableType': ApiMsg.query.filter_by(id=case.apiMsg_id).first().variable_type,
-                          'variables': variable,
                           'case_name': case.name,
                           'up_func': case.up_func,
                           'down_func': case.down_func,
+                          'variables': variable,
+                          'param': json.loads(case.param),
                           'extract': json.loads(case.extract),
                           'validate': json.loads(case.validate),
                           'statusCase': {'variable': json.loads(case.status_variables),
                                          'extract': json.loads(case.status_extract),
-                                         'validate': json.loads(case.status_validate)},
+                                         'validate': json.loads(case.status_validate),
+                                         'param': json.loads(case.status_param)},
+
                           })
     _data = {'num': _edit.num, 'name': _edit.name, 'desc': _edit.desc, 'cases': case_data,
              'func_address': _edit.func_address}
