@@ -73,8 +73,9 @@ def deal_data():
 
     data1 = ApiCase.query.all()
     for d in data1:
-        if ApiMsg.query.filter_by(id=d.apiMsg_id).first().method == 'GET':
-            d1 = d.variables
+        msg = ApiMsg.query.filter_by(id=d.apiMsg_id).first()
+        if msg.method == 'GET':
+            d1 = msg.param
             d.param = d1
             d.variables = '[]'
         else:

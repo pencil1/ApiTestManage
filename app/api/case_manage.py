@@ -44,7 +44,7 @@ def get_pro_gather():
         if p.host_four:
             pro_url[p.name].append(p.host_four)
     if _pros2:
-        _pros2 = {_pros2.name: pro[_pros2.name]}
+        _pros2 = {'pro_name': _pros2.name, 'model_list': pro[_pros2.name]}
     return jsonify(
         {'data': pro, 'urlData': pro_url, 'status': 1, 'user_pro': _pros2, 'config_name_list': scene_config_lists})
 
@@ -150,7 +150,7 @@ def add_cases():
             return jsonify({'msg': '新建成功', 'status': 1})
 
 
-@api.route('/cases/edit', methods=['POST'])
+@api.route('/cases/editAndCopy', methods=['POST'])
 def edit_case():
     data = request.json
     case_id = data.get('caseId')
@@ -162,12 +162,10 @@ def edit_case():
              'variableType': _edit.variable_type, 'param': json.loads(_edit.param),
              'caseHeader': json.loads(_edit.headers), 'caseVariable': variable,
              'caseExtract': json.loads(_edit.extract), 'caseValidate': json.loads(_edit.validate), }
-
     if _edit.up_func:
         _data['up_func'] = ','.join(json.loads(_edit.up_func))
     if _edit.down_func:
         _data['down_func'] = ','.join(json.loads(_edit.down_func))
-
     return jsonify({'data': _data, 'status': 1})
 
 
@@ -180,14 +178,13 @@ def copy_case():
 
     _data = {'caseName': _edit.name, 'caseNum': _edit.num, 'caseDesc': _edit.desc, 'caseUrl': _edit.url,
              'caseMethod': _edit.method, 'funcAddress': _edit.func_address, 'status_url': int(_edit.status_url),
-             'variableType': _edit.variable_type,'param': json.loads(_edit.param),
+             'variableType': _edit.variable_type, 'param': json.loads(_edit.param),
              'caseHeader': json.loads(_edit.headers), 'caseVariable': variable,
              'caseExtract': json.loads(_edit.extract), 'caseValidate': json.loads(_edit.validate), }
     if _edit.up_func:
         _data['up_func'] = ','.join(json.loads(_edit.up_func))
     if _edit.down_func:
         _data['down_func'] = ','.join(json.loads(_edit.down_func))
-
     return jsonify({'data': _data, 'status': 1})
 
 
