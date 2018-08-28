@@ -120,7 +120,7 @@ class ApiCase(db.Model):
     name = db.Column(db.String())
     up_func = db.Column(db.String())
     down_func = db.Column(db.String())
-
+    time = db.Column(db.Integer(), default=1)
     param = db.Column(db.String(), default=u'[]')
     status_param = db.Column(db.String, default=u'[true, true]')
     variables = db.Column(db.String())

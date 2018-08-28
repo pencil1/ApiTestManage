@@ -73,14 +73,7 @@ def deal_data():
 
     data1 = ApiCase.query.all()
     for d in data1:
-        msg = ApiMsg.query.filter_by(id=d.apiMsg_id).first()
-        if msg.method == 'GET':
-            d1 = msg.param
-            d.param = d1
-            d.variables = '[]'
-        else:
-            d.param = '[]'
-        d.status_param = '[true, true]'
+        d.time = 1
         db.session.commit()
     # data = request.json
     # _data = data.get('dictData')

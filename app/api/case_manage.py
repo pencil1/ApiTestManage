@@ -245,7 +245,7 @@ def find_cases():
              'validate': json.loads(c.validate),
              'param': json.loads(c.param),
              'statusCase': {'extract': [True, True], 'variable': [True, True], 'validate': [True, True]},
-             'status': True, 'case_name': c.name, 'down_func':'', 'up_func':''})
+             'status': True, 'case_name': c.name, 'down_func': '', 'up_func': '', 'time': 1})
     return jsonify({'data': _case, 'total': total, 'status': 1})
 
 

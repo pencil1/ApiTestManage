@@ -61,6 +61,7 @@ def add_scene():
                 old_api_case.extract = json.dumps(c['extract'])
                 old_api_case.validate = json.dumps(c['validate'])
                 old_api_case.param = json.dumps(c['param'])
+                old_api_case.time = c['time']
                 old_api_case.status_variables = json.dumps(c['statusCase']['variable'])
                 old_api_case.status_extract = json.dumps(c['statusCase']['extract'])
                 old_api_case.status_validate = json.dumps(c['statusCase']['validate'])
@@ -81,7 +82,8 @@ def add_scene():
                     variable = c['variables']
                 else:
                     variable = json.dumps(c['variables'])
-                new_case = ApiCase(num=num1, variables=variable, extract=json.dumps(c['extract']),param=json.dumps(c['param']),
+                new_case = ApiCase(num=num1, variables=variable, extract=json.dumps(c['extract']),
+                                   param=json.dumps(c['param']), time=c['time'],
                                    validate=json.dumps(c['validate']), scene_id=ids, apiMsg_id=c['caseId'],
                                    status_variables=json.dumps(c['statusCase']['variable']),
                                    status_extract=json.dumps(c['statusCase']['extract']),
@@ -110,7 +112,8 @@ def add_scene():
                 else:
                     variable = json.dumps(c['variables'])
                 # if c.statusCase
-                new_case = ApiCase(num=num1, variables=variable, extract=json.dumps(c['extract']),param=json.dumps(c['param']),
+                new_case = ApiCase(num=num1, variables=variable, extract=json.dumps(c['extract']),
+                                   param=json.dumps(c['param']), time=c['time'],
                                    validate=json.dumps(c['validate']), scene_id=scene_id, apiMsg_id=c['caseId'],
                                    status_variables=json.dumps(c['statusCase']['variable']),
                                    status_extract=json.dumps(c['statusCase']['extract']),
@@ -190,6 +193,7 @@ def edit_scene():
                           'status': json.loads(case.status),
                           'variableType': ApiMsg.query.filter_by(id=case.apiMsg_id).first().variable_type,
                           'case_name': case.name,
+                          'time': case.time,
                           'up_func': case.up_func,
                           'down_func': case.down_func,
                           'variables': variable,

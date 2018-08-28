@@ -3,7 +3,6 @@ from app.models import *
 from httprunner.task import HttpRunner
 from httprunner.testcase import *
 from ..util.global_variable import *
-import platform
 from ..util.utils import merge_config
 
 
@@ -163,11 +162,11 @@ class RunCase(object):
                 else:
                     scene_config = []
                 pro_config = merge_config(pro_config, scene_config)
-
+                pro_data = Project.query.filter_by(id=scene_data.project_id).first()
                 for case in ApiCase.query.filter_by(scene_id=scene).order_by(ApiCase.num.asc()).all():
                     if case.status == 'true':
-                        pro_config['testcases'].append(
-                            self.get_case(case, Project.query.filter_by(id=scene_data.project_id).first()))
+                        for t in range(case.time):
+                            pro_config['testcases'].append(self.get_case(case, pro_data))
                 temp_case.append(copy.deepcopy(pro_config))
             return temp_case
         if self.case_data:
