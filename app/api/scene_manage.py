@@ -178,6 +178,7 @@ def del_api_case():
 def edit_scene():
     data = request.json
     scene_id = data.get('sceneId')
+    status = data.get('copyEditStatus')
     _edit = Scene.query.filter_by(id=scene_id).first()
 
     cases = ApiCase.query.filter_by(scene_id=scene_id).order_by(ApiCase.num.asc()).all()
@@ -187,9 +188,14 @@ def edit_scene():
             variable = case.variables
         else:
             variable = json.loads(case.variables)
+
+        if status:
+            case_id = ''
+        else:
+            case_id = case.id
         case_data.append({'num': case.num, 'name': ApiMsg.query.filter_by(id=case.apiMsg_id).first().name,
-                          'desc': ApiMsg.query.filter_by(id=case.apiMsg_id).first().desc, 'api_caseId': case.id,
-                          'id': case.id,
+                          'desc': ApiMsg.query.filter_by(id=case.apiMsg_id).first().desc, 'caseId': case.apiMsg_id,
+                          'id': case_id,
                           'status': json.loads(case.status),
                           'variableType': ApiMsg.query.filter_by(id=case.apiMsg_id).first().variable_type,
                           'case_name': case.name,
