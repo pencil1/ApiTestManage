@@ -135,6 +135,12 @@ def convert(variable):
 
 
 def merge_config(pro_config, scene_config):
+    """
+    合并公用项目配置和业务集合配置
+    :param pro_config:
+    :param scene_config:
+    :return:
+    """
     for _s in scene_config:
         for _p in pro_config['config']['variables']:
             if _p['key'] == _s['key']:

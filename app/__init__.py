@@ -1,55 +1,29 @@
 # encoding: utf-8
-"""
-@author: lileilei
-@site: 
-@software: PyCharm
-@file: __init__.py.py
-@time: 2017/7/13 16:38
-"""
 import os
-
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_moment import Moment
-from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from config import config
-from apscheduler.schedulers.background import BackgroundScheduler
-from config import jobstores, executors
-import logging
-import time
+from config import config_log
+from config import ConfigTask
+from .util import global_variable  # 初始化文件地址
 
 login_manager = LoginManager()
 login_manager.session_protection = 'None'
 # login_manager.login_view = '.login'
 
-bootstrap = Bootstrap()
 db = SQLAlchemy()
 moment = Moment()
-
+scheduler = ConfigTask().scheduler
 basedir = os.path.abspath(os.path.dirname(__file__))
-scheduler = BackgroundScheduler(jobstores=jobstores, executors=executors)
-
-
-def config_log():
-    log_file_str = os.path.abspath('..') + r'/logs/' + 'logger-' + time.strftime('%Y-%m-%d',
-                                                                                 time.localtime(time.time())) + '.log'
-    handler = logging.FileHandler(log_file_str, encoding='UTF-8')
-    handler.setLevel(logging.INFO)
-    logging_format = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(lineno)s - %(message)s')
-    handler.setFormatter(logging_format)
-    return handler
 
 
 def create_app(config_name):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
-    app.logger.addHandler(config_log())
-    # app.logger.addFilter(handler)
+    app.logger.addHandler(config_log())     # 初始化日志
     config[config_name].init_app(app)
-    bootstrap.init_app(app)
-    # scheduler.init_app(app)
     moment.init_app(app)
 
     # https://blog.csdn.net/yannanxiu/article/details/53426359 关于定时任务访问数据库时报错
@@ -59,7 +33,7 @@ def create_app(config_name):
     db.create_all()
 
     login_manager.init_app(app)
-    scheduler.start()
+    scheduler.start()     # 定时任务启动
 
     # from .main import main as main_blueprint
     # app.register_blueprint(main_blueprint)

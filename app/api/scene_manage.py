@@ -95,7 +95,7 @@ def add_scene():
                 db.session.commit()
         return jsonify({'msg': '修改成功', 'status': 1})
     else:
-        if Scene.query.filter_by(name=name).first():
+        if Scene.query.filter_by(name=name, project_id=project_id).first():
             return jsonify({'msg': '业务名字重复', 'status': 0})
         elif Scene.query.filter_by(num=num, project_id=project_id).first():
             return jsonify({'msg': '编号重复', 'status': 0})

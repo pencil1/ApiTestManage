@@ -1,8 +1,7 @@
 from flask import jsonify, request
 from flask_login import current_user
-
 from app.models import *
-from app.util.case_change.core import HarParser, postman_parser
+from app.util.case_change.core import HarParser
 from . import api
 from ..util.http_run import RunCase
 from ..util.utils import *
@@ -82,14 +81,16 @@ def add_cases():
     if not gather_name and not project_name:
         return jsonify({'msg': '项目和模块不能为空', 'status': 0})
 
+    case_url = data.get('caseUrl')
     status_url = data.get('choiceUrl')
     if status_url == -1:
-        return jsonify({'msg': '基础url不能为空', 'status': 0})
+        if 'http' not in case_url:
+            return jsonify({'msg': '基础url为空时，请补全api地址', 'status': 0})
 
     if not func_address and (data.get('upFunc') or data.get('downFunc')):
         return jsonify({'msg': '设置前后置函数后必须引用函数文件', 'status': 0})
 
-    case_url = data.get('caseUrl')
+
     # if not case_url:
     #     return jsonify({'msg': '接口url不能为空', 'status': 0})
     # elif re.search('\${(.*?)}', case_url, flags=0) and not func_address:
@@ -162,46 +163,55 @@ def edit_case():
              'variableType': _edit.variable_type, 'param': json.loads(_edit.param),
              'caseHeader': json.loads(_edit.headers), 'caseVariable': variable,
              'caseExtract': json.loads(_edit.extract), 'caseValidate': json.loads(_edit.validate), }
+    current_app.logger.info(_data)
     if _edit.up_func:
         _data['up_func'] = ','.join(json.loads(_edit.up_func))
     if _edit.down_func:
         _data['down_func'] = ','.join(json.loads(_edit.down_func))
     return jsonify({'data': _data, 'status': 1})
 
-
-@api.route('/cases/copy', methods=['POST'])
-def copy_case():
-    data = request.json
-    case_id = data.get('caseId')
-    _edit = ApiMsg.query.filter_by(id=case_id).first()
-    variable = _edit.variables if _edit.variable_type == 'json' else json.loads(_edit.variables)
-
-    _data = {'caseName': _edit.name, 'caseNum': _edit.num, 'caseDesc': _edit.desc, 'caseUrl': _edit.url,
-             'caseMethod': _edit.method, 'funcAddress': _edit.func_address, 'status_url': int(_edit.status_url),
-             'variableType': _edit.variable_type, 'param': json.loads(_edit.param),
-             'caseHeader': json.loads(_edit.headers), 'caseVariable': variable,
-             'caseExtract': json.loads(_edit.extract), 'caseValidate': json.loads(_edit.validate), }
-    if _edit.up_func:
-        _data['up_func'] = ','.join(json.loads(_edit.up_func))
-    if _edit.down_func:
-        _data['down_func'] = ','.join(json.loads(_edit.down_func))
-    return jsonify({'data': _data, 'status': 1})
+#
+# @api.route('/cases/copy', methods=['POST'])
+# def copy_case():
+#     data = request.json
+#     case_id = data.get('caseId')
+#     _edit = ApiMsg.query.filter_by(id=case_id).first()
+#     variable = _edit.variables if _edit.variable_type == 'json' else json.loads(_edit.variables)
+#
+#     _data = {'caseName': _edit.name, 'caseNum': _edit.num, 'caseDesc': _edit.desc, 'caseUrl': _edit.url,
+#              'caseMethod': _edit.method, 'funcAddress': _edit.func_address, 'status_url': int(_edit.status_url),
+#              'variableType': _edit.variable_type, 'param': json.loads(_edit.param),
+#              'caseHeader': json.loads(_edit.headers), 'caseVariable': variable,
+#              'caseExtract': json.loads(_edit.extract), 'caseValidate': json.loads(_edit.validate), }
+#     if _edit.up_func:
+#         _data['up_func'] = ','.join(json.loads(_edit.up_func))
+#     if _edit.down_func:
+#         _data['down_func'] = ','.join(json.loads(_edit.down_func))
+#     return jsonify({'data': _data, 'status': 1})
 
 
 @api.route('/cases/run', methods=['POST'])
 def run_case():
     data = request.json
     case_data = data.get('caseData')
+    suite_data = data.get('suiteData')
     project_name = data.get('projectName')
     config_name = data.get('configName')
-    if not case_data:
+    case_data_id = []
+    if not case_data and not suite_data:
         return jsonify({'msg': '请勾选信息后，再进行测试', 'status': 0})
     # 前端传入的数据不是按照编号来的，所以这里重新排序
-    case_data_id = [(item['num'], item['caseId']) for item in case_data]
-    case_data_id.sort(key=lambda x: x[0])
+    if case_data:
+        case_data_id = [(item['num'], item['caseId']) for item in case_data]
+        case_data_id.sort(key=lambda x: x[0])
 
-    old_case_data = [ApiMsg.query.filter_by(id=c[1]).first() for c in case_data_id]
-    d = RunCase(project_names=project_name, case_data=[config_name, old_case_data])
+        api_msg = [ApiMsg.query.filter_by(id=c[1]).first() for c in case_data_id]
+    if suite_data:
+        for suite in suite_data:
+            case_data_id += json.loads(ApiSuite.query.filter_by(id=suite['id']).first().api_ids)
+            api_msg = [ApiMsg.query.filter_by(id=c).first() for c in case_data_id]
+
+    d = RunCase(project_names=project_name, case_data=api_msg, config_name=config_name)
     res = json.loads(d.run_case())
     return jsonify({'msg': '测试完成', 'data': res, 'status': 1})
 
@@ -214,7 +224,7 @@ def find_cases():
     case_name = data.get('caseName')
     total = 1
     page = data.get('page') if data.get('page') else 1
-    per_page = data.get('sizePage') if data.get('sizePage') else 10
+    per_page = data.get('sizePage') if data.get('sizePage') else 20
 
     if not gat_name:
         return jsonify({'msg': '请先创建{}项目下的模块'.format(project_name), 'status': 0})
@@ -306,18 +316,3 @@ def file_change():
 
     return jsonify({'msg': '导入成功', 'status': 1})
 
-#
-# @api.route('/cases/del1', methods=['POST'])
-# def del_cases1():
-#     data = request.json
-#     _edit = ApiMsg.query.filter_by().all()
-#     for a in _edit:
-#         if json.loads(a.variables):
-#             if a.variable_type == 'data':
-#                 a1 = json.loads(a.variables)
-#                 for num, a2 in enumerate(a1):
-#                     a1[num]['param_type'] = 'string'
-#                 a.variables = json.dumps(a1)
-#                 db.session.commit()
-#
-#     return jsonify({'msg': '删除成功', 'status': 1})

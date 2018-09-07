@@ -17,16 +17,16 @@ def main_ate(cases):
 
 
 class RunCase(object):
-    def __init__(self, project_names=None, scene_names=None, case_data=None):
+    def __init__(self, project_names=None, scene_names=None, case_data=None, config_name=None):
         self.project_names = project_names
         self.scene_names = scene_names
+        self.config_name = config_name
         self.case_data = case_data
-        self.project_id = Project.query.filter_by(name=self.project_names).first().id
-        self.project_config = Project.query.filter_by(id=self.project_id).first()
-        self.pro_cfg_data = dict()
-        self.run_type = False
-        self.all_case_data = self.project_case() or self.scene_case() or self.one_case()
-        self.new_report_id = ''
+        self.project_data = Project.query.filter_by(name=self.project_names).first()
+        self.project_id = self.project_data.id
+        self.run_type = False   # 判断是接口调试(false)or业务用例执行(true)
+        self.temp_data = self.scene_case() or self.one_case()
+        self.new_report_id = None
 
     def project_case(self):
         if self.project_names and not self.scene_names and not self.case_data:
@@ -42,11 +42,7 @@ class RunCase(object):
 
     def scene_case(self):
         if self.scene_names:
-            scene_id = [Scene.query.filter_by(name=n).first().id for n in self.scene_names]
-            # all_case_data = []
-            # for c in scene_id:
-            #     for c1 in ApiCase.query.filter_by(scene_id=c).order_by(ApiCase.num.asc()).all():
-            #         all_case_data.append(c1)
+            scene_id = [Scene.query.filter_by(name=n, project_id=self.project_id).first().id for n in self.scene_names]
             self.run_type = True
             return scene_id
         else:
@@ -60,59 +56,65 @@ class RunCase(object):
             return None
 
     @staticmethod
-    def pro_config(project_id):
+    def pro_config(project_data):
+        """
+        把project的配置数据解析出来
+        :param project_data:
+        :return:
+        """
         pro_cfg_data = {'config': {'name': 'config_name', 'request': {}}, 'testcases': [], 'name': 'config_name'}
-        project_config = Project.query.filter_by(id=project_id).first()
 
         pro_cfg_data['config']['request']['headers'] = {h['key']: h['value'] for h in
-                                                        json.loads(project_config.headers) if h.get('key')}
+                                                        json.loads(project_data.headers) if h.get('key')}
 
-        pro_cfg_data['config']['variables'] = json.loads(project_config.variables)
+        pro_cfg_data['config']['variables'] = json.loads(project_data.variables)
         return pro_cfg_data
 
-    def get_case(self, scene_case, pro_config):
+    def get_case(self, case_data, pro_base_url):
         if self.run_type:
-            api_case = ApiMsg.query.filter_by(id=scene_case.apiMsg_id).first()
+            # 为true，获取api基础信息；case只包含可改变部分所以还需要api基础信息组合成全新的用例
+            api_case = ApiMsg.query.filter_by(id=case_data.apiMsg_id).first()
         else:
-            api_case = scene_case
+            # 为false，基础信息和参数信息都在api里面，所以api_case = case_data，直接赋值覆盖
+            api_case = case_data
 
-        temp_case_data = {'name': scene_case.name,
+        temp_case_data = {'name': case_data.name,
                           'request': {'method': api_case.method,
                                       'files': {},
                                       'data': {}}}
-        if scene_case.up_func:
-            temp_case_data['setup_hooks'] = [scene_case.up_func]
-        if scene_case.down_func:
-            temp_case_data['teardown_hooks'] = [scene_case.down_func]
+        if case_data.up_func:
+            temp_case_data['setup_hooks'] = [case_data.up_func]
+        if case_data.down_func:
+            temp_case_data['teardown_hooks'] = [case_data.down_func]
         if json.loads(api_case.headers):
             temp_case_data['request']['headers'] = {h['key']: h['value'] for h in json.loads(api_case.headers)
                                                     if h['key']}
 
-        temp_case_data['request']['url'] = getattr(pro_config, HOST[api_case.status_url]) + api_case.url.split('?')[0]
+        if api_case.status_url != '-1':
+            temp_case_data['request']['url'] = pro_base_url[api_case.status_url] + api_case.url.split('?')[0]
+        else:
+            temp_case_data['request']['url'] = api_case.url
 
         if api_case.func_address:
             temp_case_data['import_module_functions'] = [
                 'func_list.{}'.format(api_case.func_address.replace('.py', ''))]
         # if self.run_type:
-        if not self.run_type or json.loads(scene_case.status_param)[0]:
-            if not self.run_type or json.loads(scene_case.status_param)[1]:
-                _param = json.loads(scene_case.param)
+        if not self.run_type or json.loads(case_data.status_param)[0]:
+            if not self.run_type or json.loads(case_data.status_param)[1]:
+                _param = json.loads(case_data.param)
 
             else:
                 _param = json.loads(api_case.param)
             temp_case_data['request']['params'] = {param['key']: param['value'] for param in
                                                    _param if param.get('key')}
 
-        if not self.run_type or json.loads(scene_case.status_variables)[0]:
-            if not self.run_type or json.loads(scene_case.status_variables)[1]:
-                _variables = json.loads(scene_case.variables)
+        if not self.run_type or json.loads(case_data.status_variables)[0]:
+            if not self.run_type or json.loads(case_data.status_variables)[1]:
+                _variables = json.loads(case_data.variables)
 
             else:
                 _variables = json.loads(api_case.variables)
 
-            # if api_case.method == 'GET':
-
-            # else:
             if api_case.variable_type == 'data' and api_case.method != 'GET':
                 for variable in _variables:
                     if variable['param_type'] == 'string' and variable.get('key'):
@@ -125,18 +127,18 @@ class RunCase(object):
             else:
                 temp_case_data['request']['json'] = _variables
 
-        if not self.run_type or json.loads(scene_case.status_extract)[0]:
-            if not self.run_type or json.loads(scene_case.status_extract)[1]:
-                _extract_temp = scene_case.extract
+        if not self.run_type or json.loads(case_data.status_extract)[0]:
+            if not self.run_type or json.loads(case_data.status_extract)[1]:
+                _extract_temp = case_data.extract
             else:
                 _extract_temp = api_case.extract
 
             temp_case_data['extract'] = [{ext['key']: ext['value']} for ext in json.loads(_extract_temp) if
                                          ext.get('key')]
 
-        if not self.run_type or json.loads(scene_case.status_validate)[0]:
-            if not self.run_type or json.loads(scene_case.status_validate)[1]:
-                _validate_temp = scene_case.validate
+        if not self.run_type or json.loads(case_data.status_validate)[0]:
+            if not self.run_type or json.loads(case_data.status_validate)[1]:
+                _validate_temp = case_data.validate
             else:
                 _validate_temp = api_case.validate
             temp_case_data['validate'] = [{val['comparator']: [val['key'], val['value']]} for val in
@@ -146,47 +148,44 @@ class RunCase(object):
 
     def all_cases_data(self):
         temp_case = []
+        pro_config = self.pro_config(self.project_data)
+
+        # 获取项目中4个基础url
+        pro_base_url = {'0': self.project_data.host, '1': self.project_data.host_two,
+                        '2': self.project_data.host_three, '3': self.project_data.host_four}
         if self.scene_names:
-            scene_ids = [Scene.query.filter_by(name=n).first().id for n in self.scene_names]
-            for scene in scene_ids:
+            for scene in self.temp_data:
+                _temp_config = copy.deepcopy(pro_config)
                 scene_data = Scene.query.filter_by(id=scene).first()
-                pro_config = self.pro_config(scene_data.project_id)
-                pro_config['config']['name'] = scene_data.name
+                _temp_config['config']['name'] = scene_data.name
 
-                if scene_data.func_address:
-                    pro_config['config']['import_module_functions'] = [
-                        'func_list.{}'.format(scene_data.func_address.replace('.py', ''))]
+                # 获取需要导入的函数文件数据
+                _temp_config['config']['import_module_functions'] = ['func_list.{}'.format(
+                    scene_data.func_address.replace('.py', ''))] if scene_data.func_address else []
 
-                if scene_data.variables:
-                    scene_config = json.loads(scene_data.variables)
-                else:
-                    scene_config = []
-                pro_config = merge_config(pro_config, scene_config)
-                pro_data = Project.query.filter_by(id=scene_data.project_id).first()
+                # 获取业务集合的配置数据
+                scene_config = json.loads(scene_data.variables) if scene_data.variables else []
+
+                # 合并公用项目配置和业务集合配置
+                _temp_config = merge_config(_temp_config, scene_config)
+
                 for case in ApiCase.query.filter_by(scene_id=scene).order_by(ApiCase.num.asc()).all():
-                    if case.status == 'true':
-                        for t in range(case.time):
-                            pro_config['testcases'].append(self.get_case(case, pro_data))
-                temp_case.append(pro_config)
+                    if case.status == 'true':  # 判断用例状态，是否执行
+                        for t in range(case.time):  # 获取用例执行次数，遍历添加
+                            _temp_config['testcases'].append(self.get_case(case, pro_base_url))
+                temp_case.append(_temp_config)
             return temp_case
-        if self.case_data:
-            pro_config = self.pro_config(self.project_id)
-            config_data = SceneConfig.query.filter_by(name=self.case_data[0]).first()
-            if not self.case_data[0]:
-                _config = []
-            else:
-                _config = json.loads(config_data.variables)
-            if config_data:
-                if config_data.func_address:
-                    pro_config['config']['import_module_functions'] = [
-                        'func_list.{}'.format(config_data.func_address.replace('.py', ''))]
 
-            pro_config = merge_config(pro_config, _config)
-            for case in self.case_data[1]:
-                pro_config['testcases'].append(
-                    self.get_case(case, Project.query.filter_by(id=self.project_id).first()))
-            # temp_case.append(copy.deepcopy(pro_config))
-            return pro_config
+        if self.case_data:
+            _temp_config = copy.deepcopy(pro_config)
+            config_data = SceneConfig.query.filter_by(project_id=self.project_id, name=self.config_name).first()
+            _config = json.loads(config_data.variables) if self.config_name else []
+            _temp_config['config']['import_module_functions'] = ['func_list.{}'.format(
+                    config_data.func_address.replace('.py', ''))] if config_data and config_data.func_address else []
+
+            _temp_config = merge_config(_temp_config, _config)
+            _temp_config['testcases'] = [self.get_case(case, pro_base_url) for case in self.case_data]
+            return _temp_config
             # return temp_case
 
     def run_case(self):
@@ -213,7 +212,6 @@ class RunCase(object):
                                                   int(res['stat']['errors'] / res['stat']['testsRun'] * 100))
         res['stat']['successes_scene'] = 0
         res['stat']['failures_scene'] = 0
-        print(res)
         for num_1, res_1 in enumerate(res['details']):
             if res_1['success']:
                 res['stat']['successes_scene'] += 1
@@ -257,7 +255,6 @@ class RunCase(object):
                     #     rec['meta_data']['response_headers'] = 'None'
 
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
-        print(res)
         jump_res = json.dumps(res, ensure_ascii=False)
         if self.run_type:
             self.new_report_id = Report.query.filter_by(

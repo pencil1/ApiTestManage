@@ -690,6 +690,7 @@ CONTENT_TYPE = {
     '.zoo': 'application/x-zoo',
 }
 REPORT_ADDRESS = os.path.abspath('..') + r'/reports/'
+LOG_ADDRESS = os.path.abspath('..') + r'/logs/'
 TEMP_REPORT = os.path.abspath('.') + r'/app/util'
 FUNC_ADDRESS = os.path.abspath('.') + r'/func_list'
 FILE_ADDRESS = os.path.abspath('..') + r'/files/'
@@ -703,6 +704,8 @@ def _check_file_path():
         os.makedirs(FUNC_ADDRESS)
     if not os.path.exists(FILE_ADDRESS):
         os.makedirs(FILE_ADDRESS)
+    if not os.path.exists(LOG_ADDRESS):
+        os.makedirs(LOG_ADDRESS)
 
 
 _check_file_path()

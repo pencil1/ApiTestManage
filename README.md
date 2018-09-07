@@ -1,5 +1,5 @@
 # ApiTestManage
-如有疑问可联系qq：362508572   或q群：700387899
+喜欢哒！顺手帮忙点个star呗~~谢谢！！如有疑问可联系qq：362508572   或q群：700387899
 
 前端传送门：https://github.com/pencil1/ApiTestWeb
 

@@ -40,7 +40,7 @@ def add_scene_config():
         db.session.commit()
         return jsonify({'msg': '修改成功', 'status': 1})
     else:
-        if SceneConfig.query.filter_by(name=name).first():
+        if SceneConfig.query.filter_by(name=name, project_id=project_id).first():
             return jsonify({'msg': '配置名字重复', 'status': 0})
 
         else:

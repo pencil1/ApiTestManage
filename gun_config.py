@@ -4,7 +4,7 @@ import multiprocessing
 """
 gunicorn的配置文件
 """
-
+# gevent的猴子魔法 变成非阻塞
 gevent.monkey.patch_all()
 
 debug = True

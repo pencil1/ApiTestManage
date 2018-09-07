@@ -9,7 +9,6 @@ from app import create_app, db
 from app.models import User, Permisson, ApiMsg
 from flask_script import Manager, Shell, Server
 from flask_migrate import Migrate, MigrateCommand
-from gevent.pywsgi import WSGIServer
 from gevent import monkey
 
 # gevent的猴子魔法

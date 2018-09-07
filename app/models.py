@@ -111,6 +111,19 @@ class ApiMsg(db.Model):
     module_id = db.Column(db.Integer, db.ForeignKey('module.id'))  # module指的是 __tablename__
 
 
+class ApiSuite(db.Model):
+    __tablename__ = 'apiSuite'
+    id = db.Column(db.Integer(), primary_key=True)
+    create_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
+    update_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
+    num = db.Column(db.Integer(), nullable=True)
+    name = db.Column(db.String(), nullable=True)
+    api_ids = db.Column(db.String(), nullable=True)
+
+    module_id = db.Column(db.Integer, db.ForeignKey('module.id'))
+
+
 class ApiCase(db.Model):
     __tablename__ = 'apiCase'
     id = db.Column(db.Integer(), primary_key=True)
