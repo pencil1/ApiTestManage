@@ -157,7 +157,6 @@ def edit_case():
     case_id = data.get('caseId')
     _edit = ApiMsg.query.filter_by(id=case_id).first()
     variable = _edit.variables if _edit.variable_type == 'json' else json.loads(_edit.variables)
-
     _data = {'caseName': _edit.name, 'caseNum': _edit.num, 'caseDesc': _edit.desc, 'caseUrl': _edit.url,
              'caseMethod': _edit.method, 'funcAddress': _edit.func_address, 'status_url': int(_edit.status_url),
              'variableType': _edit.variable_type, 'param': json.loads(_edit.param),
@@ -313,6 +312,5 @@ def file_change():
         db.session.add(new_case)
         db.session.commit()
         case_num += 1
-
     return jsonify({'msg': '导入成功', 'status': 1})
 

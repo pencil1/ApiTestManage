@@ -54,6 +54,7 @@ def postman_parser(file_path):
                          "variables": '[]',
                          "extract": '[]',
                          "validate": '[]',
+                         "param": '[]',
                          }
         testcase_dict['name'] = a['name']
         testcase_dict['method'] = a['method']
@@ -68,7 +69,7 @@ def postman_parser(file_path):
         testcase_dict['headers'] = json.dumps(
             [{'key': h['key'], 'value': h['value']} for h in a['headerData'] if h])
         if a['method'] == 'GET':
-            testcase_dict['variables'] = json.dumps(
+            testcase_dict['param'] = json.dumps(
                 [{'key': h1['key'], 'value': h1['value'], 'param_type': 'string'} for h1 in a['queryParams'] if h1])
 
         if a['data']:
@@ -118,7 +119,7 @@ class HarParser(object):
             sys.exit(1)
         parsed_object = urlparse(url)
         if request_params:
-            testcase_dict["variables"] = json.dumps(
+            testcase_dict["param"] = json.dumps(
                 [{'key': k, 'value': v, 'param_type': 'string'} for k, v in request_params.items()])
 
         testcase_dict["status_url"] = parsed_object.netloc
@@ -139,16 +140,19 @@ class HarParser(object):
         testcase_dict['headers'] = json.dumps(
             [{'key': h['key'], 'value': h['value']} for h in entry_json['headerData'] if h])
         if entry_json['method'] == 'GET':
-            testcase_dict['variables'] = json.dumps(
+
+            testcase_dict['param'] = json.dumps(
                 [{'key': h1['key'], 'value': h1['value'], 'param_type': 'string'} for h1 in entry_json['queryParams'] if
                  h1])
+        if entry_json['method'] != 'GET':
+            if entry_json['data']:
+                testcase_dict['variables'] = json.dumps(
+                    [{'key': h1['key'], 'value': h1['value'], 'param_type': 'string'} for h1 in
+                     entry_json['data'] if h1])
+            elif entry_json.get('rawModeData'):
+                testcase_dict['variable_type'] = 'json'
+                testcase_dict['variables'] = entry_json['rawModeData']
 
-        if entry_json['data']:
-            testcase_dict['variables'] = json.dumps(
-                [{'key': h1['key'], 'value': h1['value'], 'param_type': 'string'} for h1 in
-                 entry_json['data'] if h1])
-        elif entry_json.get('rawModeData'):
-            testcase_dict['variables'] = json.dumps(entry_json['rawModeData'])
 
     def _make_har_request_headers(self, testcase_dict, entry_json):
         """ parse HAR entry request headers, and make testcase headers.
@@ -213,6 +217,7 @@ class HarParser(object):
             "variables": '[]',
             "extract": '[]',
             "validate": '[]',
+            "param": '[]',
         }
         if self.file_type == 'har':
             self._make_har_request_url(testcase_dict, entry_json)
@@ -228,7 +233,6 @@ class HarParser(object):
         testcases = []
         for entry_json in self.log_entries:
             testcases.append(self.make_testcase(entry_json))
-
         return testcases
 
     def make_testset(self):
