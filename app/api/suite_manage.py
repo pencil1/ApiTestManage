@@ -23,17 +23,19 @@ def add_suite():
 
     if ids:
         old_suite_data = ApiSuite.query.filter_by(id=ids).first()
+        old_num = old_suite_data.num
         if ApiSuite.query.filter_by(name=suite_name, module_id=module_id).first() and suite_name != old_suite_data.name:
             return jsonify({'msg': '套件名字重复', 'status': 0})
 
         elif ApiSuite.query.filter_by(num=num, module_id=module_id).first() and num != old_suite_data.num:
-            return jsonify({'msg': '序号重复', 'status': 0})
+
+            num_sort(num, old_num, ApiSuite, module_id=module_id)
         else:
             old_suite_data.num = num
-            old_suite_data.name = suite_name
-            old_suite_data.api_ids = json.dumps(api_data)
-            db.session.commit()
-            return jsonify({'msg': '修改成功', 'status': 1})
+        old_suite_data.name = suite_name
+        old_suite_data.api_ids = json.dumps(api_data)
+        db.session.commit()
+        return jsonify({'msg': '修改成功', 'status': 1})
     else:
         if ApiSuite.query.filter_by(name=suite_name, module_id=module_id).first():
             return jsonify({'msg': '套件名字重复', 'status': 0})
@@ -63,7 +65,7 @@ def find_suite():
             return jsonify({'msg': '没有该套件', 'status': 0})
     else:
         suite = ApiSuite.query.filter_by(module_id=module_id)
-        pagination = suite.order_by(ApiSuite.id.asc()).paginate(page, per_page=per_page, error_out=False)
+        pagination = suite.order_by(ApiSuite.num.asc()).paginate(page, per_page=per_page, error_out=False)
         suite = pagination.items
         total = pagination.total
     suite = [{'name': c.name, 'id': c.id, 'num': c.num,

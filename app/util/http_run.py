@@ -228,6 +228,10 @@ class RunCase(object):
                         else:
                             rec_2['meta_data']['request']['body'] = bytes.decode(rec_2['meta_data']['request']['body'])
 
+                if rec_2['meta_data']['request'].get('data'):
+                    if isinstance(rec_2['meta_data']['request']['data'], bytes):
+                        rec_2['meta_data']['request']['data'] = bytes.decode(rec_2['meta_data']['request']['data'])
+
                 if rec_2['meta_data']['response'].get('cookies'):
                     rec_2['meta_data']['response']['cookies'] = dict(
                         res['details'][0]['records'][0]['meta_data']['response']['cookies'])
@@ -255,6 +259,7 @@ class RunCase(object):
                     #     rec['meta_data']['response_headers'] = 'None'
 
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
+        print(res)
         jump_res = json.dumps(res, ensure_ascii=False)
         if self.run_type:
             self.new_report_id = Report.query.filter_by(

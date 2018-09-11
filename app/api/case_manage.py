@@ -97,6 +97,7 @@ def add_cases():
     #     return jsonify({'msg': 'url引用函数后，基础信息处必须引用函数文件', 'status': 0})
     #
     case_variable = data.get('caseVariable')
+    print(case_variable)
     param = data.get('param')
     # if re.search('\${(.*?)}', case_variable, flags=0) and not func_address:
     #     return jsonify({'msg': '参数引用函数后，基础信息处必须引用函数文件', 'status': 0})
@@ -137,9 +138,6 @@ def add_cases():
     else:
         if ApiMsg.query.filter_by(name=case_name, module_id=module_id).first():
             return jsonify({'msg': '接口名字重复', 'status': 0})
-
-        elif ApiMsg.query.filter_by(num=case_num, module_id=module_id).first():
-            return jsonify({'msg': '序号重复', 'status': 0})
         else:
             new_cases = ApiMsg(name=case_name, module_id=module_id, validate=case_validate, num=case_num,
                                status_url=status_url, func_address=func_address, up_func=up_func,
@@ -157,6 +155,7 @@ def edit_case():
     case_id = data.get('caseId')
     _edit = ApiMsg.query.filter_by(id=case_id).first()
     variable = _edit.variables if _edit.variable_type == 'json' else json.loads(_edit.variables)
+
     _data = {'caseName': _edit.name, 'caseNum': _edit.num, 'caseDesc': _edit.desc, 'caseUrl': _edit.url,
              'caseMethod': _edit.method, 'funcAddress': _edit.func_address, 'status_url': int(_edit.status_url),
              'variableType': _edit.variable_type, 'param': json.loads(_edit.param),
