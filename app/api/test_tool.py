@@ -58,18 +58,25 @@ def run_cmd():
     # return jsonify({'data': identity_data, 'status': 1, 'title': ['身份证']})
 
 
-@api.route('/dealData', methods=['POST'])
+@api.route('/optimizeError', methods=['POST'])
+def optimize_error_data():
+
+    data = request.json
+    error_data = data.get('errorData')
+    new_data = '\n'.join(error_data.split('↵'))
+    # data = request.json
+    # _data = data.get('dictData')
+    # test = json.loads(_data)
+    # d = TraverseDict()
+    # d.get_dict_keys_path(test)
+    # d.data_tidy(test)
+    # d.get_dict_keys_path(test)
+    # d.data_tidy(test)
+    return jsonify({'status': 1, 'msg': '优化成功', 'data': new_data})
+
+
+@api.route('/optimizeErrorData', methods=['POST'])
 def deal_data():
-    # data = ApiMsg.query.all()
-    # for d in data:
-    #     if not d.param:
-    #         d.param = '[]'
-    #     if d.method == 'GET':
-    #         # print(d)
-    #         d1 = d.variables
-    #         d.param = d1
-    #         d.variables = '[]'
-    #     db.session.commit()
 
     data1 = ApiCase.query.all()
     for d in data1:
@@ -84,7 +91,6 @@ def deal_data():
     # d.get_dict_keys_path(test)
     # d.data_tidy(test)
     return jsonify({'status': 1, 'msg': '优化成功'})
-
 
 @api.route('/findSqlList')
 def find_sql_list():

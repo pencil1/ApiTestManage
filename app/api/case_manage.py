@@ -5,7 +5,7 @@ from app.util.case_change.core import HarParser
 from . import api
 from ..util.http_run import RunCase
 from ..util.utils import *
-
+import traceback
 
 @api.route('/proGather/list')
 def get_pro_gather():
@@ -97,7 +97,6 @@ def add_cases():
     #     return jsonify({'msg': 'url引用函数后，基础信息处必须引用函数文件', 'status': 0})
     #
     case_variable = data.get('caseVariable')
-    print(case_variable)
     param = data.get('param')
     # if re.search('\${(.*?)}', case_variable, flags=0) and not func_address:
     #     return jsonify({'msg': '参数引用函数后，基础信息处必须引用函数文件', 'status': 0})

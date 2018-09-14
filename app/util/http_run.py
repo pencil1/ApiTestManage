@@ -1,13 +1,13 @@
 import copy
+import json
+
 from app.models import *
-from httprunner.task import HttpRunner
-from httprunner.testcase import *
+from httprunner import HttpRunner
 from ..util.global_variable import *
 from ..util.utils import merge_config
 
 
 def main_ate(cases):
-    logger.setup_logger('INFO')
     # importlib.reload(httprunner)
     # print(cases)
     # importlib.reload(importlib.import_module('func_list.build_in_func'))
@@ -62,7 +62,7 @@ class RunCase(object):
         :param project_data:
         :return:
         """
-        pro_cfg_data = {'config': {'name': 'config_name', 'request': {}}, 'testcases': [], 'name': 'config_name'}
+        pro_cfg_data = {'config': {'name': 'config_name', 'request': {}}, 'teststeps': [], 'name': 'config_name'}
 
         pro_cfg_data['config']['request']['headers'] = {h['key']: h['value'] for h in
                                                         json.loads(project_data.headers) if h.get('key')}
@@ -123,6 +123,9 @@ class RunCase(object):
                         temp_case_data['request']['files'].update({variable['key']: (
                             variable['value'].split('/')[-1], open(variable['value'], 'rb'),
                             CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
+                        # temp_case_data['request']['files'].update({variable['key']: (
+                        #     variable['value'].split('/')[-1], '${' + 'open_file({})'.format(variable['value']) + '}',
+                        #     CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
 
             else:
                 temp_case_data['request']['json'] = _variables
@@ -172,7 +175,7 @@ class RunCase(object):
                 for case in ApiCase.query.filter_by(scene_id=scene).order_by(ApiCase.num.asc()).all():
                     if case.status == 'true':  # 判断用例状态，是否执行
                         for t in range(case.time):  # 获取用例执行次数，遍历添加
-                            _temp_config['testcases'].append(self.get_case(case, pro_base_url))
+                            _temp_config['teststeps'].append(self.get_case(case, pro_base_url))
                 temp_case.append(_temp_config)
             return temp_case
 
@@ -184,7 +187,7 @@ class RunCase(object):
                     config_data.func_address.replace('.py', ''))] if config_data and config_data.func_address else []
 
             _temp_config = merge_config(_temp_config, _config)
-            _temp_config['testcases'] = [self.get_case(case, pro_base_url) for case in self.case_data]
+            _temp_config['teststeps'] = [self.get_case(case, pro_base_url) for case in self.case_data]
             return _temp_config
             # return temp_case
 
@@ -217,6 +220,7 @@ class RunCase(object):
                 res['stat']['successes_scene'] += 1
             else:
                 res['stat']['failures_scene'] += 1
+            res_1['in_out'] = None
             for num_2, rec_2 in enumerate(res_1['records']):
                 if isinstance(rec_2['meta_data']['response']['content'], bytes):
                     rec_2['meta_data']['response']['content'] = bytes.decode(rec_2['meta_data']['response']['content'])
@@ -259,7 +263,6 @@ class RunCase(object):
                     #     rec['meta_data']['response_headers'] = 'None'
 
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
-        print(res)
         jump_res = json.dumps(res, ensure_ascii=False)
         if self.run_type:
             self.new_report_id = Report.query.filter_by(

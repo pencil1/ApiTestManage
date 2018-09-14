@@ -50,7 +50,6 @@ def is_function(tup):
 
 @api.route('/func/check', methods=['POST'])
 def check_func():
-
     data = request.json
     func_name = data.get('funcName')
     if not os.path.exists('{}/{}'.format(FUNC_ADDRESS, func_name)):
@@ -60,7 +59,7 @@ def check_func():
         return jsonify({'msg': '语法正确', 'status': 1})
     except Exception as e:
         print(e)
-        return jsonify({'msg': '语法错误，请自行检查', 'status': 0})
+        return jsonify({'msg': '语法错误，请自行检查', 'error': e, 'status': 0})
 
 
 @api.route('/func/create', methods=['POST'])
