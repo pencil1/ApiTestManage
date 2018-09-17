@@ -117,6 +117,8 @@ def add_cases():
             num_sort(case_num, old_num, ApiMsg, module_id=module_id)
         else:
             old_case_data.num = case_num
+
+        old_case_data.project_id = project_id
         old_case_data.name = case_name
         old_case_data.validate = case_validate
         old_case_data.func_address = func_address
@@ -142,7 +144,7 @@ def add_cases():
                                status_url=status_url, func_address=func_address, up_func=up_func,
                                down_func=down_func, desc=case_desc, method=case_method, param=param,
                                url=case_url, headers=case_header, variable_type=variable_type,
-                               variables=case_variable, extract=case_extract)
+                               variables=case_variable, extract=case_extract, project_id=project_id)
             db.session.add(new_cases)
             db.session.commit()
             return jsonify({'msg': '新建成功', 'status': 1})

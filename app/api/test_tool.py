@@ -15,24 +15,15 @@ def build_identity():
     # return jsonify({'data': identity_data, 'status': 1, 'title': ['身份证']})
 
 
-@api.route('/delSql')
+@api.route('/delSql', methods=['POST'])
 def del_sql():
-    a = ApiCase.query.all()
+    a = ApiMsg.query.all()
     for a1 in a:
-        a2 = json.loads(a1.status_variables)
-        a2[1] = True
-        a1.status_variables = json.dumps(a2)
-
-        a3 = json.loads(a1.status_extract)
-        a3[1] = True
-        a1.status_extract = json.dumps(a3)
-
-        a4 = json.loads(a1.status_validate)
-        a4[1] = True
-        a1.status_validate = json.dumps(a4)
+        project_id = Module.query.filter_by(id=a1.module_id).first().project_id
+        a1.project_id = project_id
         db.session.commit()
 
-    return jsonify({'data': '1', 'status': 1})
+    return jsonify({'msg': '修改完成', 'status': 1})
 
 
 def is_function(tup):
@@ -91,6 +82,7 @@ def deal_data():
     # d.get_dict_keys_path(test)
     # d.data_tidy(test)
     return jsonify({'status': 1, 'msg': '优化成功'})
+
 
 @api.route('/findSqlList')
 def find_sql_list():

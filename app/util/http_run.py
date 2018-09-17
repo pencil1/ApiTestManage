@@ -24,7 +24,7 @@ class RunCase(object):
         self.case_data = case_data
         self.project_data = Project.query.filter_by(name=self.project_names).first()
         self.project_id = self.project_data.id
-        self.run_type = False   # 判断是接口调试(false)or业务用例执行(true)
+        self.run_type = False  # 判断是接口调试(false)or业务用例执行(true)
         self.temp_data = self.scene_case() or self.one_case()
         self.new_report_id = None
 
@@ -156,6 +156,11 @@ class RunCase(object):
         # 获取项目中4个基础url
         pro_base_url = {'0': self.project_data.host, '1': self.project_data.host_two,
                         '2': self.project_data.host_three, '3': self.project_data.host_four}
+        pro_base_url1 = {}
+        for pro_data in Project.query.all():
+            pro_base_url1['{}'.format(pro_data.id)] = {'0': pro_data.host, '1': pro_data.host_two,
+                                                       '2': pro_data.host_three, '3': pro_data.host_four}
+
         if self.scene_names:
             for scene in self.temp_data:
                 _temp_config = copy.deepcopy(pro_config)
@@ -184,7 +189,7 @@ class RunCase(object):
             config_data = SceneConfig.query.filter_by(project_id=self.project_id, name=self.config_name).first()
             _config = json.loads(config_data.variables) if self.config_name else []
             _temp_config['config']['import_module_functions'] = ['func_list.{}'.format(
-                    config_data.func_address.replace('.py', ''))] if config_data and config_data.func_address else []
+                config_data.func_address.replace('.py', ''))] if config_data and config_data.func_address else []
 
             _temp_config = merge_config(_temp_config, _config)
             _temp_config['teststeps'] = [self.get_case(case, pro_base_url) for case in self.case_data]

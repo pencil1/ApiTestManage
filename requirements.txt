@@ -44,7 +44,7 @@ greenlet==0.4.13
 har2case==0.1.8
 html5lib==1.0b3
 httpie==0.7.2
-HttpRunner==1.5.9
+HttpRunner==1.5.13
 idna==2.6
 itchat==1.2.32
 itsdangerous==0.24

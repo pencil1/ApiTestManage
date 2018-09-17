@@ -109,6 +109,7 @@ class ApiMsg(db.Model):
     validate = db.Column(db.String())
     headers = db.Column(db.String())
     module_id = db.Column(db.Integer, db.ForeignKey('module.id'))  # module指的是 __tablename__
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
 
 
 class ApiSuite(db.Model):
