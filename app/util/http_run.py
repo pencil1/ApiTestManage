@@ -91,7 +91,8 @@ class RunCase(object):
                                                     if h['key']}
 
         if api_case.status_url != '-1':
-            temp_case_data['request']['url'] = pro_base_url[api_case.status_url] + api_case.url.split('?')[0]
+            temp_case_data['request']['url'] = pro_base_url['{}'.format(api_case.project_id)][
+                                                   api_case.status_url] + api_case.url.split('?')[0]
         else:
             temp_case_data['request']['url'] = api_case.url
 
@@ -154,12 +155,12 @@ class RunCase(object):
         pro_config = self.pro_config(self.project_data)
 
         # 获取项目中4个基础url
-        pro_base_url = {'0': self.project_data.host, '1': self.project_data.host_two,
-                        '2': self.project_data.host_three, '3': self.project_data.host_four}
-        pro_base_url1 = {}
+        # pro_base_url = {'0': self.project_data.host, '1': self.project_data.host_two,
+        #                 '2': self.project_data.host_three, '3': self.project_data.host_four}
+        pro_base_url = {}
         for pro_data in Project.query.all():
-            pro_base_url1['{}'.format(pro_data.id)] = {'0': pro_data.host, '1': pro_data.host_two,
-                                                       '2': pro_data.host_three, '3': pro_data.host_four}
+            pro_base_url['{}'.format(pro_data.id)] = {'0': pro_data.host, '1': pro_data.host_two,
+                                                      '2': pro_data.host_three, '3': pro_data.host_four}
 
         if self.scene_names:
             for scene in self.temp_data:
