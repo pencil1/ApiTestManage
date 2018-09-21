@@ -7,16 +7,18 @@ from ..util.http_run import RunCase
 from ..util.utils import *
 import traceback
 
+
 @api.route('/proGather/list')
 def get_pro_gather():
     # if current_user.id == 4:
     _pros = Project.query.all()
-    _pros2 = Project.query.filter_by(user_id=current_user.id).first()
+    my_pros = Project.query.filter_by(user_id=current_user.id).first()
     # _pros = Project.query.all()
     # print(current_user.id)
     pro = {}
     pro_url = {}
     scene_config_lists = {}
+
     #   获取每个项目下的模块名字
     for p in _pros:
         modules = Module.query.filter_by(project_id=p.id).all()
@@ -42,10 +44,14 @@ def get_pro_gather():
             pro_url[p.name].append(p.host_three)
         if p.host_four:
             pro_url[p.name].append(p.host_four)
-    if _pros2:
-        _pros2 = {'pro_name': _pros2.name, 'model_list': pro[_pros2.name]}
+
+
+
+
+    if my_pros:
+        my_pros = {'pro_name': my_pros.name, 'model_list': pro[my_pros.name]}
     return jsonify(
-        {'data': pro, 'urlData': pro_url, 'status': 1, 'user_pro': _pros2, 'config_name_list': scene_config_lists})
+        {'data': pro, 'urlData': pro_url, 'status': 1, 'user_pro': my_pros, 'config_name_list': scene_config_lists})
 
 
 @api.route('/cases/list', methods=['POST'])
@@ -89,7 +95,6 @@ def add_cases():
 
     if not func_address and (data.get('upFunc') or data.get('downFunc')):
         return jsonify({'msg': '设置前后置函数后必须引用函数文件', 'status': 0})
-
 
     # if not case_url:
     #     return jsonify({'msg': '接口url不能为空', 'status': 0})
@@ -168,6 +173,7 @@ def edit_case():
     if _edit.down_func:
         _data['down_func'] = ','.join(json.loads(_edit.down_func))
     return jsonify({'data': _data, 'status': 1})
+
 
 #
 # @api.route('/cases/copy', methods=['POST'])
@@ -253,7 +259,8 @@ def find_cases():
              'variables': variable, 'extract': json.loads(c.extract),
              'validate': json.loads(c.validate),
              'param': json.loads(c.param),
-             'statusCase': {'extract': [True, True], 'variable': [True, True], 'validate': [True, True], 'param': [True, True]},
+             'statusCase': {'extract': [True, True], 'variable': [True, True], 'validate': [True, True],
+                            'param': [True, True]},
              'status': True, 'case_name': c.name, 'down_func': '', 'up_func': '', 'time': 1})
     return jsonify({'data': _case, 'total': total, 'status': 1})
 
@@ -313,4 +320,3 @@ def file_change():
         db.session.commit()
         case_num += 1
     return jsonify({'msg': '导入成功', 'status': 1})
-

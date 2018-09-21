@@ -1,7 +1,3 @@
-import importlib
-import json
-
-import re
 from flask import jsonify, request
 from . import api
 from app.models import *
@@ -15,11 +11,14 @@ def add_scene():
     name = data.get('name')
     desc = data.get('desc')
     ids = data.get('ids')
+    set_id = data.get('setId')
+    if not set_id:
+        return jsonify({'msg': '请选择用例集', 'status': 0})
     func_address = data.get('funcAddress')
     project = data.get('project')
     project_data = Project.query.filter_by(name=project).first()
     project_id = project_data.id
-    num = auto_num(data.get('num'), Scene, project_id=project_id)
+    num = auto_num(data.get('num'), Scene, project_id=project_id, case_set_id=set_id)
     variable = data.get('variable')
     cases = data.get('cases')
 
@@ -41,15 +40,17 @@ def add_scene():
     if ids:
         old_scene_data = Scene.query.filter_by(id=ids).first()
         old_num = old_scene_data.num
-        if Scene.query.filter_by(name=name, project_id=project_id).first() and name != old_scene_data.name:
+        if Scene.query.filter_by(name=name, project_id=project_id,
+                                 case_set_id=set_id).first() and name != old_scene_data.name:
             return jsonify({'msg': '业务集名字重复', 'status': 0})
-        elif Scene.query.filter_by(num=num, project_id=project_id).first() and num != old_num:
-            num_sort(num, old_num, Scene, project_id=project_id)
+        elif Scene.query.filter_by(num=num, project_id=project_id, case_set_id=set_id).first() and num != old_num:
+            num_sort(num, old_num, Scene, project_id=project_id, case_set_id=set_id)
         else:
             old_scene_data.num = num
         old_scene_data.name = name
         old_scene_data.project_id = project_id
         old_scene_data.desc = desc
+        old_scene_data.case_set_id = set_id
         old_scene_data.func_address = func_address
         old_scene_data.variables = variable
         db.session.commit()
@@ -95,17 +96,18 @@ def add_scene():
                 db.session.commit()
         return jsonify({'msg': '修改成功', 'status': 1})
     else:
-        if Scene.query.filter_by(name=name, project_id=project_id).first():
+        if Scene.query.filter_by(name=name, project_id=project_id, case_set_id=set_id).first():
             return jsonify({'msg': '业务名字重复', 'status': 0})
-        elif Scene.query.filter_by(num=num, project_id=project_id).first():
+        elif Scene.query.filter_by(num=num, project_id=project_id, case_set_id=set_id).first():
             return jsonify({'msg': '编号重复', 'status': 0})
         else:
 
             new_scene = Scene(num=num, name=name, desc=desc, project_id=project_id, variables=variable,
-                              func_address=func_address)
+                              func_address=func_address, case_set_id=set_id)
             db.session.add(new_scene)
             db.session.commit()
-            scene_id = Scene.query.filter_by(name=name).first().id
+            scene_id = Scene.query.filter_by(name=name, project_id=project_id).first().id
+            # scene_id = Scene.query.filter_by(name=name, case_set_id=set_id).first().id
             for num1, c in enumerate(cases):
                 if c['variableType'] == 'json':
                     variable = c['variables']
@@ -133,16 +135,45 @@ def find_scene():
     if not project_name:
         return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
     scene_name = data.get('sceneName')
+    set_id = data.get('setId')
     total = 1
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
 
     if scene_name:
-        cases = Scene.query.filter(Scene.name.like('%{}%'.format(scene_name))).all()
+        cases = Scene.query.filter_by(case_set_id=set_id).filter(Scene.name.like('%{}%'.format(scene_name))).all()
         if not cases:
-            return jsonify({'data': '没有该用例', 'status': 0})
+            return jsonify({'msg': '没有该用例', 'status': 0})
     else:
-        cases = Scene.query.filter_by(project_id=Project.query.filter_by(name=project_name).first().id)
+        cases = Scene.query.filter_by(project_id=Project.query.filter_by(name=project_name).first().id,
+                                      case_set_id=set_id)
+
+        pagination = cases.order_by(Scene.num.asc()).paginate(page, per_page=per_page, error_out=False)
+        cases = pagination.items
+        total = pagination.total
+    cases = [{'num': c.num, 'name': c.name, 'desc': c.desc, 'sceneId': c.id} for c in cases]
+    return jsonify({'data': cases, 'total': total, 'status': 1})
+
+
+@api.route('/scene/findOld', methods=['POST'])
+def find_old_scene():
+    data = request.json
+    project_name = data.get('projectName')
+    if not project_name:
+        return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
+    scene_name = data.get('sceneName')
+    total = 1
+    page = data.get('page') if data.get('page') else 1
+    per_page = data.get('sizePage') if data.get('sizePage') else 10
+
+    if scene_name:
+        cases = Scene.query.filter_by(case_set_id=None).filter(Scene.name.like('%{}%'.format(scene_name))).all()
+        if not cases:
+            return jsonify({'msg': '没有该用例', 'status': 0})
+    else:
+        cases = Scene.query.filter_by(project_id=Project.query.filter_by(name=project_name).first().id,
+                                      case_set_id=None)
+
         pagination = cases.order_by(Scene.num.asc()).paginate(page, per_page=per_page, error_out=False)
         cases = pagination.items
         total = pagination.total
@@ -154,10 +185,10 @@ def find_scene():
 def del_scene():
     data = request.json
     scene_id = data.get('sceneId')
-    _edit = Scene.query.filter_by(id=scene_id).first()
-    if current_user.id != Project.query.filter_by(id=_edit.project_id).first().user_id:
+    _data = Scene.query.filter_by(id=scene_id).first()
+    if current_user.id != Project.query.filter_by(id=_data.project_id).first().user_id:
         return jsonify({'msg': '不能删除别人项目下的业务集', 'status': 0})
-    db.session.delete(_edit)
+    db.session.delete(_data)
     del_case = ApiCase.query.filter_by(scene_id=scene_id).all()
     if del_case:
         for d in del_case:
@@ -169,8 +200,8 @@ def del_scene():
 def del_api_case():
     data = request.json
     case_id = data.get('id')
-    _edit = ApiCase.query.filter_by(id=case_id).first()
-    db.session.delete(_edit)
+    _data = ApiCase.query.filter_by(id=case_id).first()
+    db.session.delete(_data)
     return jsonify({'msg': '删除成功', 'status': 1})
 
 
@@ -179,7 +210,7 @@ def edit_scene():
     data = request.json
     scene_id = data.get('sceneId')
     status = data.get('copyEditStatus')
-    _edit = Scene.query.filter_by(id=scene_id).first()
+    _data = Scene.query.filter_by(id=scene_id).first()
 
     cases = ApiCase.query.filter_by(scene_id=scene_id).order_by(ApiCase.num.asc()).all()
     case_data = []
@@ -212,14 +243,14 @@ def edit_scene():
                                          'param': json.loads(case.status_param)},
 
                           })
-    _data = {'num': _edit.num, 'name': _edit.name, 'desc': _edit.desc, 'cases': case_data,
-             'func_address': _edit.func_address}
-    if _edit.variables:
-        _data['variables'] = json.loads(_edit.variables)
+    _data2 = {'num': _data.num, 'name': _data.name, 'desc': _data.desc, 'cases': case_data, 'setId': _data.case_set_id,
+              'func_address': _data.func_address}
+    if _data.variables:
+        _data2['variables'] = json.loads(_data.variables)
     else:
-        _data['variables'] = []
+        _data2['variables'] = []
 
-    return jsonify({'data': _data, 'status': 1})
+    return jsonify({'data': _data2, 'status': 1})
 
 
 @api.route('/config/data', methods=['POST'])

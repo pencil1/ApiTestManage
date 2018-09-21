@@ -8,6 +8,7 @@ python => 3
 
 ## start
 开发环境：运行manage_pc.py
+
 生产环境：运行manage_linux.py
 
 ### 生产环境下的一些配置

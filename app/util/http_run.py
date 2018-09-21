@@ -177,11 +177,13 @@ class RunCase(object):
 
                 # 合并公用项目配置和业务集合配置
                 _temp_config = merge_config(_temp_config, scene_config)
-
-                for case in ApiCase.query.filter_by(scene_id=scene).order_by(ApiCase.num.asc()).all():
-                    if case.status == 'true':  # 判断用例状态，是否执行
-                        for t in range(case.time):  # 获取用例执行次数，遍历添加
-                            _temp_config['teststeps'].append(self.get_case(case, pro_base_url))
+                # scene_times = scene_data.times if scene_data.times else 1
+                times = 5 if scene_data.name == '天地关爱' else 1
+                for s in range(times):
+                    for case in ApiCase.query.filter_by(scene_id=scene).order_by(ApiCase.num.asc()).all():
+                        if case.status == 'true':  # 判断用例状态，是否执行
+                            for t in range(case.time):  # 获取用例执行次数，遍历添加
+                                _temp_config['teststeps'].append(self.get_case(case, pro_base_url))
                 temp_case.append(_temp_config)
             return temp_case
 

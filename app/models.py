@@ -64,8 +64,10 @@ class Scene(db.Model):
     desc = db.Column(db.String())
     func_address = db.Column(db.String())
     variables = db.Column(db.String())
+    times = db.Column(db.Integer(), nullable=True)
     created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    case_set_id = db.Column(db.Integer, nullable=True)
 
 
 class SceneConfig(db.Model):
@@ -89,6 +91,16 @@ class Module(db.Model):
     api_msg = db.relationship('ApiMsg', backref='module', lazy='dynamic')
 
 
+class CaseSet(db.Model):
+    __tablename__ = 'caseSet'
+    id = db.Column(db.Integer(), primary_key=True)
+    num = db.Column(db.Integer(), nullable=True)
+    name = db.Column(db.String(), nullable=True)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
+    created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
+    project_id = db.Column(db.Integer, nullable=True)
+
+
 class ApiMsg(db.Model):
     __tablename__ = 'apiMsg'
     id = db.Column(db.Integer(), primary_key=True)
@@ -108,8 +120,8 @@ class ApiMsg(db.Model):
     extract = db.Column(db.String())
     validate = db.Column(db.String())
     headers = db.Column(db.String())
-    module_id = db.Column(db.Integer, db.ForeignKey('module.id'))  # module指的是 __tablename__
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    module_id = db.Column(db.Integer, db.ForeignKey('module.id'))
+    project_id = db.Column(db.Integer, nullable=True)
 
 
 class ApiSuite(db.Model):
@@ -121,7 +133,6 @@ class ApiSuite(db.Model):
     num = db.Column(db.Integer(), nullable=True)
     name = db.Column(db.String(), nullable=True)
     api_ids = db.Column(db.String(), nullable=True)
-
     module_id = db.Column(db.Integer, db.ForeignKey('module.id'))
 
 
