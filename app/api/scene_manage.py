@@ -11,6 +11,7 @@ def add_scene():
     name = data.get('name')
     desc = data.get('desc')
     ids = data.get('ids')
+    times = data.get('times')
     set_id = data.get('setId')
     if not set_id:
         return jsonify({'msg': '请选择用例集', 'status': 0})
@@ -48,6 +49,7 @@ def add_scene():
         else:
             old_scene_data.num = num
         old_scene_data.name = name
+        old_scene_data.times = times
         old_scene_data.project_id = project_id
         old_scene_data.desc = desc
         old_scene_data.case_set_id = set_id
@@ -103,7 +105,7 @@ def add_scene():
         else:
 
             new_scene = Scene(num=num, name=name, desc=desc, project_id=project_id, variables=variable,
-                              func_address=func_address, case_set_id=set_id)
+                              func_address=func_address, case_set_id=set_id, times=times)
             db.session.add(new_scene)
             db.session.commit()
             scene_id = Scene.query.filter_by(name=name, project_id=project_id).first().id
@@ -244,7 +246,7 @@ def edit_scene():
 
                           })
     _data2 = {'num': _data.num, 'name': _data.name, 'desc': _data.desc, 'cases': case_data, 'setId': _data.case_set_id,
-              'func_address': _data.func_address}
+              'func_address': _data.func_address, 'times': _data.times}
     if _data.variables:
         _data2['variables'] = json.loads(_data.variables)
     else:

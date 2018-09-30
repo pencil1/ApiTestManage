@@ -164,27 +164,26 @@ class RunCase(object):
 
         if self.scene_names:
             for scene in self.temp_data:
-                _temp_config = copy.deepcopy(pro_config)
                 scene_data = Scene.query.filter_by(id=scene).first()
-                _temp_config['config']['name'] = scene_data.name
+                scene_times = scene_data.times if scene_data.times else 1
+                for s in range(scene_times):
+                    _temp_config = copy.deepcopy(pro_config)
+                    _temp_config['config']['name'] = scene_data.name
 
-                # 获取需要导入的函数文件数据
-                _temp_config['config']['import_module_functions'] = ['func_list.{}'.format(
-                    scene_data.func_address.replace('.py', ''))] if scene_data.func_address else []
+                    # 获取需要导入的函数文件数据
+                    _temp_config['config']['import_module_functions'] = ['func_list.{}'.format(
+                        scene_data.func_address.replace('.py', ''))] if scene_data.func_address else []
 
-                # 获取业务集合的配置数据
-                scene_config = json.loads(scene_data.variables) if scene_data.variables else []
+                    # 获取业务集合的配置数据
+                    scene_config = json.loads(scene_data.variables) if scene_data.variables else []
 
-                # 合并公用项目配置和业务集合配置
-                _temp_config = merge_config(_temp_config, scene_config)
-                # scene_times = scene_data.times if scene_data.times else 1
-                times = 5 if scene_data.name == '天地关爱' else 1
-                for s in range(times):
+                    # 合并公用项目配置和业务集合配置
+                    _temp_config = merge_config(_temp_config, scene_config)
                     for case in ApiCase.query.filter_by(scene_id=scene).order_by(ApiCase.num.asc()).all():
                         if case.status == 'true':  # 判断用例状态，是否执行
                             for t in range(case.time):  # 获取用例执行次数，遍历添加
                                 _temp_config['teststeps'].append(self.get_case(case, pro_base_url))
-                temp_case.append(_temp_config)
+                    temp_case.append(_temp_config)
             return temp_case
 
         if self.case_data:

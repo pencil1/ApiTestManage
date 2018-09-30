@@ -69,6 +69,8 @@ def add_cases():
     data = request.json
     project_name = data.get('projectName')
     case_name = data.get('caseName')
+    if not case_name:
+        return jsonify({'msg': '接口名称不能为空', 'status': 0})
     variable_type = data.get('variableType')
     case_desc = data.get('caseDesc')
     func_address = data.get('funcAddress')
@@ -140,7 +142,7 @@ def add_cases():
         old_case_data.extract = case_extract
         old_case_data.module_id = module_id
         db.session.commit()
-        return jsonify({'msg': '修改成功', 'status': 1})
+        return jsonify({'msg': '修改成功', 'status': 1, 'api_msg_id': case_id,  'num': case_num})
     else:
         if ApiMsg.query.filter_by(name=case_name, module_id=module_id).first():
             return jsonify({'msg': '接口名字重复', 'status': 0})
@@ -152,7 +154,10 @@ def add_cases():
                                variables=case_variable, extract=case_extract, project_id=project_id)
             db.session.add(new_cases)
             db.session.commit()
-            return jsonify({'msg': '新建成功', 'status': 1})
+            _new = ApiMsg.query.filter_by(name=case_name, module_id=module_id, project_id=project_id).first()
+            _id = _new.id
+            _num = _new.num
+            return jsonify({'msg': '新建成功', 'status': 1, 'api_msg_id': _id, 'num': _num})
 
 
 @api.route('/cases/editAndCopy', methods=['POST'])
