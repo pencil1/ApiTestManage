@@ -24,8 +24,10 @@ def get_project_gather():
 @api.route('/report/run', methods=['POST'])
 def run_cases():
     data = request.json
-    if not data.get('projectName') and not data.get('sceneNames'):
-        return jsonify({'msg': '请选择项目或模块', 'status': 0})
+    if not data.get('projectName'):
+        return jsonify({'msg': '请选择项目', 'status': 0})
+    if data.get('sceneNames') == []:
+        return jsonify({'msg': '请选择用例', 'status': 0})
     run_case = RunCase(data.get('projectName'), data.get('sceneNames'))
     run_case.run_case()
     return jsonify({'msg': '测试完成', 'status': 1, 'data': {'report_id': run_case.new_report_id}})
