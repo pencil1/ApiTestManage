@@ -8,6 +8,7 @@ import importlib
 
 @api.route('/func/find', methods=['POST'])
 def get_func():
+    print(11111111)
     data = request.json
     func_name = data.get('funcName')
     if not func_name:
