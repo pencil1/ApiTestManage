@@ -117,6 +117,7 @@ class RunCase(object):
                 _variables = json.loads(api_case.variables)
 
             if api_case.variable_type == 'data' and api_case.method != 'GET':
+                n = 0
                 for variable in _variables:
                     if variable['param_type'] == 'string' and variable.get('key'):
                         temp_case_data['request']['data'].update({variable['key']: variable['value']})
@@ -124,6 +125,10 @@ class RunCase(object):
                         temp_case_data['request']['files'].update({variable['key']: (
                             variable['value'].split('/')[-1], open(variable['value'], 'rb'),
                             CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
+                        # temp_case_data['request']['files'].update({variable['key']: (
+                        #     variable['value'].split('/')[-1], "open({}, 'rb')".format(variable['value']),
+                        #     CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
+
                         # temp_case_data['request']['files'].update({variable['key']: (
                         #     variable['value'].split('/')[-1], '${' + 'open_file({})'.format(variable['value']) + '}',
                         #     CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
@@ -208,6 +213,7 @@ class RunCase(object):
             db.session.add(new_report)
             db.session.commit()
         d = self.all_cases_data()
+        print(d)
         res = main_ate(d)
 
         res['time']['duration'] = "%.2f" % res['time']['duration']
@@ -270,6 +276,7 @@ class RunCase(object):
                     #     rec['meta_data']['response_headers'] = 'None'
 
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
+        print(res)
         jump_res = json.dumps(res, ensure_ascii=False)
         if self.run_type:
             self.new_report_id = Report.query.filter_by(

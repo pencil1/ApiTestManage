@@ -45,9 +45,6 @@ def get_pro_gather():
         if p.host_four:
             pro_url[p.name].append(p.host_four)
 
-
-
-
     if my_pros:
         my_pros = {'pro_name': my_pros.name, 'model_list': pro[my_pros.name]}
     return jsonify(
@@ -89,7 +86,8 @@ def add_cases():
     if not gather_name and not project_name:
         return jsonify({'msg': '项目和模块不能为空', 'status': 0})
 
-    case_url = data.get('caseUrl')
+    case_url = data.get('caseUrl').split('?')[0]
+    print(case_url)
     status_url = data.get('choiceUrl')
     if status_url == -1:
         if 'http' not in case_url:
@@ -142,7 +140,7 @@ def add_cases():
         old_case_data.extract = case_extract
         old_case_data.module_id = module_id
         db.session.commit()
-        return jsonify({'msg': '修改成功', 'status': 1, 'api_msg_id': case_id,  'num': case_num})
+        return jsonify({'msg': '修改成功', 'status': 1, 'api_msg_id': case_id, 'num': case_num})
     else:
         if ApiMsg.query.filter_by(name=case_name, module_id=module_id).first():
             return jsonify({'msg': '接口名字重复', 'status': 0})
