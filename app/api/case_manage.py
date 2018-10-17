@@ -245,7 +245,6 @@ def find_cases():
     total = 1
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 20
-
     if not module_id:
         return jsonify({'msg': '请先创建{}项目下的模块'.format(project_name), 'status': 0})
 

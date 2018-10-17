@@ -56,7 +56,7 @@ Mako==1.0.6
 Markdown==2.3.1
 MarkupSafe==1.0
 olefile==0.44
-paramiko==2.4.1
+paramiko==2.4.2
 passlib==1.7.1
 pbr==3.1.1
 psycopg2==2.7.4
