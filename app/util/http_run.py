@@ -17,10 +17,10 @@ def main_ate(cases):
 
 
 class RunCase(object):
-    def __init__(self, project_names=None, scene_names=None, case_data=None, config_name=None):
+    def __init__(self, project_names=None, scene_names=None, case_data=None, config_id=None):
         self.project_names = project_names
         self.scene_names = scene_names
-        self.config_name = config_name
+        self.config_id = config_id
         self.case_data = case_data
         self.project_data = Project.query.filter_by(name=self.project_names).first()
         self.project_id = self.project_data.id
@@ -193,8 +193,8 @@ class RunCase(object):
 
         if self.case_data:
             _temp_config = copy.deepcopy(pro_config)
-            config_data = SceneConfig.query.filter_by(project_id=self.project_id, name=self.config_name).first()
-            _config = json.loads(config_data.variables) if self.config_name else []
+            config_data = SceneConfig.query.filter_by(id=self.config_id).first()
+            _config = json.loads(config_data.variables) if self.config_id else []
             _temp_config['config']['import_module_functions'] = ['func_list.{}'.format(
                 config_data.func_address.replace('.py', ''))] if config_data and config_data.func_address else []
 

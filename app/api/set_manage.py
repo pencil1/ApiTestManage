@@ -60,7 +60,7 @@ def find_set():
     set_list = {}
     for p in _pros:
         sets = CaseSet.query.filter_by(project_id=p.id).order_by(CaseSet.num.asc()).all()
-        set_list[p.name] = [{'label': s.name, 'id': s.id, 'num': s.num} for s in sets]
+        set_list[p.name] = [{'label': s.name, 'id': s.id} for s in sets]
     return jsonify({'data': set_list, 'status': 1})
 
 

@@ -23,15 +23,28 @@ def get_pro_gather():
     for p in _pros:
         modules = Module.query.filter_by(project_id=p.id).all()
         if modules:
-            pro[p.name] = [_gat.name for _gat in modules]
+            pro[p.name] = [{'name': _gat.name, 'moduleId': _gat.id} for _gat in modules]
         else:
             pro[p.name] = ['']
 
         config_list = SceneConfig.query.order_by(SceneConfig.num.asc()).filter_by(project_id=p.id).all()
         if config_list:
-            scene_config_lists[p.name] = [_config_list.name for _config_list in config_list]
+            scene_config_lists[p.name] = [{'name': _config_list.name, 'configId': _config_list.id} for _config_list in config_list]
         else:
             scene_config_lists[p.name] = ['']
+
+    # for p in _pros:
+    #     modules = Module.query.filter_by(project_id=p.id).all()
+    #     if modules:
+    #         pro[p.name] = [_gat.name for _gat in modules]
+    #     else:
+    #         pro[p.name] = ['']
+    #
+    #     config_list = SceneConfig.query.order_by(SceneConfig.num.asc()).filter_by(project_id=p.id).all()
+    #     if config_list:
+    #         scene_config_lists[p.name] = [_config_list.name for _config_list in config_list]
+    #     else:
+    #         scene_config_lists[p.name] = ['']
 
     # 获取每个项目下的业务集
     for p in _pros:
@@ -82,12 +95,11 @@ def add_cases():
     if case_method == -1:
         return jsonify({'msg': '请求方式不能为空', 'status': 0})
 
-    gather_name = data.get('gatherName')
-    if not gather_name and not project_name:
+    module_id = data.get('moduleId')
+    if not module_id and not project_name:
         return jsonify({'msg': '项目和模块不能为空', 'status': 0})
 
     case_url = data.get('caseUrl').split('?')[0]
-    print(case_url)
     status_url = data.get('choiceUrl')
     if status_url == -1:
         if 'http' not in case_url:
@@ -107,7 +119,7 @@ def add_cases():
     #     return jsonify({'msg': '参数引用函数后，基础信息处必须引用函数文件', 'status': 0})
 
     project_id = Project.query.filter_by(name=project_name).first().id
-    module_id = Module.query.filter_by(name=gather_name, project_id=project_id).first().id
+    # module_id = Module.query.filter_by(name=gather_name, project_id=project_id).first().id
 
     case_num = auto_num(data.get('caseNum'), ApiMsg, module_id=module_id)
 
@@ -204,7 +216,7 @@ def run_case():
     case_data = data.get('caseData')
     suite_data = data.get('suiteData')
     project_name = data.get('projectName')
-    config_name = data.get('configName')
+    config_id = data.get('configId')
     case_data_id = []
     if not case_data and not suite_data:
         return jsonify({'msg': '请勾选信息后，再进行测试', 'status': 0})
@@ -219,7 +231,7 @@ def run_case():
             case_data_id += json.loads(ApiSuite.query.filter_by(id=suite['id']).first().api_ids)
             api_msg = [ApiMsg.query.filter_by(id=c).first() for c in case_data_id]
 
-    d = RunCase(project_names=project_name, case_data=api_msg, config_name=config_name)
+    d = RunCase(project_names=project_name, case_data=api_msg, config_id=config_id)
     res = json.loads(d.run_case())
     return jsonify({'msg': '测试完成', 'data': res, 'status': 1})
 
@@ -227,25 +239,22 @@ def run_case():
 @api.route('/cases/find', methods=['POST'])
 def find_cases():
     data = request.json
-    gat_name = data.get('gatName')
+    module_id = data.get('moduleId')
     project_name = data.get('projectName')
     case_name = data.get('caseName')
     total = 1
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 20
 
-    if not gat_name:
+    if not module_id:
         return jsonify({'msg': '请先创建{}项目下的模块'.format(project_name), 'status': 0})
 
-    gat_id = Module.query.filter_by(name=gat_name,
-                                    project_id=Project.query.filter_by(name=project_name).first().id).first().id
-
     if case_name:
-        cases = ApiMsg.query.filter_by(module_id=gat_id).filter(ApiMsg.name.like('%{}%'.format(case_name))).all()
+        cases = ApiMsg.query.filter_by(module_id=module_id).filter(ApiMsg.name.like('%{}%'.format(case_name))).all()
         if not cases:
             return jsonify({'msg': '没有该用例', 'status': 0})
     else:
-        cases = ApiMsg.query.filter_by(module_id=gat_id)
+        cases = ApiMsg.query.filter_by(module_id=module_id)
         pagination = cases.order_by(ApiMsg.num.asc()).paginate(page, per_page=per_page, error_out=False)
         cases = pagination.items
         total = pagination.total

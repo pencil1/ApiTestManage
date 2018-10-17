@@ -153,7 +153,7 @@ def find_scene():
         pagination = cases.order_by(Scene.num.asc()).paginate(page, per_page=per_page, error_out=False)
         cases = pagination.items
         total = pagination.total
-    cases = [{'num': c.num, 'name': c.name, 'desc': c.desc, 'sceneId': c.id} for c in cases]
+    cases = [{'num': c.num, 'name': c.name,'label': c.name,'leaf':True, 'desc': c.desc, 'sceneId': c.id} for c in cases]
     return jsonify({'data': cases, 'total': total, 'status': 1})
 
 
@@ -258,9 +258,9 @@ def edit_scene():
 @api.route('/config/data', methods=['POST'])
 def data_config():
     data = request.json
-    name = data.get('name')
+    config_id = data.get('configId')
     # _edit = SceneConfig.query.filter_by(name=name).first().variables
-    _data = SceneConfig.query.filter_by(name=name).first()
+    _data = SceneConfig.query.filter_by(id=config_id).first()
 
     return jsonify({'data': {'variables': json.loads(_data.variables),
                              'func_address': _data.func_address},
