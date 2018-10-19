@@ -38,7 +38,6 @@ def login():
         data = request.data
         data = bytes.decode(data)
         data = json.loads(data)
-        print(data)
     # data = request.json
     # username1 = request.form
     # print(username1.get('password'))

@@ -8,7 +8,7 @@ from ..util.utils import *
 from flask_login import current_user
 
 
-@api.route('/sceneConfig/add', methods=['POST'])
+@api.route('/config/add', methods=['POST'])
 @login_required
 def add_scene_config():
     data = request.json

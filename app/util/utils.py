@@ -149,9 +149,9 @@ def merge_config(pro_config, scene_config):
             pro_config['config']['variables'].append(_s)
 
     _temp = convert(pro_config['config']['variables'])
-
     pro_config['config']['variables'] = [{v['key']: v['value']} for v in json.loads(_temp)
-                                         if v['key'] != '']
+                                         if v['key']]
+
     return pro_config
 
 

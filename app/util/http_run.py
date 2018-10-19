@@ -213,7 +213,6 @@ class RunCase(object):
             db.session.add(new_report)
             db.session.commit()
         d = self.all_cases_data()
-        print(d)
         res = main_ate(d)
 
         res['time']['duration'] = "%.2f" % res['time']['duration']
