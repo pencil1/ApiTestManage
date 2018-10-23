@@ -26,11 +26,14 @@ def run_cases():
     data = request.json
     if not data.get('projectName'):
         return jsonify({'msg': '请选择项目', 'status': 0})
-    if data.get('sceneNames') == []:
+    if not data.get('sceneIds'):
         return jsonify({'msg': '请选择用例', 'status': 0})
-    run_case = RunCase(data.get('projectName'), data.get('sceneNames'))
-    run_case.run_case()
-    return jsonify({'msg': '测试完成', 'status': 1, 'data': {'report_id': run_case.new_report_id}})
+    run_case = RunCase(data.get('projectName'), data.get('sceneIds'))
+    if data.get('reportStatus'):
+        run_case.make_report = False
+    run_case.run_type = True
+    res = json.loads(run_case.run_case())
+    return jsonify({'msg': '测试完成', 'status': 1, 'data': {'report_id': run_case.new_report_id, 'data': res}})
 
 
 @api.route('/report/list', methods=['POST'])

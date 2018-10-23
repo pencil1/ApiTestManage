@@ -108,7 +108,7 @@ def add_scene():
                               func_address=func_address, case_set_id=set_id, times=times)
             db.session.add(new_scene)
             db.session.commit()
-            scene_id = Scene.query.filter_by(name=name, project_id=project_id).first().id
+            scene_id = Scene.query.filter_by(name=name, project_id=project_id, case_set_id=set_id).first().id
             # scene_id = Scene.query.filter_by(name=name, case_set_id=set_id).first().id
             for num1, c in enumerate(cases):
                 if c['variableType'] == 'json':
@@ -153,7 +153,8 @@ def find_scene():
         pagination = cases.order_by(Scene.num.asc()).paginate(page, per_page=per_page, error_out=False)
         cases = pagination.items
         total = pagination.total
-    cases = [{'num': c.num, 'name': c.name,'label': c.name,'leaf':True, 'desc': c.desc, 'sceneId': c.id} for c in cases]
+    cases = [{'num': c.num, 'name': c.name, 'label': c.name, 'leaf': True, 'desc': c.desc, 'sceneId': c.id} for c in
+             cases]
     return jsonify({'data': cases, 'total': total, 'status': 1})
 
 

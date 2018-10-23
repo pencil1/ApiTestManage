@@ -17,19 +17,21 @@ def main_ate(cases):
 
 
 class RunCase(object):
-    def __init__(self, project_names=None, scene_names=None, case_data=None, config_id=None):
+    def __init__(self, project_names=None, scene_ids=None, case_data=None, config_id=None):
         self.project_names = project_names
-        self.scene_names = scene_names
+        self.scene_ids = scene_ids
         self.config_id = config_id
         self.case_data = case_data
         self.project_data = Project.query.filter_by(name=self.project_names).first()
         self.project_id = self.project_data.id
         self.run_type = False  # 判断是接口调试(false)or业务用例执行(true)
-        self.temp_data = self.scene_case() or self.one_case()
+        self.make_report = True
+        self.temp_data = self.scene_ids or self.case_data
         self.new_report_id = None
+        self.temp_extract = list()
 
     def project_case(self):
-        if self.project_names and not self.scene_names and not self.case_data:
+        if self.project_names and not self.scene_ids and not self.case_data:
             scene_id = [s.id for s in Scene.query.filter_by(project_id=self.project_id).order_by(Scene.num.asc()).all()]
             all_case_data = []
             for c in scene_id:
@@ -40,20 +42,20 @@ class RunCase(object):
         else:
             return None
 
-    def scene_case(self):
-        if self.scene_names:
-            scene_id = [Scene.query.filter_by(name=n, project_id=self.project_id).first().id for n in self.scene_names]
-            self.run_type = True
-            return scene_id
-        else:
-            return None
-
-    def one_case(self):
-        if self.project_names and not self.scene_names and self.case_data:
-            self.run_type = False
-            return self.case_data
-        else:
-            return None
+    # def scene_case(self):
+    #     if self.scene_ids:
+    #         scene_id = [Scene.query.filter_by(name=n, project_id=self.project_id).first().id for n in self.scene_ids]
+    #         self.run_type = True
+    #         return scene_id
+    #     else:
+    #         return None
+    #
+    # def one_case(self):
+    #     if self.project_names and not self.scene_ids and self.case_data:
+    #         self.run_type = False
+    #         return self.case_data
+    #     else:
+    #         return None
 
     @staticmethod
     def pro_config(project_data):
@@ -62,7 +64,8 @@ class RunCase(object):
         :param project_data:
         :return:
         """
-        pro_cfg_data = {'config': {'name': 'config_name', 'request': {}}, 'teststeps': [], 'name': 'config_name'}
+        pro_cfg_data = {'config': {'name': 'config_name', 'request': {}, 'output': []}, 'teststeps': [],
+                        'name': 'config_name'}
 
         pro_cfg_data['config']['request']['headers'] = {h['key']: h['value'] for h in
                                                         json.loads(project_data.headers) if h.get('key')}
@@ -144,6 +147,7 @@ class RunCase(object):
 
             temp_case_data['extract'] = [{ext['key']: ext['value']} for ext in json.loads(_extract_temp) if
                                          ext.get('key')]
+            self.temp_extract += [ext.get('key') for ext in json.loads(_extract_temp) if ext.get('key')]
 
         if not self.run_type or json.loads(case_data.status_validate)[0]:
             if not self.run_type or json.loads(case_data.status_validate)[1]:
@@ -152,6 +156,8 @@ class RunCase(object):
                 _validate_temp = api_case.validate
             temp_case_data['validate'] = [{val['comparator']: [val['key'], val['value']]} for val in
                                           json.loads(_validate_temp) if val.get('key')]
+
+            temp_case_data['output'] = ['token']
 
         return temp_case_data
 
@@ -167,7 +173,7 @@ class RunCase(object):
             pro_base_url['{}'.format(pro_data.id)] = {'0': pro_data.host, '1': pro_data.host_two,
                                                       '2': pro_data.host_three, '3': pro_data.host_four}
 
-        if self.scene_names:
+        if self.scene_ids:
             for scene in self.temp_data:
                 scene_data = Scene.query.filter_by(id=scene).first()
                 scene_times = scene_data.times if scene_data.times else 1
@@ -200,14 +206,16 @@ class RunCase(object):
 
             _temp_config = merge_config(_temp_config, _config)
             _temp_config['teststeps'] = [self.get_case(case, pro_base_url) for case in self.case_data]
+            _temp_config['config']['output'] += copy.deepcopy(self.temp_extract)
             return _temp_config
             # return temp_case
 
     def run_case(self):
         now_time = datetime.datetime.now()
 
-        if self.run_type:
-            new_report = Report(name=','.join(self.scene_names),
+        if self.run_type and self.make_report:
+
+            new_report = Report(name=','.join([Scene.query.filter_by(id=scene_id).first().name for scene_id in self.scene_ids]),
                                 data='{}.txt'.format(now_time.strftime('%Y/%m/%d %H:%M:%S')),
                                 belong_pro=self.project_names, read_status='待阅')
             db.session.add(new_report)
@@ -232,7 +240,8 @@ class RunCase(object):
                 res['stat']['successes_scene'] += 1
             else:
                 res['stat']['failures_scene'] += 1
-            res_1['in_out'] = None
+            # res_1['in_out']['in'] = res_1['in_out']['in'] if res_1['in_out']['in'] else None
+            # res_1['in_out']['out'] = res_1['in_out']['out'] if res_1['in_out']['out'] else None
             for num_2, rec_2 in enumerate(res_1['records']):
                 if isinstance(rec_2['meta_data']['response']['content'], bytes):
                     rec_2['meta_data']['response']['content'] = bytes.decode(rec_2['meta_data']['response']['content'])
@@ -277,7 +286,7 @@ class RunCase(object):
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
         print(res)
         jump_res = json.dumps(res, ensure_ascii=False)
-        if self.run_type:
+        if self.run_type and self.make_report:
             self.new_report_id = Report.query.filter_by(
                 data='{}.txt'.format(now_time.strftime('%Y/%m/%d %H:%M:%S'))).first().id
             with open('{}{}.txt'.format(REPORT_ADDRESS, self.new_report_id), 'w') as f:
