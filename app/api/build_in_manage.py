@@ -1,5 +1,8 @@
+import subprocess
 import types
 
+import chardet
+import sys
 from flask import jsonify, request
 from . import api
 from ..util.global_variable import *
@@ -29,16 +32,36 @@ def get_funcs():
     return jsonify({'data': files, 'status': 1})
 
 
+def execute_cmd(cmd):
+    """执行cmd命令，返回结果
+
+      """
+    data = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = data.communicate()
+
+    if stdout:
+        stdout = stdout.strip().decode(chardet.detect(stdout)['encoding'])
+    if stderr:
+        stderr = stderr.strip().decode(chardet.detect(stderr)['encoding'])
+
+    return stdout, stderr
+
+
 @api.route('/func/save', methods=['POST'])
 def save_func():
     data = request.json
     func_data = data.get('funcData')
     func_name = data.get('funcName')
+    resp = execute_cmd([sys.executable, '{}/{}'.format(FUNC_ADDRESS, func_name)])
+    if resp[1]:
+        return jsonify({'msg': '语法错误', 'status': 1, 'error': resp[1]})
+
     if not os.path.exists('{}/{}'.format(FUNC_ADDRESS, func_name)):
         return jsonify({'msg': '文件名不存在', 'status': 0})
+
     with open('{}/{}'.format(FUNC_ADDRESS, func_name), 'w', encoding='utf8') as f:
         f.write(func_data)
-    return jsonify({'msg': '保存成功', 'status': 1})
+    return jsonify({'msg': '保存成功', 'status': 1, 'result': resp[0]})
 
 
 def is_function(tup):

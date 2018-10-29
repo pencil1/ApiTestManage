@@ -47,21 +47,23 @@ def stick_set():
 @api.route('/set/find', methods=['POST'])
 def find_set():
     data = request.json
-    # model_name = data.get('modelName')
+    total = 1
+    page = data.get('page') if data.get('page') else 1
+    per_page = data.get('sizePage') if data.get('sizePage') else 10
     project_name = data.get('projectName')
     if not project_name:
         return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
 
     pro_id = Project.query.filter_by(name=project_name).first().id
-    sets = CaseSet.query.filter_by(project_id=pro_id).order_by(CaseSet.num.asc()).all()
-    sets = [{'label': s.name, 'id': s.id, 'num': s.num} for s in sets]
-
-    _pros = Project.query.all()
-    set_list = {}
-    for p in _pros:
-        sets = CaseSet.query.filter_by(project_id=p.id).order_by(CaseSet.num.asc()).all()
-        set_list[p.name] = [{'label': s.name, 'id': s.id} for s in sets]
-    return jsonify({'data': set_list, 'status': 1})
+    # sets = CaseSet.query.filter_by(project_id=pro_id).order_by(CaseSet.num.asc()).all()
+    # sets = [{'label': s.name, 'id': s.id, 'num': s.num} for s in sets]
+    _set = CaseSet.query.filter_by(project_id=pro_id)
+    pagination = _set.order_by(CaseSet.num.asc()).paginate(page, per_page=per_page, error_out=False)
+    _items = pagination.items
+    total = pagination.total
+    current_set = [{'label': s.name, 'id': s.id} for s in _items]
+    all_set = [{'label': s.name, 'id': s.id} for s in _set.all()]
+    return jsonify({'status': 1, 'total': total, 'data': current_set, 'all_set': all_set})
 
 
 @api.route('/set/edit', methods=['POST'])

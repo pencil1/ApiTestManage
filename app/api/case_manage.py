@@ -29,24 +29,18 @@ def get_pro_gather():
 
         config_list = SceneConfig.query.order_by(SceneConfig.num.asc()).filter_by(project_id=p.id).all()
         if config_list:
-            scene_config_lists[p.name] = [{'name': _config_list.name, 'configId': _config_list.id} for _config_list in config_list]
+            scene_config_lists[p.name] = [{'name': _config_list.name, 'configId': _config_list.id} for _config_list in
+                                          config_list]
         else:
             scene_config_lists[p.name] = ['']
 
-    # for p in _pros:
-    #     modules = Module.query.filter_by(project_id=p.id).all()
-    #     if modules:
-    #         pro[p.name] = [_gat.name for _gat in modules]
-    #     else:
-    #         pro[p.name] = ['']
-    #
-    #     config_list = SceneConfig.query.order_by(SceneConfig.num.asc()).filter_by(project_id=p.id).all()
-    #     if config_list:
-    #         scene_config_lists[p.name] = [_config_list.name for _config_list in config_list]
-    #     else:
-    #         scene_config_lists[p.name] = ['']
+    # 获取每个项目下的用例集
+    set_list = {}
+    for p in _pros:
+        sets = CaseSet.query.filter_by(project_id=p.id).order_by(CaseSet.num.asc()).all()
+        set_list[p.name] = [{'label': s.name, 'id': s.id} for s in sets]
 
-    # 获取每个项目下的业务集
+    # 获取每个项目下的url
     for p in _pros:
         pro_url[p.name] = []
         if p.host:
@@ -61,7 +55,8 @@ def get_pro_gather():
     if my_pros:
         my_pros = {'pro_name': my_pros.name, 'model_list': pro[my_pros.name]}
     return jsonify(
-        {'data': pro, 'urlData': pro_url, 'status': 1, 'user_pro': my_pros, 'config_name_list': scene_config_lists})
+        {'data': pro, 'urlData': pro_url, 'status': 1, 'user_pro': my_pros, 'config_name_list': scene_config_lists,
+         'set_list': set_list})
 
 
 @api.route('/cases/list', methods=['POST'])

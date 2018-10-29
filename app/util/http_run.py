@@ -8,9 +8,6 @@ from ..util.utils import merge_config
 
 
 def main_ate(cases):
-    # importlib.reload(httprunner)
-    # print(cases)
-    # importlib.reload(importlib.import_module('func_list.build_in_func'))
     runner = HttpRunner().run(cases)
     summary = runner.summary
     return summary
