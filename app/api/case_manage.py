@@ -291,9 +291,9 @@ def del_cases():
 def file_change():
     data = request.json
     project_name = data.get('projectName')
-    gather_name = data.get('gatherName')
-    if not gather_name and not project_name:
-        return jsonify({'msg': '项目和模块不能为空', 'status': 0})
+    module_id = data.get('moduleId')
+    # if not gather_name and not project_name:
+    #     return jsonify({'msg': '项目和模块不能为空', 'status': 0})
     import_format = data.get('importFormat')
     if not import_format:
         return jsonify({'msg': '请选择文件格式', 'status': 0})
@@ -302,7 +302,7 @@ def file_change():
     project_data = Project.query.filter_by(name=project_name).first()
     host = [project_data.host, project_data.host_two, project_data.host_three, project_data.host_four]
     project_id = project_data.id
-    module_id = Module.query.filter_by(name=gather_name, project_id=project_id).first().id
+    # module_id = Module.query.filter_by(name=gather_name, project_id=project_id).first().id
 
     import_api_address = data.get('importApiAddress')
     if not import_api_address:

@@ -50,7 +50,10 @@ def execute_cmd(cmd):
 @api.route('/func/save', methods=['POST'])
 def save_func():
     data = request.json
+    print(123123)
+    print(123123)
     func_data = data.get('funcData')
+
     func_name = data.get('funcName')
     resp = execute_cmd([sys.executable, '{}/{}'.format(FUNC_ADDRESS, func_name)])
     if resp[1]:

@@ -6,28 +6,34 @@
 ## Environment
 python => 3
 
-## start
-开发环境：运行manage_pc.py
 
-生产环境：运行manage_linux.py
+## 开发环境
+    manage.py
+
+
+## 生产环境
+    gunicorn -c gun_config.py manage:app
 
 ### 生产环境下的一些配置
 由于懒，直接把flaskapi.conf文件替换nginx下的nginx.conf
 
-运行下面命令即可启动
-
-    gunicorn -c gun_config.py manage_linux:app
 
 ### 数据库的迁移
 
 第一次使用：
-初始化：(venv)  python manage_pc.py db init 这个命令会在项目下创建 migrations 文件夹，所有迁移脚本都存放其中。
+初始化：
+    (venv)  flask db init 这个命令会在项目下创建 migrations 文件夹，所有迁移脚本都存放其中。
 
-创建第一个版本：(venv) $ python manage_pc.py db migrate
 
-运行升级 (venv) $ python manage_pc.py db upgrade
+创建第一个版本：
+    (venv) $ flask db migrate
+
+
+运行升级
+    (venv) $ flask db upgrade
 
 后缀更新：
 更新表格的字段 (models.py)
-再次运行一下 db migrate -> 相当于commit 更新到/migrate目录
-db upgrade -> 数据库会更新
+再次运行一下
+    flask db migrate -> 相当于commit 更新到/migrate目录
+    flask db upgrade -> 数据库会更新
