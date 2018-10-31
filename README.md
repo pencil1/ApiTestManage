@@ -22,18 +22,22 @@ python => 3
 
 第一次使用：
 初始化：
+
     (venv)  flask db init 这个命令会在项目下创建 migrations 文件夹，所有迁移脚本都存放其中。
 
 
 创建第一个版本：
+
     (venv) $ flask db migrate
 
 
 运行升级
+
     (venv) $ flask db upgrade
 
 后缀更新：
 更新表格的字段 (models.py)
 再次运行一下
+
     flask db migrate -> 相当于commit 更新到/migrate目录
     flask db upgrade -> 数据库会更新
