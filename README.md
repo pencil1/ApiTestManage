@@ -12,7 +12,7 @@ python => 3
 
 
 ## 生产环境
-    gunicorn -c gun_config.py manage:app
+    gunicorn -c gunicorn_config.py manage:app
 
 ### 生产环境下的一些配置
 由于懒，直接把flaskapi.conf文件替换nginx下的nginx.conf

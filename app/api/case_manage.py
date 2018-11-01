@@ -5,7 +5,6 @@ from app.util.case_change.core import HarParser
 from . import api
 from ..util.http_run import RunCase
 from ..util.utils import *
-import traceback
 
 
 @api.route('/proGather/list')
@@ -13,8 +12,6 @@ def get_pro_gather():
     # if current_user.id == 4:
     _pros = Project.query.all()
     my_pros = Project.query.filter_by(user_id=current_user.id).first()
-    # _pros = Project.query.all()
-    # print(current_user.id)
     pro = {}
     pro_url = {}
     scene_config_lists = {}
@@ -185,26 +182,6 @@ def edit_case():
     return jsonify({'data': _data, 'status': 1})
 
 
-#
-# @api.route('/cases/copy', methods=['POST'])
-# def copy_case():
-#     data = request.json
-#     case_id = data.get('caseId')
-#     _edit = ApiMsg.query.filter_by(id=case_id).first()
-#     variable = _edit.variables if _edit.variable_type == 'json' else json.loads(_edit.variables)
-#
-#     _data = {'caseName': _edit.name, 'caseNum': _edit.num, 'caseDesc': _edit.desc, 'caseUrl': _edit.url,
-#              'caseMethod': _edit.method, 'funcAddress': _edit.func_address, 'status_url': int(_edit.status_url),
-#              'variableType': _edit.variable_type, 'param': json.loads(_edit.param),
-#              'caseHeader': json.loads(_edit.headers), 'caseVariable': variable,
-#              'caseExtract': json.loads(_edit.extract), 'caseValidate': json.loads(_edit.validate), }
-#     if _edit.up_func:
-#         _data['up_func'] = ','.join(json.loads(_edit.up_func))
-#     if _edit.down_func:
-#         _data['down_func'] = ','.join(json.loads(_edit.down_func))
-#     return jsonify({'data': _data, 'status': 1})
-
-
 @api.route('/cases/run', methods=['POST'])
 def run_case():
     data = request.json
@@ -292,8 +269,8 @@ def file_change():
     data = request.json
     project_name = data.get('projectName')
     module_id = data.get('moduleId')
-    # if not gather_name and not project_name:
-    #     return jsonify({'msg': '项目和模块不能为空', 'status': 0})
+    if not module_id and not project_name:
+        return jsonify({'msg': '项目和模块不能为空', 'status': 0})
     import_format = data.get('importFormat')
     if not import_format:
         return jsonify({'msg': '请选择文件格式', 'status': 0})
@@ -301,16 +278,12 @@ def file_change():
     import_format = 'har' if import_format == 'HAR' else 'json'
     project_data = Project.query.filter_by(name=project_name).first()
     host = [project_data.host, project_data.host_two, project_data.host_three, project_data.host_four]
-    project_id = project_data.id
-    # module_id = Module.query.filter_by(name=gather_name, project_id=project_id).first().id
 
     import_api_address = data.get('importApiAddress')
     if not import_api_address:
         return jsonify({'msg': '请上传文件', 'status': 0})
     har_parser = HarParser(import_api_address, import_format)
     case_num = auto_num(data.get('caseNum'), ApiMsg, module_id=module_id)
-    # har_parser = postman_parser(import_api_address)
-    # for msg in har_parser:
     for msg in har_parser.testset:
         # status_url = msg['test']['url'].replace(msg['test']['name'], '')
         # msg['test']['url'] = msg['test']['name']
