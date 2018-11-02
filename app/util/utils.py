@@ -74,9 +74,9 @@ def extract_functions(content):
 
     e.g. ${func(5)} => ["func(5)"]
          ${func(a=1, b=2)} => ["func(a=1, b=2)"]
-         /api/1000?_t=${get_timestamp()} => ["get_timestamp()"]
-         /api/${add(1, 2)} => ["add(1, 2)"]
-         "/api/${add(1, 2)}?_t=${get_timestamp()}" => ["add(1, 2)", "get_timestamp()"]
+         /api_1_0/1000?_t=${get_timestamp()} => ["get_timestamp()"]
+         /api_1_0/${add(1, 2)} => ["add(1, 2)"]
+         "/api_1_0/${add(1, 2)}?_t=${get_timestamp()}" => ["add(1, 2)", "get_timestamp()"]
     """
     try:
         return re.findall(function_regexp, content)

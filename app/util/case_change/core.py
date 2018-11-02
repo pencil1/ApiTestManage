@@ -39,7 +39,7 @@ def load_api_log_entries(file_path):
             elif 'json' in file_path:
                 return content_json['requests']
         except (KeyError, TypeError):
-            logging.error("api file content error: {}".format(file_path))
+            logging.error("api_1_0 file content error: {}".format(file_path))
             sys.exit(1)
 
 

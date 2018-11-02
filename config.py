@@ -11,15 +11,10 @@ from logging.handlers import TimedRotatingFileHandler
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
-class ConfigTask(object):
-    jobstores = {'default': SQLAlchemyJobStore(url="sqlite:///" + os.path.join(basedir, "data.sqlite"))}
-    executors = {'default': ThreadPoolExecutor(10), 'processpool': ProcessPoolExecutor(3)}
-
-    def __init__(self):
-        self.scheduler = BackgroundScheduler(jobstores=self.jobstores, executors=self.executors)
-
-
 class SafeLog(TimedRotatingFileHandler):
+    """
+    因为TimedRotatingFileHandler在多进程访问log文件时，切分log日志会报错文件被占用，所以修复这个问题
+    """
     def __init__(self, *args, **kwargs):
         super(SafeLog, self).__init__(*args, **kwargs)
         self.suffix_time = ""
@@ -73,7 +68,11 @@ class SafeLog(TimedRotatingFileHandler):
 
 
 def config_log():
-    handler = SafeLog(os.path.abspath('..') + r'/logs/' + 'logger', interval=1, backupCount=50, when="D",
+    """
+    日志配置
+    :return:
+    """
+    handler = SafeLog(filename=os.path.abspath('..') + r'/logs/' + 'logger', interval=1, backupCount=50, when="D",
                       encoding='UTF-8')
     handler.setLevel(logging.INFO)
     handler.suffix = "%Y-%m-%d.log"
@@ -81,6 +80,17 @@ def config_log():
         '%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(lineno)s - %(message)s')
     handler.setFormatter(logging_format)
     return handler
+
+
+class ConfigTask(object):
+    """
+    定时任务配置
+    """
+    jobstores = {'default': SQLAlchemyJobStore(url="sqlite:///" + os.path.join(basedir, "data.sqlite"))}
+    executors = {'default': ThreadPoolExecutor(10), 'processpool': ProcessPoolExecutor(3)}
+
+    def __init__(self):
+        self.scheduler = BackgroundScheduler(jobstores=self.jobstores, executors=self.executors)
 
 
 class Config:
