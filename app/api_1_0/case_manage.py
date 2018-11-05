@@ -33,9 +33,17 @@ def get_pro_gather():
 
     # 获取每个项目下的用例集
     set_list = {}
+    scene_list = {}
     for p in _pros:
         sets = CaseSet.query.filter_by(project_id=p.id).order_by(CaseSet.num.asc()).all()
         set_list[p.name] = [{'label': s.name, 'id': s.id} for s in sets]
+
+        # 获取每个用例集的用例
+        for s1 in sets:
+            scene_list["{}".format(s1.id)] = [{'label': scene.name, 'id': scene.id} for scene in
+                                              Scene.query.filter_by(case_set_id=s1.id).all()]
+
+            # scene_list["abc"] = [{'label': 'aaaaa', 'id': 1},{'label': 'qqqqqq', 'id': 2}]
 
     # 获取每个项目下的url
     for p in _pros:
@@ -53,7 +61,7 @@ def get_pro_gather():
         my_pros = {'pro_name': my_pros.name, 'model_list': pro[my_pros.name]}
     return jsonify(
         {'data': pro, 'urlData': pro_url, 'status': 1, 'user_pro': my_pros, 'config_name_list': scene_config_lists,
-         'set_list': set_list})
+         'set_list': set_list, 'scene_list': scene_list})
 
 
 @api.route('/cases/list', methods=['POST'])

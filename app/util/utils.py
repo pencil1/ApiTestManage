@@ -155,6 +155,23 @@ def merge_config(pro_config, scene_config):
     return pro_config
 
 
+def change_cron(expression):
+    args = {}
+    expression = expression.split(' ')
+    if expression[0] != '?':
+        args['second'] = expression[0]
+    if expression[1] != '?':
+        args['minute'] = expression[1]
+    if expression[2] != '?':
+        args['hour'] = expression[2]
+    if expression[3] != '?':
+        args['day'] = expression[3]
+    if expression[4] != '?':
+        args['month'] = expression[4]
+    if expression[5] != '?':
+        args['day_of_week'] = expression[5]
+    return args
+
 if __name__ == '__main__':
     a = '${func($test)},$open,'
     print(extract_variables(a))

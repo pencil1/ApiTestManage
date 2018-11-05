@@ -191,11 +191,13 @@ def del_scene():
     _data = Scene.query.filter_by(id=scene_id).first()
     if current_user.id != Project.query.filter_by(id=_data.project_id).first().user_id:
         return jsonify({'msg': '不能删除别人项目下的业务集', 'status': 0})
-    db.session.delete(_data)
     del_case = ApiCase.query.filter_by(scene_id=scene_id).all()
     if del_case:
         for d in del_case:
             db.session.delete(d)
+
+    db.session.delete(_data)
+
     return jsonify({'msg': '删除成功', 'status': 1})
 
 
