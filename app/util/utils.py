@@ -1,4 +1,5 @@
 # encoding: utf-8
+import ast
 import importlib
 import json
 import re
@@ -49,6 +50,7 @@ def num_sort(new_num, old_num, model, **kwargs):
 
 variable_regexp = r"\$([\w_]+)"
 function_regexp = r"\$\{([\w_]+\([\$\w\.\-_ =,]*\))\}"
+function_regexp_compile = re.compile(r"^([\w_]+)\(([\$\w\.\-/_ =,]*)\)$")
 
 
 def extract_variables(content):
@@ -172,6 +174,80 @@ def change_cron(expression):
         args['day_of_week'] = expression[5]
     return args
 
+
+def parse_string_value(str_value):
+    """ parse string to number if possible
+    e.g. "123" => 123
+         "12.2" => 12.3
+         "abc" => "abc"
+         "$var" => "$var"
+    """
+    try:
+        return ast.literal_eval(str_value)
+    except ValueError:
+        return str_value
+    except SyntaxError:
+        # e.g. $var, ${func}
+        return str_value
+
+
+def parse_function(content):
+    """ parse function name and args from string content.
+
+    Args:
+        content (str): string content
+
+    Returns:
+        dict: function meta dict
+
+            {
+                "func_name": "xxx",
+                "args": [],
+                "kwargs": {}
+            }
+
+    Examples:
+        >>> parse_function("func()")
+        {'func_name': 'func', 'args': [], 'kwargs': {}}
+
+        >>> parse_function("func(5)")
+        {'func_name': 'func', 'args': [5], 'kwargs': {}}
+
+        >>> parse_function("func(1, 2)")
+        {'func_name': 'func', 'args': [1, 2], 'kwargs': {}}
+
+        >>> parse_function("func(a=1, b=2)")
+        {'func_name': 'func', 'args': [], 'kwargs': {'a': 1, 'b': 2}}
+
+        >>> parse_function("func(1, 2, a=3, b=4)")
+        {'func_name': 'func', 'args': [1, 2], 'kwargs': {'a':3, 'b':4}}
+
+    """
+    matched = function_regexp_compile.match(content)
+    function_meta = {
+        "func_name": matched.group(1),
+        "args": [],
+        "kwargs": {}
+    }
+
+    args_str = matched.group(2).strip()
+    if args_str == "":
+        return function_meta
+
+    args_list = args_str.split(',')
+    for arg in args_list:
+        arg = arg.strip()
+        if '=' in arg:
+            key, value = arg.split('=')
+            function_meta["kwargs"][key.strip()] = parse_string_value(value.strip())
+        else:
+            function_meta["args"].append(parse_string_value(arg))
+
+    return function_meta
 if __name__ == '__main__':
-    a = '${func($test)},$open,'
-    print(extract_variables(a))
+    a = '${func($test,123)}'
+    b = '${func([123],123)}'
+    print(extract_functions(b))
+    matched = parse_function(extract_functions(a)[0])
+
+    print(matched)
