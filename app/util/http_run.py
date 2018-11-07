@@ -5,10 +5,94 @@ from app.models import *
 from httprunner import HttpRunner
 from ..util.global_variable import *
 from ..util.utils import merge_config
+from httprunner import (loader, parser, utils)
+import importlib
+
+
+class MyHttpRunner(HttpRunner):
+    """
+    修改HttpRunner，用例初始化时导入函数
+    """
+
+    def __init__(self):
+        super(MyHttpRunner, self).__init__()
+
+    def parse_tests(self, testcases, variables_mapping=None):
+        """ parse testcases configs, including variables/parameters/name/request.
+
+        Args:
+            testcases (list): testcase list, with config unparsed.
+            variables_mapping (dict): if variables_mapping is specified, it will override variables in config block.
+
+        Returns:
+            list: parsed testcases list, with config variables/parameters/name/request parsed.
+
+        """
+        self.exception_stage = "parse tests"
+        variables_mapping = variables_mapping or {}
+
+        parsed_testcases_list = []
+        for testcase in testcases:
+            # parse config parameters
+            config_parameters = testcase.setdefault("config", {}).pop("parameters", [])
+
+            cartesian_product_parameters_list = parser.parse_parameters(
+                config_parameters,
+                self.project_mapping["debugtalk"]["variables"],
+                self.project_mapping["debugtalk"]["functions"]
+            ) or [{}]
+
+            for parameter_mapping in cartesian_product_parameters_list:
+                testcase_dict = testcase
+                config = testcase_dict.setdefault("config", {})
+
+                testcase_dict["config"]["functions"] = {}
+                if config.get('import_module_functions'):
+                    imported_module = importlib.reload(
+                        importlib.import_module(config.get('import_module_functions')[0]))
+                    debugtalk_module = loader.load_python_module(imported_module)
+                    testcase_dict["config"]["functions"].update(debugtalk_module["functions"])
+                testcase_dict["config"]["functions"].update(self.project_mapping["debugtalk"]["functions"])
+                # self.project_mapping["debugtalk"]["functions"].update(debugtalk_module["functions"])
+                raw_config_variables = config.get("variables", [])
+                parsed_config_variables = parser.parse_data(
+                    raw_config_variables,
+                    self.project_mapping["debugtalk"]["variables"],
+                    testcase_dict["config"]["functions"])
+
+                # priority: passed in > debugtalk.py > parameters > variables
+                # override variables mapping with parameters mapping
+                config_variables = utils.override_mapping_list(
+                    parsed_config_variables, parameter_mapping)
+                # merge debugtalk.py module variables
+                config_variables.update(self.project_mapping["debugtalk"]["variables"])
+                # override variables mapping with passed in variables_mapping
+                config_variables = utils.override_mapping_list(
+                    config_variables, variables_mapping)
+
+                testcase_dict["config"]["variables"] = config_variables
+
+                # parse config name
+                testcase_dict["config"]["name"] = parser.parse_data(
+                    testcase_dict["config"].get("name", ""),
+                    config_variables,
+                    self.project_mapping["debugtalk"]["functions"]
+                )
+
+                # parse config request
+                testcase_dict["config"]["request"] = parser.parse_data(
+                    testcase_dict["config"].get("request", {}),
+                    config_variables,
+                    self.project_mapping["debugtalk"]["functions"]
+                )
+                # put loaded project functions to config
+                # testcase_dict["config"]["functions"] = self.project_mapping["debugtalk"]["functions"]
+                parsed_testcases_list.append(testcase_dict)
+        return parsed_testcases_list
 
 
 def main_ate(cases):
-    runner = HttpRunner().run(cases)
+    runner = MyHttpRunner().run(cases)
     summary = runner.summary
     return summary
 
@@ -210,10 +294,10 @@ class RunCase(object):
         now_time = datetime.datetime.now()
 
         if self.run_type and self.make_report:
-
-            new_report = Report(name=','.join([Case.query.filter_by(id=scene_id).first().name for scene_id in self.scene_ids]),
-                                data='{}.txt'.format(now_time.strftime('%Y/%m/%d %H:%M:%S')),
-                                belong_pro=self.project_names, read_status='待阅')
+            new_report = Report(
+                name=','.join([Case.query.filter_by(id=scene_id).first().name for scene_id in self.scene_ids]),
+                data='{}.txt'.format(now_time.strftime('%Y/%m/%d %H:%M:%S')),
+                belong_pro=self.project_names, read_status='待阅')
             db.session.add(new_report)
             db.session.commit()
         d = self.all_cases_data()
