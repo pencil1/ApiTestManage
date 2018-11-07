@@ -69,7 +69,7 @@ def optimize_error_data():
 @api.route('/optimizeErrorData', methods=['POST'])
 def deal_data():
 
-    data1 = ApiCase.query.all()
+    data1 = CaseData.query.all()
     for d in data1:
         d.time = 1
         db.session.commit()

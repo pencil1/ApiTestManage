@@ -82,7 +82,7 @@ def del_project():
         return jsonify({'msg': '不能删除别人创建的项目', 'status': 0})
     if model:
         return jsonify({'msg': '请先删除项目下的模块', 'status': 0})
-    if Scene.query.filter_by(project_id=_edit.id).first():
+    if Case.query.filter_by(project_id=_edit.id).first():
         return jsonify({'msg': '请先删除项目下的业务集', 'status': 0})
     db.session.delete(_edit)
     return jsonify({'msg': '删除成功', 'status': 1})

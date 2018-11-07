@@ -113,16 +113,16 @@ def find_report():
     return jsonify({'data': report, 'total': total, 'status': 1})
 
 
-@api.route('/proScene/list')
-def get_pro_scene():
-    _pros = Project.query.all()
-    pro = {}
-    for p in _pros:
-        scenes = Scene.query.filter_by(project_id=p.id).all()
-        if scenes:
-            pro[p.name] = [{'value': _gat.name, 'ids': _gat.id} for _gat in scenes]
-        else:
-            pro[p.name] = ['']
-    return jsonify(pro)
+# @api.route('/proScene/list')
+# def get_pro_scene():
+#     _pros = Project.query.all()
+#     pro = {}
+#     for p in _pros:
+#         scenes = Case.query.filter_by(project_id=p.id).all()
+#         if scenes:
+#             pro[p.name] = [{'value': _gat.name, 'ids': _gat.id} for _gat in scenes]
+#         else:
+#             pro[p.name] = ['']
+#     return jsonify(pro)
 
 # END

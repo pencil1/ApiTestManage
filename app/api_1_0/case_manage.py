@@ -1,309 +1,271 @@
 from flask import jsonify, request
-from flask_login import current_user
-from app.models import *
-from app.util.case_change.core import HarParser
 from . import api
-from ..util.http_run import RunCase
+from app.models import *
+from flask_login import current_user
 from ..util.utils import *
 
 
-@api.route('/proGather/list')
-def get_pro_gather():
-    # if current_user.id == 4:
-    _pros = Project.query.all()
-    my_pros = Project.query.filter_by(user_id=current_user.id).first()
-    pro = {}
-    pro_url = {}
-    scene_config_lists = {}
-
-    #   获取每个项目下的模块名字
-    for p in _pros:
-        modules = Module.query.filter_by(project_id=p.id).all()
-        if modules:
-            pro[p.name] = [{'name': _gat.name, 'moduleId': _gat.id} for _gat in modules]
-        else:
-            pro[p.name] = ['']
-
-        config_list = SceneConfig.query.order_by(SceneConfig.num.asc()).filter_by(project_id=p.id).all()
-        if config_list:
-            scene_config_lists[p.name] = [{'name': _config_list.name, 'configId': _config_list.id} for _config_list in
-                                          config_list]
-        else:
-            scene_config_lists[p.name] = ['']
-
-    # 获取每个项目下的用例集
-    set_list = {}
-    scene_list = {}
-    for p in _pros:
-        sets = CaseSet.query.filter_by(project_id=p.id).order_by(CaseSet.num.asc()).all()
-        set_list[p.name] = [{'label': s.name, 'id': s.id} for s in sets]
-
-        # 获取每个用例集的用例
-        for s1 in sets:
-            scene_list["{}".format(s1.id)] = [{'label': scene.name, 'id': scene.id} for scene in
-                                              Scene.query.filter_by(case_set_id=s1.id).all()]
-
-            # scene_list["abc"] = [{'label': 'aaaaa', 'id': 1},{'label': 'qqqqqq', 'id': 2}]
-
-    # 获取每个项目下的url
-    for p in _pros:
-        pro_url[p.name] = []
-        if p.host:
-            pro_url[p.name].append(p.host)
-        if p.host_two:
-            pro_url[p.name].append(p.host_two)
-        if p.host_three:
-            pro_url[p.name].append(p.host_three)
-        if p.host_four:
-            pro_url[p.name].append(p.host_four)
-
-    if my_pros:
-        my_pros = {'pro_name': my_pros.name, 'model_list': pro[my_pros.name]}
-    return jsonify(
-        {'data': pro, 'urlData': pro_url, 'status': 1, 'user_pro': my_pros, 'config_name_list': scene_config_lists,
-         'set_list': set_list, 'scene_list': scene_list})
-
-
-@api.route('/cases/list', methods=['POST'])
-def get_cases():
+@api.route('/case/add', methods=['POST'])
+def add_case():
     data = request.json
-    gat_name = data.get('gatName')
-    gat_id = Module.query.filter_by(name=gat_name).first().id
-    cases = ApiMsg.query.filter_by(module_id=gat_id).all()
-    cases = [{'num': c.num, 'name': c.name, 'desc': c.desc, 'url': c.url} for c in cases]
-    return jsonify({'data': cases, 'status': 1})
-
-
-@api.route('/cases/add', methods=['POST'])
-def add_cases():
-    data = request.json
-    project_name = data.get('projectName')
-    case_name = data.get('caseName')
-    if not case_name:
-        return jsonify({'msg': '接口名称不能为空', 'status': 0})
-    variable_type = data.get('variableType')
-    case_desc = data.get('caseDesc')
+    name = data.get('name')
+    desc = data.get('desc')
+    ids = data.get('ids')
+    times = data.get('times')
+    case_set_id = data.get('caseSetId')
+    if not case_set_id:
+        return jsonify({'msg': '请选择用例集', 'status': 0})
     func_address = data.get('funcAddress')
-    case_header = data.get('caseHeader')
-    case_extract = data.get('caseExtract')
-    case_validate = data.get('caseValidate')
-    case_id = data.get('caseId')
-    up_func = json.dumps(data.get('upFunc').split(',')) if data.get('upFunc') else data.get('upFunc')
-    down_func = json.dumps(data.get('downFunc').split(',')) if data.get('downFunc') else data.get('down_func')
+    project = data.get('project')
+    project_data = Project.query.filter_by(name=project).first()
+    project_id = project_data.id
+    num = auto_num(data.get('num'), Case, project_id=project_id, case_set_id=case_set_id)
+    variable = data.get('variable')
+    api_cases = data.get('apiCases')
 
-    case_method = data.get('caseMethod')
-    if case_method == -1:
-        return jsonify({'msg': '请求方式不能为空', 'status': 0})
+    merge_variable = json.dumps(json.loads(variable) + json.loads(project_data.variables))
+    _temp_check = extract_variables(convert(json.loads(merge_variable)))
+    if _temp_check:
+        return jsonify({'msg': '参数引用${}在业务变量和项目公用变量均没找到'.format(',$'.join(_temp_check)), 'status': 0})
+    if re.search('\${(.*?)}', '{}{}'.format(variable, json.dumps(api_cases)), flags=0) and not func_address:
+        return jsonify({'msg': '参数引用函数后，必须引用函数文件', 'status': 0})
 
-    module_id = data.get('moduleId')
-    if not module_id and not project_name:
-        return jsonify({'msg': '项目和模块不能为空', 'status': 0})
+    cases_check = check_case(api_cases, func_address)
+    if cases_check:
+        return jsonify({'msg': cases_check, 'status': 0})
 
-    case_url = data.get('caseUrl').split('?')[0]
-    status_url = data.get('choiceUrl')
-    if status_url == -1:
-        if 'http' not in case_url:
-            return jsonify({'msg': '基础url为空时，请补全api地址', 'status': 0})
+    variable_check = check_case(variable, func_address)
+    if variable_check:
+        return jsonify({'msg': variable_check, 'status': 0})
 
-    if not func_address and (data.get('upFunc') or data.get('downFunc')):
-        return jsonify({'msg': '设置前后置函数后必须引用函数文件', 'status': 0})
-
-    # if not case_url:
-    #     return jsonify({'msg': '接口url不能为空', 'status': 0})
-    # elif re.search('\${(.*?)}', case_url, flags=0) and not func_address:
-    #     return jsonify({'msg': 'url引用函数后，基础信息处必须引用函数文件', 'status': 0})
-    #
-    case_variable = data.get('caseVariable')
-    param = data.get('param')
-    # if re.search('\${(.*?)}', case_variable, flags=0) and not func_address:
-    #     return jsonify({'msg': '参数引用函数后，基础信息处必须引用函数文件', 'status': 0})
-
-    project_id = Project.query.filter_by(name=project_name).first().id
-    # module_id = Module.query.filter_by(name=gather_name, project_id=project_id).first().id
-
-    case_num = auto_num(data.get('caseNum'), ApiMsg, module_id=module_id)
-
-    if case_id:
-        old_case_data = ApiMsg.query.filter_by(id=case_id).first()
-        old_num = old_case_data.num
-        if ApiMsg.query.filter_by(name=case_name, module_id=module_id).first() and case_name != old_case_data.name:
-            return jsonify({'msg': '接口名字重复', 'status': 0})
-
-        # 当序号存在，且不是本来的序号，进入修改判断
-        if ApiMsg.query.filter_by(num=case_num, module_id=module_id).first() and int(case_num) != old_num:
-            num_sort(case_num, old_num, ApiMsg, module_id=module_id)
+    if ids:
+        old_scene_data = Case.query.filter_by(id=ids).first()
+        old_num = old_scene_data.num
+        if Case.query.filter_by(name=name, project_id=project_id,
+                                case_set_id=case_set_id).first() and name != old_scene_data.name:
+            return jsonify({'msg': '用例名字重复', 'status': 0})
+        elif Case.query.filter_by(num=num, project_id=project_id, case_set_id=case_set_id).first() and num != old_num:
+            num_sort(num, old_num, Case, project_id=project_id, case_set_id=case_set_id)
         else:
-            old_case_data.num = case_num
-
-        old_case_data.project_id = project_id
-        old_case_data.name = case_name
-        old_case_data.validate = case_validate
-        old_case_data.func_address = func_address
-        old_case_data.up_func = up_func
-        old_case_data.down_func = down_func
-        old_case_data.desc = case_desc
-        old_case_data.status_url = status_url
-        old_case_data.variable_type = variable_type
-        old_case_data.method = case_method
-        old_case_data.url = case_url
-        old_case_data.headers = case_header
-        old_case_data.variables = case_variable
-        old_case_data.param = param
-        old_case_data.extract = case_extract
-        old_case_data.module_id = module_id
+            old_scene_data.num = num
+        old_scene_data.name = name
+        old_scene_data.times = times
+        old_scene_data.project_id = project_id
+        old_scene_data.desc = desc
+        old_scene_data.case_set_id = case_set_id
+        old_scene_data.func_address = func_address
+        old_scene_data.variable = variable
         db.session.commit()
-        return jsonify({'msg': '修改成功', 'status': 1, 'api_msg_id': case_id, 'num': case_num})
+        for num1, c in enumerate(api_cases):
+            if c.get('id'):
+                old_api_case = CaseData.query.filter_by(id=c.get('id')).first()
+                old_api_case.num = num1
+
+                old_api_case.extract = json.dumps(c['extract'])
+                old_api_case.validate = json.dumps(c['validate'])
+                old_api_case.param = json.dumps(c['param'])
+                old_api_case.time = c['time']
+                old_api_case.status_variables = json.dumps(c['statusCase']['variable'])
+                old_api_case.status_extract = json.dumps(c['statusCase']['extract'])
+                old_api_case.status_validate = json.dumps(c['statusCase']['validate'])
+                old_api_case.status_param = json.dumps(c['statusCase']['param'])
+                old_api_case.name = c['case_name']
+                old_api_case.status = json.dumps(c['status'])
+                old_api_case.up_func = c['up_func']
+                old_api_case.down_func = c['down_func']
+                if c['variableType'] == 'json':
+                    variable = c['variable']
+                else:
+                    variable = json.dumps(c['variable'])
+                old_api_case.variables = variable
+                db.session.commit()
+                # old_api_case.num = num1
+            else:
+                if c['variableType'] == 'json':
+                    variable = c['variables']
+                else:
+                    variable = json.dumps(c['variables'])
+                new_api_case = CaseData(num=num1, variable=variable, extract=json.dumps(c['extract']),
+                                        param=json.dumps(c['param']), time=c['time'],
+                                        validate=json.dumps(c['validate']), case_id=ids, api_msg_id=c['apiMsgId'],
+                                        status_variables=json.dumps(c['statusCase']['variable']),
+                                        status_extract=json.dumps(c['statusCase']['extract']),
+                                        status_validate=json.dumps(c['statusCase']['validate']),
+                                        status_param=json.dumps(c['statusCase']['param']),
+                                        status=json.dumps(c['status']),
+                                        name=c['case_name'], up_func=c['up_func'], down_func=c['down_func'])
+                db.session.add(new_api_case)
+                db.session.commit()
+        return jsonify({'msg': '修改成功', 'status': 1})
     else:
-        if ApiMsg.query.filter_by(name=case_name, module_id=module_id).first():
-            return jsonify({'msg': '接口名字重复', 'status': 0})
+        if Case.query.filter_by(name=name, project_id=project_id, case_set_id=case_set_id).first():
+            return jsonify({'msg': '用例名字重复', 'status': 0})
+        elif Case.query.filter_by(num=num, project_id=project_id, case_set_id=case_set_id).first():
+            return jsonify({'msg': '编号重复', 'status': 0})
         else:
-            new_cases = ApiMsg(name=case_name, module_id=module_id, validate=case_validate, num=case_num,
-                               status_url=status_url, func_address=func_address, up_func=up_func,
-                               down_func=down_func, desc=case_desc, method=case_method, param=param,
-                               url=case_url, headers=case_header, variable_type=variable_type,
-                               variables=case_variable, extract=case_extract, project_id=project_id)
-            db.session.add(new_cases)
+
+            new_case = Case(num=num, name=name, desc=desc, project_id=project_id, variables=variable,
+                            func_address=func_address, case_set_id=case_set_id, times=times)
+            db.session.add(new_case)
             db.session.commit()
-            _new = ApiMsg.query.filter_by(name=case_name, module_id=module_id, project_id=project_id).first()
-            _id = _new.id
-            _num = _new.num
-            return jsonify({'msg': '新建成功', 'status': 1, 'api_msg_id': _id, 'num': _num})
+            case_id = Case.query.filter_by(name=name, project_id=project_id, case_set_id=case_set_id).first().id
+            # case_id = Scene.query.filter_by(name=name, case_set_id=case_set_id).first().id
+            for num1, c in enumerate(api_cases):
+                if c['variableType'] == 'json':
+                    variable = c['variable']
+                else:
+                    variable = json.dumps(c['variable'])
+                # if c.statusCase
+                new_api_case = CaseData(num=num1, variable=variable, extract=json.dumps(c['extract']),
+                                        param=json.dumps(c['param']), time=c['time'],
+                                        validate=json.dumps(c['validate']), case_id=case_id, api_msg_id=c['apiMsgId'],
+                                        status_variables=json.dumps(c['statusCase']['variable']),
+                                        status_extract=json.dumps(c['statusCase']['extract']),
+                                        status_validate=json.dumps(c['statusCase']['validate']),
+                                        status_param=json.dumps(c['statusCase']['param']),
+                                        status=json.dumps(c['status']),
+                                        name=c['case_name'], up_func=c['up_func'], down_func=c['down_func'])
+                db.session.add(new_api_case)
+                db.session.commit()
+            return jsonify({'msg': '新建成功', 'status': 1})
 
 
-@api.route('/cases/editAndCopy', methods=['POST'])
-def edit_case():
+@api.route('/case/find', methods=['POST'])
+def find_scene():
     data = request.json
-    case_id = data.get('caseId')
-    _edit = ApiMsg.query.filter_by(id=case_id).first()
-    variable = _edit.variables if _edit.variable_type == 'json' else json.loads(_edit.variables)
-
-    _data = {'caseName': _edit.name, 'caseNum': _edit.num, 'caseDesc': _edit.desc, 'caseUrl': _edit.url,
-             'caseMethod': _edit.method, 'funcAddress': _edit.func_address, 'status_url': int(_edit.status_url),
-             'variableType': _edit.variable_type, 'param': json.loads(_edit.param),
-             'caseHeader': json.loads(_edit.headers), 'caseVariable': variable,
-             'caseExtract': json.loads(_edit.extract), 'caseValidate': json.loads(_edit.validate), }
-    current_app.logger.info(_data)
-    if _edit.up_func:
-        _data['up_func'] = ','.join(json.loads(_edit.up_func))
-    if _edit.down_func:
-        _data['down_func'] = ','.join(json.loads(_edit.down_func))
-    return jsonify({'data': _data, 'status': 1})
-
-
-@api.route('/cases/run', methods=['POST'])
-def run_case():
-    data = request.json
-    case_data = data.get('caseData')
-    suite_data = data.get('suiteData')
     project_name = data.get('projectName')
-    config_id = data.get('configId')
-    case_data_id = []
-    if not case_data and not suite_data:
-        return jsonify({'msg': '请勾选信息后，再进行测试', 'status': 0})
-    # 前端传入的数据不是按照编号来的，所以这里重新排序
-    if case_data:
-        case_data_id = [(item['num'], item['caseId']) for item in case_data]
-        case_data_id.sort(key=lambda x: x[0])
-
-        api_msg = [ApiMsg.query.filter_by(id=c[1]).first() for c in case_data_id]
-    if suite_data:
-        for suite in suite_data:
-            case_data_id += json.loads(ApiSuite.query.filter_by(id=suite['id']).first().api_ids)
-            api_msg = [ApiMsg.query.filter_by(id=c).first() for c in case_data_id]
-
-    d = RunCase(project_names=project_name, case_data=api_msg, config_id=config_id)
-    res = json.loads(d.run_case())
-    return jsonify({'msg': '测试完成', 'data': res, 'status': 1})
-
-
-@api.route('/cases/find', methods=['POST'])
-def find_cases():
-    data = request.json
-    module_id = data.get('moduleId')
-    project_name = data.get('projectName')
-    case_name = data.get('caseName')
+    if not project_name:
+        return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
+    scene_name = data.get('sceneName')
+    set_id = data.get('setId')
     total = 1
     page = data.get('page') if data.get('page') else 1
-    per_page = data.get('sizePage') if data.get('sizePage') else 20
-    if not module_id:
-        return jsonify({'msg': '请先创建{}项目下的模块'.format(project_name), 'status': 0})
+    per_page = data.get('sizePage') if data.get('sizePage') else 10
 
-    if case_name:
-        cases = ApiMsg.query.filter_by(module_id=module_id).filter(ApiMsg.name.like('%{}%'.format(case_name))).all()
+    if scene_name:
+        cases = Case.query.filter_by(case_set_id=set_id).filter(Case.name.like('%{}%'.format(scene_name))).all()
         if not cases:
             return jsonify({'msg': '没有该用例', 'status': 0})
     else:
-        cases = ApiMsg.query.filter_by(module_id=module_id)
-        pagination = cases.order_by(ApiMsg.num.asc()).paginate(page, per_page=per_page, error_out=False)
+        cases = Case.query.filter_by(project_id=Project.query.filter_by(name=project_name).first().id,
+                                     case_set_id=set_id)
+
+        pagination = cases.order_by(Case.num.asc()).paginate(page, per_page=per_page, error_out=False)
         cases = pagination.items
         total = pagination.total
-
-    _case = []
-    for c in cases:
-        if c.variable_type == 'json':
-            variable = c.variables
-        else:
-            variable = json.loads(c.variables)
-        _case.append(
-            {'num': c.num, 'name': c.name, 'desc': c.desc, 'url': c.url, 'caseId': c.id, 'gather_id': c.module_id,
-             'variableType': c.variable_type,
-             'variables': variable, 'extract': json.loads(c.extract),
-             'validate': json.loads(c.validate),
-             'param': json.loads(c.param),
-             'statusCase': {'extract': [True, True], 'variable': [True, True], 'validate': [True, True],
-                            'param': [True, True]},
-             'status': True, 'case_name': c.name, 'down_func': '', 'up_func': '', 'time': 1})
-    return jsonify({'data': _case, 'total': total, 'status': 1})
+    cases = [{'num': c.num, 'name': c.name, 'label': c.name, 'leaf': True, 'desc': c.desc, 'sceneId': c.id} for c in
+             cases]
+    return jsonify({'data': cases, 'total': total, 'status': 1})
 
 
-@api.route('/cases/del', methods=['POST'])
-def del_cases():
+@api.route('/case/findOld', methods=['POST'])
+def find_old_scene():
+    data = request.json
+    project_name = data.get('projectName')
+    if not project_name:
+        return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
+    scene_name = data.get('sceneName')
+    total = 1
+    page = data.get('page') if data.get('page') else 1
+    per_page = data.get('sizePage') if data.get('sizePage') else 10
+
+    if scene_name:
+        cases = Case.query.filter_by(case_set_id=None).filter(Case.name.like('%{}%'.format(scene_name))).all()
+        if not cases:
+            return jsonify({'msg': '没有该用例', 'status': 0})
+    else:
+        cases = Case.query.filter_by(project_id=Project.query.filter_by(name=project_name).first().id,
+                                     case_set_id=None)
+
+        pagination = cases.order_by(Case.num.asc()).paginate(page, per_page=per_page, error_out=False)
+        cases = pagination.items
+        total = pagination.total
+    cases = [{'num': c.num, 'name': c.name, 'desc': c.desc, 'sceneId': c.id} for c in cases]
+    return jsonify({'data': cases, 'total': total, 'status': 1})
+
+
+@api.route('/case/del', methods=['POST'])
+def del_scene():
     data = request.json
     case_id = data.get('caseId')
-    _edit = ApiMsg.query.filter_by(id=case_id).first()
+    _data = Case.query.filter_by(id=case_id).first()
+    if current_user.id != Project.query.filter_by(id=_data.project_id).first().user_id:
+        return jsonify({'msg': '不能删除别人项目下的用例', 'status': 0})
+    del_case = CaseData.query.filter_by(case_id=case_id).all()
+    if del_case:
+        for d in del_case:
+            db.session.delete(d)
 
-    project_id = Module.query.filter_by(id=_edit.module_id).first().project_id
-    if current_user.id != Project.query.filter_by(id=project_id).first().user_id:
-        return jsonify({'msg': '不能删除别人项目下的接口', 'status': 0})
-    db.session.delete(_edit)
-    del_case = ApiCase.query.filter_by(apiMsg_id=case_id).all()
-    for d in del_case:
-        db.session.delete(d)
+    db.session.delete(_data)
+
     return jsonify({'msg': '删除成功', 'status': 1})
 
 
-@api.route('/cases/fileChange', methods=['POST'])
-def file_change():
+@api.route('/apiCase/del', methods=['POST'])
+def del_api_case():
     data = request.json
-    project_name = data.get('projectName')
-    module_id = data.get('moduleId')
-    if not module_id and not project_name:
-        return jsonify({'msg': '项目和模块不能为空', 'status': 0})
-    import_format = data.get('importFormat')
-    if not import_format:
-        return jsonify({'msg': '请选择文件格式', 'status': 0})
+    case_id = data.get('id')
+    _data = CaseData.query.filter_by(id=case_id).first()
+    db.session.delete(_data)
+    return jsonify({'msg': '删除成功', 'status': 1})
 
-    import_format = 'har' if import_format == 'HAR' else 'json'
-    project_data = Project.query.filter_by(name=project_name).first()
-    host = [project_data.host, project_data.host_two, project_data.host_three, project_data.host_four]
 
-    import_api_address = data.get('importApiAddress')
-    if not import_api_address:
-        return jsonify({'msg': '请上传文件', 'status': 0})
-    har_parser = HarParser(import_api_address, import_format)
-    case_num = auto_num(data.get('caseNum'), ApiMsg, module_id=module_id)
-    for msg in har_parser.testset:
-        # status_url = msg['test']['url'].replace(msg['test']['name'], '')
-        # msg['test']['url'] = msg['test']['name']
-        # print(msg['test']['status_url'])
-        for h in host:
-            if msg['status_url'] in h:
-                msg['status_url'] = host.index(h)
-                break
+@api.route('/case/edit', methods=['POST'])
+def edit_scene():
+    data = request.json
+    case_id = data.get('caseId')
+    status = data.get('copyEditStatus')
+    _data = Case.query.filter_by(id=case_id).first()
+
+    cases = CaseData.query.filter_by(case_id=case_id).order_by(CaseData.num.asc()).all()
+    case_data = []
+    for case in cases:
+        if ApiMsg.query.filter_by(id=case.api_msg_id).first().variable_type == 'json':
+            variable = case.variable
         else:
-            msg['status_url'] = '0'
-        new_case = ApiMsg(module_id=module_id, num=case_num, **msg)
-        db.session.add(new_case)
-        db.session.commit()
-        case_num += 1
-    return jsonify({'msg': '导入成功', 'status': 1})
+            variable = json.loads(case.variable)
+
+        if status:
+            case_id = ''
+        else:
+            case_id = case.id
+        case_data.append({'num': case.num, 'name': ApiMsg.query.filter_by(id=case.api_msg_id).first().name,
+                          'desc': ApiMsg.query.filter_by(id=case.api_msg_id).first().desc, 'api_msg_id': case.api_msg_id,
+                          'id': case_id,
+                          'status': json.loads(case.status),
+                          'variableType': ApiMsg.query.filter_by(id=case.api_msg_id).first().variable_type,
+                          'case_name': case.name,
+                          'time': case.time,
+                          'up_func': case.up_func,
+                          'down_func': case.down_func,
+                          'variable': variable,
+                          'param': json.loads(case.param),
+                          'extract': json.loads(case.extract),
+                          'validate': json.loads(case.validate),
+                          'statusCase': {'variable': json.loads(case.status_variables),
+                                         'extract': json.loads(case.status_extract),
+                                         'validate': json.loads(case.status_validate),
+                                         'param': json.loads(case.status_param)},
+
+                          })
+    _data2 = {'num': _data.num, 'name': _data.name, 'desc': _data.desc, 'cases': case_data, 'setId': _data.case_set_id,
+              'func_address': _data.func_address, 'times': _data.times}
+
+    if _data.variable:
+        _data2['variable'] = json.loads(_data.variable)
+    else:
+        _data2['variable'] = []
+
+    return jsonify({'data': _data2, 'status': 1})
+
+
+@api.route('/config/data', methods=['POST'])
+def data_config():
+    data = request.json
+    config_id = data.get('configId')
+    # _edit = SceneConfig.query.filter_by(name=name).first().variables
+    _data = Config.query.filter_by(id=config_id).first()
+
+    return jsonify({'data': {'variables': json.loads(_data.variables),
+                             'func_address': _data.func_address},
+                    'status': 1})

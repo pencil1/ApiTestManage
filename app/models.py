@@ -53,24 +53,23 @@ class Project(db.Model):
     headers = db.Column(db.String())
     created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
     modules = db.relationship('Module', backref='project', lazy='dynamic')
-    scenes = db.relationship('Scene', backref='project', lazy='dynamic')
 
 
-class Scene(db.Model):
-    __tablename__ = 'scene'
+class Case(db.Model):
+    __tablename__ = 'case'
     id = db.Column(db.Integer(), primary_key=True)
     num = db.Column(db.Integer(), nullable=True)
     name = db.Column(db.String(), nullable=True)
     desc = db.Column(db.String())
     func_address = db.Column(db.String())
-    variables = db.Column(db.String())
+    variable = db.Column(db.String())
     times = db.Column(db.Integer(), nullable=True)
     created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
     case_set_id = db.Column(db.Integer, nullable=True)
 
 
-class SceneConfig(db.Model):
+class Config(db.Model):
     __tablename__ = 'config'
     id = db.Column(db.Integer(), primary_key=True)
     num = db.Column(db.Integer(), nullable=True)
@@ -92,7 +91,7 @@ class Module(db.Model):
 
 
 class CaseSet(db.Model):
-    __tablename__ = 'caseSet'
+    __tablename__ = 'case_set'
     id = db.Column(db.Integer(), primary_key=True)
     num = db.Column(db.Integer(), nullable=True)
     name = db.Column(db.String(), nullable=True)
@@ -102,7 +101,7 @@ class CaseSet(db.Model):
 
 
 class ApiMsg(db.Model):
-    __tablename__ = 'apiMsg'
+    __tablename__ = 'api_msg'
     id = db.Column(db.Integer(), primary_key=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
     num = db.Column(db.Integer(), nullable=True)
@@ -114,12 +113,12 @@ class ApiMsg(db.Model):
     up_func = db.Column(db.String())
     down_func = db.Column(db.String())
     method = db.Column(db.String(), nullable=True)
-    variables = db.Column(db.String())
+    variable = db.Column(db.String())
     param = db.Column(db.String())
     url = db.Column(db.String(), nullable=True)
     extract = db.Column(db.String())
     validate = db.Column(db.String())
-    headers = db.Column(db.String())
+    header = db.Column(db.String())
     module_id = db.Column(db.Integer, db.ForeignKey('module.id'))
     project_id = db.Column(db.Integer, nullable=True)
 
@@ -136,8 +135,8 @@ class ApiSuite(db.Model):
     module_id = db.Column(db.Integer, db.ForeignKey('module.id'))
 
 
-class ApiCase(db.Model):
-    __tablename__ = 'apiCase'
+class CaseData(db.Model):
+    __tablename__ = 'case_data'
     id = db.Column(db.Integer(), primary_key=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
     num = db.Column(db.Integer(), nullable=True)
@@ -148,14 +147,14 @@ class ApiCase(db.Model):
     time = db.Column(db.Integer(), default=1)
     param = db.Column(db.String(), default=u'[]')
     status_param = db.Column(db.String, default=u'[true, true]')
-    variables = db.Column(db.String())
+    variable = db.Column(db.String())
     status_variables = db.Column(db.String)
     extract = db.Column(db.String())
     status_extract = db.Column(db.String)
     validate = db.Column(db.String())
     status_validate = db.Column(db.String)
-    scene_id = db.Column(db.Integer, db.ForeignKey('scene.id'))
-    apiMsg_id = db.Column(db.Integer, db.ForeignKey('apiMsg.id'))
+    case_id = db.Column(db.Integer, db.ForeignKey('case.id'))
+    api_msg_id = db.Column(db.Integer, db.ForeignKey('api_msg.id'))
 
 
 class Report(db.Model):

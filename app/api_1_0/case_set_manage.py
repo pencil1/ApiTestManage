@@ -5,7 +5,7 @@ from flask_login import current_user
 from ..util.utils import *
 
 
-@api.route('/set/add', methods=['POST'])
+@api.route('/caseSet/add', methods=['POST'])
 def add_set():
     data = request.json
     project_name = data.get('projectName')
@@ -31,7 +31,7 @@ def add_set():
         return jsonify({'msg': '新建成功', 'status': 1})
 
 
-@api.route('/set/stick', methods=['POST'])
+@api.route('/caseSet/stick', methods=['POST'])
 def stick_set():
     data = request.json
     set_id = data.get('id')
@@ -44,7 +44,7 @@ def stick_set():
     return jsonify({'msg': '置顶完成', 'status': 1})
 
 
-@api.route('/set/find', methods=['POST'])
+@api.route('/caseSet/find', methods=['POST'])
 def find_set():
     data = request.json
     total = 1
@@ -66,7 +66,7 @@ def find_set():
     return jsonify({'status': 1, 'total': total, 'data': current_set, 'all_set': all_set})
 
 
-@api.route('/set/edit', methods=['POST'])
+@api.route('/caseSet/edit', methods=['POST'])
 def edit_set():
     data = request.json
     set_id = data.get('id')
@@ -76,12 +76,12 @@ def edit_set():
     return jsonify({'data': _data, 'status': 1})
 
 
-@api.route('/set/del', methods=['POST'])
+@api.route('/caseSet/del', methods=['POST'])
 def del_set():
     data = request.json
     set_id = data.get('id')
     _edit = CaseSet.query.filter_by(id=set_id).first()
-    scene = Scene.query.filter_by(case_set_id=set_id).first()
+    scene = Case.query.filter_by(case_set_id=set_id).first()
     if current_user.id != Project.query.filter_by(id=_edit.project_id).first().user_id:
         return jsonify({'msg': '不能删除别人项目下的模块', 'status': 0})
     if scene:

@@ -5,7 +5,7 @@ from flask_login import current_user
 from ..util.utils import *
 
 
-@api.route('/model/find', methods=['POST'])
+@api.route('/module/find', methods=['POST'])
 def find_model():
     data = request.json
     model_name = data.get('modelName')
@@ -32,7 +32,7 @@ def find_model():
     return jsonify({'data': model, 'total': total, 'status': 1})
 
 
-@api.route('/model/add', methods=['POST'])
+@api.route('/module/add', methods=['POST'])
 def add_model():
     data = request.json
     project_name = data.get('projectName')
@@ -67,7 +67,7 @@ def add_model():
             return jsonify({'msg': '新建成功', 'status': 1})
 
 
-@api.route('/model/edit', methods=['POST'])
+@api.route('/module/edit', methods=['POST'])
 def edit_model():
     data = request.json
     model_id = data.get('id')
@@ -77,7 +77,7 @@ def edit_model():
     return jsonify({'data': _data, 'status': 1})
 
 
-@api.route('/model/del', methods=['POST'])
+@api.route('/module/del', methods=['POST'])
 def del_model():
     data = request.json
     ids = data.get('id')

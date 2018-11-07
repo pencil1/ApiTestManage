@@ -38,7 +38,7 @@ def run_task():
         else:
             _set_ids = [i['id'] for i in json.loads(_data.set_id)]
         for set_id in _set_ids:
-            for scene_data in Scene.query.filter_by(case_set_id=set_id).order_by(Scene.num.asc()).all():
+            for scene_data in Case.query.filter_by(case_set_id=set_id).order_by(Case.num.asc()).all():
                 scene_ids.append(scene_data.id)
     result = aps_test(_data.project_name, scene_ids)
 
@@ -64,7 +64,7 @@ def start_task():
         else:
             _set_ids = [i['id'] for i in json.loads(_data.set_id)]
         for set_id in _set_ids:
-            for scene_data in Scene.query.filter_by(case_set_id=set_id).order_by(Scene.num.asc()).all():
+            for scene_data in Case.query.filter_by(case_set_id=set_id).order_by(Case.num.asc()).all():
                 scene_ids.append(scene_data.id)
     # scheduler.add_job(str(ids), aps_test, trigger='cron', args=['asd'], **config_time)
     scheduler.add_job(aps_test, 'cron', args=[_data.project_name, scene_ids], id=str(ids), **config_time)  # 添加任务

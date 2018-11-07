@@ -14,25 +14,25 @@ def main_ate(cases):
 
 
 class RunCase(object):
-    def __init__(self, project_names=None, scene_ids=None, case_data=None, config_id=None):
+    def __init__(self, project_names=None, scene_ids=None, api_data=None, config_id=None):
         self.project_names = project_names
         self.scene_ids = scene_ids
         self.config_id = config_id
-        self.case_data = case_data
+        self.api_data = api_data
         self.project_data = Project.query.filter_by(name=self.project_names).first()
         self.project_id = self.project_data.id
         self.run_type = False  # 判断是接口调试(false)or业务用例执行(true)
         self.make_report = True
-        self.temp_data = self.scene_ids or self.case_data
+        self.temp_data = self.scene_ids or self.api_data
         self.new_report_id = None
         self.temp_extract = list()
 
     def project_case(self):
-        if self.project_names and not self.scene_ids and not self.case_data:
-            scene_id = [s.id for s in Scene.query.filter_by(project_id=self.project_id).order_by(Scene.num.asc()).all()]
+        if self.project_names and not self.scene_ids and not self.api_data:
+            scene_id = [s.id for s in Case.query.filter_by(project_id=self.project_id).order_by(Case.num.asc()).all()]
             all_case_data = []
             for c in scene_id:
-                for c1 in ApiCase.query.filter_by(scene_id=c).order_by(ApiCase.num.asc()).all():
+                for c1 in CaseData.query.filter_by(scene_id=c).order_by(CaseData.num.asc()).all():
                     all_case_data.append(c1)
             self.run_type = True
             return all_case_data
@@ -73,7 +73,7 @@ class RunCase(object):
     def get_case(self, case_data, pro_base_url):
         if self.run_type:
             # 为true，获取api基础信息；case只包含可改变部分所以还需要api基础信息组合成全新的用例
-            api_case = ApiMsg.query.filter_by(id=case_data.apiMsg_id).first()
+            api_case = ApiMsg.query.filter_by(id=case_data.api_msg_id).first()
         else:
             # 为false，基础信息和参数信息都在api里面，所以api_case = case_data，直接赋值覆盖
             api_case = case_data
@@ -86,8 +86,8 @@ class RunCase(object):
             temp_case_data['setup_hooks'] = [case_data.up_func]
         if case_data.down_func:
             temp_case_data['teardown_hooks'] = [case_data.down_func]
-        if json.loads(api_case.headers):
-            temp_case_data['request']['headers'] = {h['key']: h['value'] for h in json.loads(api_case.headers)
+        if json.loads(api_case.header):
+            temp_case_data['request']['headers'] = {h['key']: h['value'] for h in json.loads(api_case.header)
                                                     if h['key']}
 
         if api_case.status_url != '-1':
@@ -111,10 +111,10 @@ class RunCase(object):
 
         if not self.run_type or json.loads(case_data.status_variables)[0]:
             if not self.run_type or json.loads(case_data.status_variables)[1]:
-                _variables = json.loads(case_data.variables)
+                _variables = json.loads(case_data.variable)
 
             else:
-                _variables = json.loads(api_case.variables)
+                _variables = json.loads(api_case.variable)
 
             if api_case.variable_type == 'data' and api_case.method != 'GET':
                 for variable in _variables:
@@ -171,7 +171,7 @@ class RunCase(object):
 
         if self.scene_ids:
             for scene in self.temp_data:
-                scene_data = Scene.query.filter_by(id=scene).first()
+                scene_data = Case.query.filter_by(id=scene).first()
                 scene_times = scene_data.times if scene_data.times else 1
                 for s in range(scene_times):
                     _temp_config = copy.deepcopy(pro_config)
@@ -182,26 +182,26 @@ class RunCase(object):
                         scene_data.func_address.replace('.py', ''))] if scene_data.func_address else []
 
                     # 获取业务集合的配置数据
-                    scene_config = json.loads(scene_data.variables) if scene_data.variables else []
+                    scene_config = json.loads(scene_data.variable) if scene_data.variable else []
 
                     # 合并公用项目配置和业务集合配置
                     _temp_config = merge_config(_temp_config, scene_config)
-                    for case in ApiCase.query.filter_by(scene_id=scene).order_by(ApiCase.num.asc()).all():
+                    for case in CaseData.query.filter_by(case_id=scene).order_by(CaseData.num.asc()).all():
                         if case.status == 'true':  # 判断用例状态，是否执行
                             for t in range(case.time):  # 获取用例执行次数，遍历添加
                                 _temp_config['teststeps'].append(self.get_case(case, pro_base_url))
                     temp_case.append(_temp_config)
             return temp_case
 
-        if self.case_data:
+        if self.api_data:
             _temp_config = copy.deepcopy(pro_config)
-            config_data = SceneConfig.query.filter_by(id=self.config_id).first()
+            config_data = Config.query.filter_by(id=self.config_id).first()
             _config = json.loads(config_data.variables) if self.config_id else []
             _temp_config['config']['import_module_functions'] = ['func_list.{}'.format(
                 config_data.func_address.replace('.py', ''))] if config_data and config_data.func_address else []
 
             _temp_config = merge_config(_temp_config, _config)
-            _temp_config['teststeps'] = [self.get_case(case, pro_base_url) for case in self.case_data]
+            _temp_config['teststeps'] = [self.get_case(case, pro_base_url) for case in self.api_data]
             _temp_config['config']['output'] += copy.deepcopy(self.temp_extract)
             return _temp_config
             # return temp_case
@@ -211,7 +211,7 @@ class RunCase(object):
 
         if self.run_type and self.make_report:
 
-            new_report = Report(name=','.join([Scene.query.filter_by(id=scene_id).first().name for scene_id in self.scene_ids]),
+            new_report = Report(name=','.join([Case.query.filter_by(id=scene_id).first().name for scene_id in self.scene_ids]),
                                 data='{}.txt'.format(now_time.strftime('%Y/%m/%d %H:%M:%S')),
                                 belong_pro=self.project_names, read_status='待阅')
             db.session.add(new_report)
