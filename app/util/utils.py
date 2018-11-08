@@ -254,6 +254,6 @@ if __name__ == '__main__':
     a = '${func($test,123)}'
     b = '${func([123],123)}'
     print(extract_functions(b))
-    matched = parse_function(extract_functions(a)[0])
+    matched = parse_function(extract_functions(b)[0])
 
     print(matched)

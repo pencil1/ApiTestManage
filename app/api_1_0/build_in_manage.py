@@ -85,7 +85,10 @@ def check_func():
         module_functions_dict = {name: item for name, item in vars(func_list).items() if
                                  isinstance(item, types.FunctionType)}
 
-        func = parse_function(extract_functions(func_name)[0])
+        ext_func = extract_functions(func_name)
+        if len(ext_func) == 0:
+            return jsonify({'msg': '函数解析失败，注意格式问题', 'status': 0})
+        func = parse_function(ext_func[0])
 
         # importlib.reload(importlib.import_module('func_list.{}'.format(func_name.replace('.py', ''))))
         return jsonify({'msg': '请查看', 'status': 1, 'result': module_functions_dict[func['func_name']](*func['args'])})
@@ -98,6 +101,8 @@ def check_func():
 def create_func():
     data = request.json
     func_name = data.get('funcName')
+    if func_name.find('.py') == -1:
+        return jsonify({'msg': '请创建正确的py文件', 'status': 0})
     if not func_name:
         return jsonify({'msg': '文件名不能为空', 'status': 0})
     if os.path.exists('{}/{}'.format(FUNC_ADDRESS, func_name)):
