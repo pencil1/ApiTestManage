@@ -1,11 +1,12 @@
 import subprocess
 import types
 import chardet
-import sys
 from flask import jsonify, request
 from . import api
 from ..util.global_variable import *
 import importlib
+from ..util.utils import parse_function, extract_functions
+import traceback
 
 
 @api.route('/func/find', methods=['POST'])
@@ -52,16 +53,16 @@ def save_func():
     func_data = data.get('funcData')
 
     func_name = data.get('funcName')
-    resp = execute_cmd([sys.executable, '{}/{}'.format(FUNC_ADDRESS, func_name)])
-    if resp[1]:
-        return jsonify({'msg': '语法错误', 'status': 1, 'error': resp[1]})
+    # resp = execute_cmd([sys.executable, '{}/{}'.format(FUNC_ADDRESS, func_name)])
+    # if resp[1]:
+    #     return jsonify({'msg': '语法错误', 'status': 1, 'error': resp[1]})
 
     if not os.path.exists('{}/{}'.format(FUNC_ADDRESS, func_name)):
         return jsonify({'msg': '文件名不存在', 'status': 0})
 
     with open('{}/{}'.format(FUNC_ADDRESS, func_name), 'w', encoding='utf8') as f:
         f.write(func_data)
-    return jsonify({'msg': '保存成功', 'status': 1, 'result': resp[0]})
+    return jsonify({'msg': '保存成功', 'status': 1})
 
 
 def is_function(tup):
@@ -74,15 +75,23 @@ def is_function(tup):
 @api.route('/func/check', methods=['POST'])
 def check_func():
     data = request.json
+    func_file_name = data.get('funcFileName')
     func_name = data.get('funcName')
-    if not os.path.exists('{}/{}'.format(FUNC_ADDRESS, func_name)):
+    if not os.path.exists('{}/{}'.format(FUNC_ADDRESS, func_file_name)):
         return jsonify({'msg': '文件名不存在', 'status': 0})
     try:
-        importlib.reload(importlib.import_module('func_list.{}'.format(func_name.replace('.py', ''))))
-        return jsonify({'msg': '语法正确', 'status': 1})
+        import_path = 'func_list.{}'.format(func_file_name.replace('.py', ''))
+        func_list = importlib.reload(importlib.import_module(import_path))
+        module_functions_dict = {name: item for name, item in vars(func_list).items() if
+                                 isinstance(item, types.FunctionType)}
+
+        func = parse_function(extract_functions(func_name)[0])
+
+        # importlib.reload(importlib.import_module('func_list.{}'.format(func_name.replace('.py', ''))))
+        return jsonify({'msg': '请查看', 'status': 1, 'result': module_functions_dict[func['func_name']](*func['args'])})
     except Exception as e:
-        print(e)
-        return jsonify({'msg': '语法错误，请自行检查', 'error': e, 'status': 0})
+        new_data = '\n'.join('{}'.format(traceback.format_exc()).split('↵'))
+        return jsonify({'msg': '语法错误，请自行检查', 'result': new_data, 'status': 0})
 
 
 @api.route('/func/create', methods=['POST'])

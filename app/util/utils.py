@@ -244,7 +244,13 @@ def parse_function(content):
             function_meta["args"].append(parse_string_value(arg))
 
     return function_meta
+
+
 if __name__ == '__main__':
+    # func_list = importlib.reload(importlib.import_module(r"func_list.abuild_in_fun.py"))
+    # module_functions_dict = {name: item for name, item in vars(func_list).items() if
+    #                          isinstance(item, types.FunctionType)}
+    # print(module_functions_dict)
     a = '${func($test,123)}'
     b = '${func([123],123)}'
     print(extract_functions(b))

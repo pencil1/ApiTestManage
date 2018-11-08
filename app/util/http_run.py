@@ -98,24 +98,24 @@ def main_ate(cases):
 
 
 class RunCase(object):
-    def __init__(self, project_names=None, scene_ids=None, api_data=None, config_id=None):
+    def __init__(self, project_names=None, case_ids=None, api_data=None, config_id=None):
         self.project_names = project_names
-        self.scene_ids = scene_ids
+        self.case_ids = case_ids
         self.config_id = config_id
         self.api_data = api_data
         self.project_data = Project.query.filter_by(name=self.project_names).first()
         self.project_id = self.project_data.id
         self.run_type = False  # 判断是接口调试(false)or业务用例执行(true)
         self.make_report = True
-        self.temp_data = self.scene_ids or self.api_data
+        self.temp_data = self.case_ids or self.api_data
         self.new_report_id = None
         self.temp_extract = list()
 
     def project_case(self):
-        if self.project_names and not self.scene_ids and not self.api_data:
-            scene_id = [s.id for s in Case.query.filter_by(project_id=self.project_id).order_by(Case.num.asc()).all()]
+        if self.project_names and not self.case_ids and not self.api_data:
+            case_id = [s.id for s in Case.query.filter_by(project_id=self.project_id).order_by(Case.num.asc()).all()]
             all_case_data = []
-            for c in scene_id:
+            for c in case_id:
                 for c1 in CaseData.query.filter_by(scene_id=c).order_by(CaseData.num.asc()).all():
                     all_case_data.append(c1)
             self.run_type = True
@@ -253,24 +253,24 @@ class RunCase(object):
             pro_base_url['{}'.format(pro_data.id)] = {'0': pro_data.host, '1': pro_data.host_two,
                                                       '2': pro_data.host_three, '3': pro_data.host_four}
 
-        if self.scene_ids:
-            for scene in self.temp_data:
-                scene_data = Case.query.filter_by(id=scene).first()
-                scene_times = scene_data.times if scene_data.times else 1
-                for s in range(scene_times):
+        if self.case_ids:
+            for case in self.temp_data:
+                case_data = Case.query.filter_by(id=case).first()
+                case_times = case_data.times if case_data.times else 1
+                for s in range(case_times):
                     _temp_config = copy.deepcopy(pro_config)
-                    _temp_config['config']['name'] = scene_data.name
+                    _temp_config['config']['name'] = case_data.name
 
                     # 获取需要导入的函数文件数据
                     _temp_config['config']['import_module_functions'] = ['func_list.{}'.format(
-                        scene_data.func_address.replace('.py', ''))] if scene_data.func_address else []
+                        case_data.func_address.replace('.py', ''))] if case_data.func_address else []
 
                     # 获取业务集合的配置数据
-                    scene_config = json.loads(scene_data.variable) if scene_data.variable else []
+                    scene_config = json.loads(case_data.variable) if case_data.variable else []
 
                     # 合并公用项目配置和业务集合配置
                     _temp_config = merge_config(_temp_config, scene_config)
-                    for case in CaseData.query.filter_by(case_id=scene).order_by(CaseData.num.asc()).all():
+                    for case in CaseData.query.filter_by(case_id=case).order_by(CaseData.num.asc()).all():
                         if case.status == 'true':  # 判断用例状态，是否执行
                             for t in range(case.time):  # 获取用例执行次数，遍历添加
                                 _temp_config['teststeps'].append(self.get_case(case, pro_base_url))
@@ -295,7 +295,7 @@ class RunCase(object):
 
         if self.run_type and self.make_report:
             new_report = Report(
-                name=','.join([Case.query.filter_by(id=scene_id).first().name for scene_id in self.scene_ids]),
+                name=','.join([Case.query.filter_by(id=scene_id).first().name for scene_id in self.case_ids]),
                 data='{}.txt'.format(now_time.strftime('%Y/%m/%d %H:%M:%S')),
                 belong_pro=self.project_names, read_status='待阅')
             db.session.add(new_report)

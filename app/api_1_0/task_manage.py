@@ -9,8 +9,8 @@ from ..util.http_run import RunCase
 from ..util.utils import change_cron
 
 
-def aps_test(project_name, scene_ids, trigger=None, task_id=None):
-    d = RunCase(project_names=project_name, scene_ids=scene_ids)
+def aps_test(project_name, case_ids, trigger=None, task_id=None):
+    d = RunCase(project_names=project_name, case_ids=case_ids)
     d.run_type = True
     d.all_cases_data()
     d.run_case()
@@ -27,20 +27,20 @@ def run_task():
     data = request.json
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
-    scene_ids = []
-    if len(json.loads(_data.scene_id)) != 0:
-        scene_ids += [i['id'] for i in json.loads(_data.scene_id)]
+    case_ids = []
+    if len(json.loads(_data.case_id)) != 0:
+        case_ids += [i['id'] for i in json.loads(_data.case_id)]
     else:
-        if len(json.loads(_data.scene_id)) == 0 and len(json.loads(_data.set_id)) == 0:
+        if len(json.loads(_data.case_id)) == 0 and len(json.loads(_data.set_id)) == 0:
             project_id = Project.query.filter_by(name=_data.project_name).first().id
             _set_ids = [_set.id for _set in
                         CaseSet.query.filter_by(project_id=project_id).order_by(CaseSet.num.asc()).all()]
         else:
             _set_ids = [i['id'] for i in json.loads(_data.set_id)]
         for set_id in _set_ids:
-            for scene_data in Case.query.filter_by(case_set_id=set_id).order_by(Case.num.asc()).all():
-                scene_ids.append(scene_data.id)
-    result = aps_test(_data.project_name, scene_ids)
+            for case_data in Case.query.filter_by(case_set_id=set_id).order_by(Case.num.asc()).all():
+                case_ids.append(case_data.id)
+    result = aps_test(_data.project_name, case_ids)
 
     return jsonify({'msg': '测试成功', 'status': 1, 'data': {'report_id': result.new_report_id}})
 
@@ -53,21 +53,21 @@ def start_task():
     _data = Task.query.filter_by(id=ids).first()
 
     config_time = change_cron(_data.task_config_time)
-    scene_ids = []
-    if len(json.loads(_data.scene_id)) != 0:
-        scene_ids += [i['id'] for i in json.loads(_data.scene_id)]
+    case_ids = []
+    if len(json.loads(_data.case_id)) != 0:
+        case_ids += [i['id'] for i in json.loads(_data.case_id)]
     else:
-        if len(json.loads(_data.scene_id)) == 0 and len(json.loads(_data.set_id)) == 0:
+        if len(json.loads(_data.case_id)) == 0 and len(json.loads(_data.set_id)) == 0:
             project_id = Project.query.filter_by(name=_data.project_name).first().id
             _set_ids = [_set.id for _set in
                         CaseSet.query.filter_by(project_id=project_id).order_by(CaseSet.num.asc()).all()]
         else:
             _set_ids = [i['id'] for i in json.loads(_data.set_id)]
         for set_id in _set_ids:
-            for scene_data in Case.query.filter_by(case_set_id=set_id).order_by(Case.num.asc()).all():
-                scene_ids.append(scene_data.id)
+            for case_data in Case.query.filter_by(case_set_id=set_id).order_by(Case.num.asc()).all():
+                case_ids.append(case_data.id)
     # scheduler.add_job(str(ids), aps_test, trigger='cron', args=['asd'], **config_time)
-    scheduler.add_job(aps_test, 'cron', args=[_data.project_name, scene_ids], id=str(ids), **config_time)  # 添加任务
+    scheduler.add_job(aps_test, 'cron', args=[_data.project_name, case_ids], id=str(ids), **config_time)  # 添加任务
     _data.status = '启动'
     db.session.commit()
 
@@ -79,9 +79,9 @@ def add_task():
     data = request.json
     project_name = data.get('projectName')
     # set_ids = [i['id'] for i in data.get('setIds')]
-    # scene_ids = [i['id'] for i in data.get('sceneIds')] if data.get('sceneIds') else ''
+    # case_ids = [i['id'] for i in data.get('sceneIds')] if data.get('sceneIds') else ''
     set_ids = data.get('setIds')
-    scene_ids = data.get('sceneIds')
+    case_ids = data.get('caseIds')
     task_id = data.get('id')
     num = data.get('num')
     name = data.get('name')
@@ -99,7 +99,7 @@ def add_task():
         else:
             old_task_data.project_name = project_name
             old_task_data.set_id = json.dumps(set_ids)
-            old_task_data.scene_id = json.dumps(scene_ids)
+            old_task_data.case_id = json.dumps(case_ids)
             old_task_data.task_name = name
             old_task_data.task_type = task_type
             old_task_data.task_to_email_address = to_email
@@ -117,7 +117,7 @@ def add_task():
             return jsonify({'msg': '任务名字重复', 'status': 0})
         else:
             new_task = Task(task_name=name, project_name=project_name, set_id=json.dumps(set_ids),
-                            scene_id=json.dumps(scene_ids),
+                            case_id=json.dumps(case_ids),
                             task_type=task_type, task_to_email_address=to_email, task_send_email_address=send_email,
                             task_config_time=time_config, num=num)
             db.session.add(new_task)
@@ -131,7 +131,7 @@ def edit_task():
     task_id = data.get('id')
     c = Task.query.filter_by(id=task_id).first()
     _data = {'num': c.num, 'task_name': c.task_name, 'task_config_time': c.task_config_time, 'task_type': c.task_type,
-             'project_name': c.project_name, 'set_ids': json.loads(c.set_id), 'scene_ids': json.loads(c.scene_id),
+             'project_name': c.project_name, 'set_ids': json.loads(c.set_id), 'case_ids': json.loads(c.case_id),
              'task_to_email_address': c.task_to_email_address, 'task_send_email_address': c.task_send_email_address}
 
     return jsonify({'data': _data, 'status': 1})

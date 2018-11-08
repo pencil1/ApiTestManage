@@ -176,7 +176,7 @@ class Task(db.Model):  # 定时任务的
     timestamp = db.Column(db.DateTime(), default=datetime.datetime.now())  # 任务的创建时间
     project_name = db.Column(db.String(), nullable=True)
     set_id = db.Column(db.String())
-    scene_id = db.Column(db.String())
+    case_id = db.Column(db.String())
     task_type = db.Column(db.String())
     task_to_email_address = db.Column(db.String(252))  # 收件人邮箱
     task_send_email_address = db.Column(db.String(252))  # 维护本计划的人的邮箱
