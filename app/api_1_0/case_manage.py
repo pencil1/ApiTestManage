@@ -21,6 +21,7 @@ def add_case():
     project_id = project_data.id
     num = auto_num(data.get('num'), Case, project_id=project_id, case_set_id=case_set_id)
     variable = data.get('variable')
+
     api_cases = data.get('apiCases')
 
     merge_variable = json.dumps(json.loads(variable) + json.loads(project_data.variables))
@@ -55,6 +56,7 @@ def add_case():
         old_scene_data.case_set_id = case_set_id
         old_scene_data.func_address = func_address
         old_scene_data.variable = variable
+        # old_scene_data.variable = json_variable
         db.session.commit()
         for num1, c in enumerate(api_cases):
             if c.get('id'):
@@ -63,6 +65,8 @@ def add_case():
 
                 old_api_case.extract = json.dumps(c['extract'])
                 old_api_case.validate = json.dumps(c['validate'])
+                old_api_case.variable = json.dumps(c['variable'])
+                old_api_case.json_variable = c['json_variable']
                 old_api_case.param = json.dumps(c['param'])
                 old_api_case.time = c['time']
                 old_api_case.status_variables = json.dumps(c['statusCase']['variable'])
@@ -73,22 +77,18 @@ def add_case():
                 old_api_case.status = json.dumps(c['status'])
                 old_api_case.up_func = c['up_func']
                 old_api_case.down_func = c['down_func']
-                if c['variableType'] == 'json':
-                    variable = c['variable']
-                else:
-                    variable = json.dumps(c['variable'])
-                old_api_case.variables = variable
                 db.session.commit()
                 # old_api_case.num = num1
             else:
-                if c['variableType'] == 'json':
-                    variable = c['variables']
-                else:
-                    variable = json.dumps(c['variables'])
-                new_api_case = CaseData(num=num1, variable=variable, extract=json.dumps(c['extract']),
-                                        param=json.dumps(c['param']), time=c['time'],
-                                        validate=json.dumps(c['validate']), case_id=ids, api_msg_id=c['apiMsgId'],
-                                        status_variables=json.dumps(c['statusCase']['variable']),
+                new_api_case = CaseData(num=num1,
+                                        json_variable=c['json_variable'],
+                                        variable=json.dumps(c['variable']),
+                                        extract=json.dumps(c['extract']),
+                                        param=json.dumps(c['param']),
+                                        validate=json.dumps(c['validate']),
+
+                                        case_id=ids, api_msg_id=c['apiMsgId'],
+                                        status_variables=json.dumps(c['statusCase']['variable']),time=c['time'],
                                         status_extract=json.dumps(c['statusCase']['extract']),
                                         status_validate=json.dumps(c['statusCase']['validate']),
                                         status_param=json.dumps(c['statusCase']['param']),
@@ -220,10 +220,10 @@ def edit_scene():
     cases = CaseData.query.filter_by(case_id=case_id).order_by(CaseData.num.asc()).all()
     case_data = []
     for case in cases:
-        if ApiMsg.query.filter_by(id=case.api_msg_id).first().variable_type == 'json':
-            variable = case.variable
-        else:
-            variable = json.loads(case.variable)
+        # if ApiMsg.query.filter_by(id=case.api_msg_id).first().variable_type == 'json':
+        #     variable = case.variable
+        # else:
+        #     variable = json.loads(case.variable)
 
         if status:
             case_id = ''
@@ -238,7 +238,8 @@ def edit_scene():
                           'time': case.time,
                           'up_func': case.up_func,
                           'down_func': case.down_func,
-                          'variable': variable,
+                          'variable': json.loads(case.variable),
+                          'json_variable': case.json_variable,
                           'param': json.loads(case.param),
                           'extract': json.loads(case.extract),
                           'validate': json.loads(case.validate),

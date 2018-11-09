@@ -107,7 +107,6 @@ class RunCase(object):
         self.project_id = self.project_data.id
         self.run_type = False  # 判断是接口调试(false)or业务用例执行(true)
         self.make_report = True
-        self.temp_data = self.case_ids or self.api_data
         self.new_report_id = None
         self.temp_extract = list()
 
@@ -154,7 +153,7 @@ class RunCase(object):
         pro_cfg_data['config']['variables'] = json.loads(project_data.variables)
         return pro_cfg_data
 
-    def get_case(self, case_data, pro_base_url):
+    def get_test_case(self, case_data, pro_base_url):
         if self.run_type:
             # 为true，获取api基础信息；case只包含可改变部分所以还需要api基础信息组合成全新的用例
             api_case = ApiMsg.query.filter_by(id=case_data.api_msg_id).first()
@@ -195,12 +194,16 @@ class RunCase(object):
 
         if not self.run_type or json.loads(case_data.status_variables)[0]:
             if not self.run_type or json.loads(case_data.status_variables)[1]:
+                _json_variables = json.loads(case_data.json_variable)
                 _variables = json.loads(case_data.variable)
 
             else:
-                _variables = json.loads(api_case.variable)
+                _json_variables = json.loads(api_case.json_variable)
+                _variables = json.loads(case_data.variable)
 
-            if api_case.variable_type == 'data' and api_case.method != 'GET':
+            if api_case.method == 'GET':
+                pass
+            elif api_case.variable_type == 'data':
                 for variable in _variables:
                     if variable['param_type'] == 'string' and variable.get('key'):
                         temp_case_data['request']['data'].update({variable['key']: variable['value']})
@@ -216,8 +219,9 @@ class RunCase(object):
                         #     variable['value'].split('/')[-1], '${' + 'open_file({})'.format(variable['value']) + '}',
                         #     CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
 
-            elif api_case.method != 'GET':
-                temp_case_data['request']['json'] = _variables
+            elif api_case.variable_type == 'json':
+                temp_case_data['request']['json'] = _json_variables
+                # temp_case_data['request']['json'] = _variables
 
         if not self.run_type or json.loads(case_data.status_extract)[0]:
             if not self.run_type or json.loads(case_data.status_extract)[1]:
@@ -254,8 +258,8 @@ class RunCase(object):
                                                       '2': pro_data.host_three, '3': pro_data.host_four}
 
         if self.case_ids:
-            for case in self.temp_data:
-                case_data = Case.query.filter_by(id=case).first()
+            for case_id in self.case_ids:
+                case_data = Case.query.filter_by(id=case_id).first()
                 case_times = case_data.times if case_data.times else 1
                 for s in range(case_times):
                     _temp_config = copy.deepcopy(pro_config)
@@ -270,10 +274,10 @@ class RunCase(object):
 
                     # 合并公用项目配置和业务集合配置
                     _temp_config = merge_config(_temp_config, scene_config)
-                    for case in CaseData.query.filter_by(case_id=case).order_by(CaseData.num.asc()).all():
-                        if case.status == 'true':  # 判断用例状态，是否执行
-                            for t in range(case.time):  # 获取用例执行次数，遍历添加
-                                _temp_config['teststeps'].append(self.get_case(case, pro_base_url))
+                    for api_case in CaseData.query.filter_by(case_id=case_id).order_by(CaseData.num.asc()).all():
+                        if api_case.status == 'true':  # 判断用例状态，是否执行
+                            for t in range(api_case.time):  # 获取用例执行次数，遍历添加
+                                _temp_config['teststeps'].append(self.get_test_case(api_case, pro_base_url))
                     temp_case.append(_temp_config)
             return temp_case
 
@@ -285,7 +289,7 @@ class RunCase(object):
                 config_data.func_address.replace('.py', ''))] if config_data and config_data.func_address else []
 
             _temp_config = merge_config(_temp_config, _config)
-            _temp_config['teststeps'] = [self.get_case(case, pro_base_url) for case in self.api_data]
+            _temp_config['teststeps'] = [self.get_test_case(case, pro_base_url) for case in self.api_data]
             _temp_config['config']['output'] += copy.deepcopy(self.temp_extract)
             return _temp_config
             # return temp_case
@@ -321,7 +325,7 @@ class RunCase(object):
                 res['stat']['successes_scene'] += 1
             else:
                 res['stat']['failures_scene'] += 1
-            # res_1['in_out']['in'] = res_1['in_out']['in'] if res_1['in_out']['in'] else None
+            res_1['in_out']['in'] = str(res_1['in_out']['in'])
             # res_1['in_out']['out'] = res_1['in_out']['out'] if res_1['in_out']['out'] else None
             for num_2, rec_2 in enumerate(res_1['records']):
                 if isinstance(rec_2['meta_data']['response']['content'], bytes):

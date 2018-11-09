@@ -19,9 +19,20 @@ def build_identity():
 def del_sql():
     a = ApiMsg.query.all()
     for a1 in a:
-        project_id = Module.query.filter_by(id=a1.module_id).first().project_id
-        a1.project_id = project_id
-        db.session.commit()
+        if a1.variable_type == 'json':
+            a1.json_variable = a1.variable
+            a1.variable = json.dumps([])
+        else:
+            a1.json_variable = json.dumps([])
+    b = CaseData.query.all()
+    for b1 in b:
+
+        if ApiMsg.query.filter_by(id=b1.api_msg_id).first().variable_type == 'json':
+            b1.json_variable = b1.variable
+            b1.variable = json.dumps([])
+        else:
+            b1.json_variable = json.dumps([])
+    db.session.commit()
 
     return jsonify({'msg': '修改完成', 'status': 1})
 

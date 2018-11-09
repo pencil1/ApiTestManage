@@ -114,6 +114,7 @@ def add_cases():
     #     return jsonify({'msg': 'url引用函数后，基础信息处必须引用函数文件', 'status': 0})
     #
     variable = data.get('variable')
+    json_variable = data.get('jsonVariable')
     param = data.get('param')
     # if re.search('\${(.*?)}', variable, flags=0) and not func_address:
     #     return jsonify({'msg': '参数引用函数后，基础信息处必须引用函数文件', 'status': 0})
@@ -124,44 +125,50 @@ def add_cases():
     num = auto_num(data.get('num'), ApiMsg, module_id=module_id)
 
     if api_msg_id:
-        old_case_data = ApiMsg.query.filter_by(id=api_msg_id).first()
-        old_num = old_case_data.num
-        if ApiMsg.query.filter_by(name=api_msg_name, module_id=module_id).first() and api_msg_name != old_case_data.name:
+        old_api_msg_data = ApiMsg.query.filter_by(id=api_msg_id).first()
+        old_num = old_api_msg_data.num
+        if ApiMsg.query.filter_by(name=api_msg_name,
+                                  module_id=module_id).first() and api_msg_name != old_api_msg_data.name:
             return jsonify({'msg': '接口名字重复', 'status': 0})
 
         # 当序号存在，且不是本来的序号，进入修改判断
         if ApiMsg.query.filter_by(num=num, module_id=module_id).first() and int(num) != old_num:
             num_sort(num, old_num, ApiMsg, module_id=module_id)
         else:
-            old_case_data.num = num
+            old_api_msg_data.num = num
 
-        old_case_data.project_id = project_id
-        old_case_data.name = api_msg_name
-        old_case_data.validate = validate
-        old_case_data.func_address = func_address
-        old_case_data.up_func = up_func
-        old_case_data.down_func = down_func
-        old_case_data.desc = desc
-        old_case_data.status_url = status_url
-        old_case_data.variable_type = variable_type
-        old_case_data.method = method
-        old_case_data.url = url
-        old_case_data.header = header
-        old_case_data.variable = variable
-        old_case_data.param = param
-        old_case_data.extract = extract
-        old_case_data.module_id = module_id
+        old_api_msg_data.project_id = project_id
+        old_api_msg_data.name = api_msg_name
+        old_api_msg_data.validate = validate
+        old_api_msg_data.func_address = func_address
+        old_api_msg_data.up_func = up_func
+        old_api_msg_data.down_func = down_func
+        old_api_msg_data.desc = desc
+        old_api_msg_data.status_url = status_url
+        old_api_msg_data.variable_type = variable_type
+        old_api_msg_data.method = method
+        old_api_msg_data.url = url
+        old_api_msg_data.header = header
+        old_api_msg_data.variable = variable
+        old_api_msg_data.json_variable = json_variable
+        old_api_msg_data.param = param
+        old_api_msg_data.extract = extract
+        old_api_msg_data.module_id = module_id
         db.session.commit()
         return jsonify({'msg': '修改成功', 'status': 1, 'api_msg_id': api_msg_id, 'num': num})
     else:
         if ApiMsg.query.filter_by(name=api_msg_name, module_id=module_id).first():
             return jsonify({'msg': '接口名字重复', 'status': 0})
         else:
-            new_cases = ApiMsg(name=api_msg_name, module_id=module_id, validate=validate, num=num,
-                               status_url=status_url, func_address=func_address, up_func=up_func,
-                               down_func=down_func, desc=desc, method=method, param=param,
-                               url=url, header=header, variable_type=variable_type,
-                               variable=variable, extract=extract, project_id=project_id)
+            new_cases = ApiMsg(name=api_msg_name, module_id=module_id, num=num, header=header,
+                               status_url=status_url, func_address=func_address, up_func=up_func, project_id=project_id,
+                               down_func=down_func, desc=desc, method=method, url=url, variable_type=variable_type,
+                               param=param,
+                               variable=variable,
+                               json_variable=json_variable,
+                               extract=extract,
+                               validate=validate,
+                               )
             db.session.add(new_cases)
             db.session.commit()
             _new = ApiMsg.query.filter_by(name=api_msg_name, module_id=module_id, project_id=project_id).first()
@@ -175,12 +182,13 @@ def edit_case():
     data = request.json
     case_id = data.get('apiMsgId')
     _edit = ApiMsg.query.filter_by(id=case_id).first()
-    variable = _edit.variable if _edit.variable_type == 'json' else json.loads(_edit.variable)
+    # variable = _edit.variable if _edit.variable_type == 'json' else json.loads(_edit.variable)
 
     _data = {'name': _edit.name, 'num': _edit.num, 'desc': _edit.desc, 'url': _edit.url,
              'method': _edit.method, 'funcAddress': _edit.func_address, 'status_url': int(_edit.status_url),
              'variableType': _edit.variable_type, 'param': json.loads(_edit.param),
-             'header': json.loads(_edit.header), 'variable': variable,
+             'header': json.loads(_edit.header), 'variable': json.loads(_edit.variable),
+             'json_variable': _edit.json_variable,
              'extract': json.loads(_edit.extract), 'validate': json.loads(_edit.validate), }
     current_app.logger.info(_data)
     if _edit.up_func:
@@ -240,14 +248,15 @@ def find_cases():
 
     _case = []
     for c in cases:
-        if c.variable_type == 'json':
-            variable = c.variable
-        else:
-            variable = json.loads(c.variable)
+        # if c.variable_type == 'json':
+        #     variable = c.variable
+        # else:
+        #     variable = json.loads(c.variable)
         _case.append(
             {'num': c.num, 'name': c.name, 'desc': c.desc, 'url': c.url, 'apiMsgId': c.id, 'gather_id': c.module_id,
              'variableType': c.variable_type,
-             'variable': variable,
+             'variable': json.loads(c.variable),
+             'json_variable': c.json_variable,
              'extract': json.loads(c.extract),
              'validate': json.loads(c.validate),
              'param': json.loads(c.param),
