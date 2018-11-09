@@ -17,21 +17,37 @@ def build_identity():
 
 @api.route('/delSql', methods=['POST'])
 def del_sql():
-    a = ApiMsg.query.all()
-    for a1 in a:
-        if a1.variable_type == 'json':
-            a1.json_variable = a1.variable
-            a1.variable = json.dumps([])
-        else:
-            a1.json_variable = json.dumps([])
-    b = CaseData.query.all()
-    for b1 in b:
-
-        if ApiMsg.query.filter_by(id=b1.api_msg_id).first().variable_type == 'json':
-            b1.json_variable = b1.variable
-            b1.variable = json.dumps([])
-        else:
-            b1.json_variable = json.dumps([])
+    _pros = Project.query.all()
+    for p in _pros:
+        p.environment_choice = 'first'
+        # p.host_two = json.dumps([])
+        # p.host_three = json.dumps([])
+        # p.host_four = json.dumps([])
+        # pro_url = []
+        # if p.host:
+        #     pro_url.append(p.host)
+        # if p.host_two:
+        #     pro_url.append(p.host_two)
+        # if p.host_three:
+        #     pro_url.append(p.host_three)
+        # if p.host_four:
+        #     pro_url.append(p.host_four)
+        # p.host = json.dumps(pro_url)
+    # a = ApiMsg.query.all()
+    # for a1 in a:
+    #     if a1.variable_type == 'json':
+    #         a1.json_variable = a1.variable
+    #         a1.variable = json.dumps([])
+    #     else:
+    #         a1.json_variable = json.dumps([])
+    # b = CaseData.query.all()
+    # for b1 in b:
+    #
+    #     if ApiMsg.query.filter_by(id=b1.api_msg_id).first().variable_type == 'json':
+    #         b1.json_variable = b1.variable
+    #         b1.variable = json.dumps([])
+    #     else:
+    #         b1.json_variable = json.dumps([])
     db.session.commit()
 
     return jsonify({'msg': '修改完成', 'status': 1})

@@ -7,63 +7,6 @@ from ..util.http_run import RunCase
 from ..util.utils import *
 
 
-@api.route('/proGather/list')
-def get_pro_gather():
-    # if current_user.id == 4:
-    _pros = Project.query.all()
-    my_pros = Project.query.filter_by(user_id=current_user.id).first()
-    pro = {}
-    pro_url = {}
-    scene_config_lists = {}
-
-    #   获取每个项目下的模块名字
-    for p in _pros:
-        modules = Module.query.filter_by(project_id=p.id).all()
-        if modules:
-            pro[p.name] = [{'name': _gat.name, 'moduleId': _gat.id} for _gat in modules]
-        else:
-            pro[p.name] = ['']
-
-        config_list = Config.query.order_by(Config.num.asc()).filter_by(project_id=p.id).all()
-        if config_list:
-            scene_config_lists[p.name] = [{'name': _config_list.name, 'configId': _config_list.id} for _config_list in
-                                          config_list]
-        else:
-            scene_config_lists[p.name] = ['']
-
-    # 获取每个项目下的用例集
-    set_list = {}
-    scene_list = {}
-    for p in _pros:
-        sets = CaseSet.query.filter_by(project_id=p.id).order_by(CaseSet.num.asc()).all()
-        set_list[p.name] = [{'label': s.name, 'id': s.id} for s in sets]
-
-        # 获取每个用例集的用例
-        for s1 in sets:
-            scene_list["{}".format(s1.id)] = [{'label': scene.name, 'id': scene.id} for scene in
-                                              Case.query.filter_by(case_set_id=s1.id).all()]
-
-            # scene_list["abc"] = [{'label': 'aaaaa', 'id': 1},{'label': 'qqqqqq', 'id': 2}]
-
-    # 获取每个项目下的url
-    for p in _pros:
-        pro_url[p.name] = []
-        if p.host:
-            pro_url[p.name].append(p.host)
-        if p.host_two:
-            pro_url[p.name].append(p.host_two)
-        if p.host_three:
-            pro_url[p.name].append(p.host_three)
-        if p.host_four:
-            pro_url[p.name].append(p.host_four)
-
-    if my_pros:
-        my_pros = {'pro_name': my_pros.name, 'model_list': pro[my_pros.name]}
-    return jsonify(
-        {'data': pro, 'urlData': pro_url, 'status': 1, 'user_pro': my_pros, 'config_name_list': scene_config_lists,
-         'set_list': set_list, 'scene_list': scene_list})
-
-
 @api.route('/apiMsg/list', methods=['POST'])
 def get_cases():
     data = request.json

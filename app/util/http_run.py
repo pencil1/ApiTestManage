@@ -175,7 +175,7 @@ class RunCase(object):
 
         if api_case.status_url != '-1':
             temp_case_data['request']['url'] = pro_base_url['{}'.format(api_case.project_id)][
-                                                   api_case.status_url] + api_case.url.split('?')[0]
+                                                   int(api_case.status_url)] + api_case.url.split('?')[0]
         else:
             temp_case_data['request']['url'] = api_case.url
 
@@ -254,9 +254,14 @@ class RunCase(object):
         #                 '2': self.project_data.host_three, '3': self.project_data.host_four}
         pro_base_url = {}
         for pro_data in Project.query.all():
-            pro_base_url['{}'.format(pro_data.id)] = {'0': pro_data.host, '1': pro_data.host_two,
-                                                      '2': pro_data.host_three, '3': pro_data.host_four}
-
+            if pro_data.environment_choice == 'first':
+                pro_base_url['{}'.format(pro_data.id)] = json.loads(pro_data.host)
+            elif pro_data.environment_choice == 'second':
+                pro_base_url['{}'.format(pro_data.id)] = json.loads(pro_data.host_two)
+            if pro_data.environment_choice == 'third':
+                pro_base_url['{}'.format(pro_data.id)] = json.loads(pro_data.host_three)
+            if pro_data.environment_choice == 'fourth':
+                pro_base_url['{}'.format(pro_data.id)] = json.loads(pro_data.host_four)
         if self.case_ids:
             for case_id in self.case_ids:
                 case_data = Case.query.filter_by(id=case_id).first()

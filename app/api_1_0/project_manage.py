@@ -6,6 +6,63 @@ from ..util.login_require import login_required
 from flask_login import current_user
 
 
+@api.route('/proGather/list')
+def get_pro_gather():
+    # if current_user.id == 4:
+    _pros = Project.query.all()
+    my_pros = Project.query.filter_by(user_id=current_user.id).first()
+    pro = {}
+    pro_url = {}
+    scene_config_lists = {}
+
+    #   获取每个项目下的模块名字
+    for p in _pros:
+        modules = Module.query.filter_by(project_id=p.id).all()
+        if modules:
+            pro[p.name] = [{'name': _gat.name, 'moduleId': _gat.id} for _gat in modules]
+        else:
+            pro[p.name] = ['']
+
+        config_list = Config.query.order_by(Config.num.asc()).filter_by(project_id=p.id).all()
+        if config_list:
+            scene_config_lists[p.name] = [{'name': _config_list.name, 'configId': _config_list.id} for _config_list in
+                                          config_list]
+        else:
+            scene_config_lists[p.name] = ['']
+
+    # 获取每个项目下的用例集
+    set_list = {}
+    scene_list = {}
+    for p in _pros:
+        sets = CaseSet.query.filter_by(project_id=p.id).order_by(CaseSet.num.asc()).all()
+        set_list[p.name] = [{'label': s.name, 'id': s.id} for s in sets]
+
+        # 获取每个用例集的用例
+        for s1 in sets:
+            scene_list["{}".format(s1.id)] = [{'label': scene.name, 'id': scene.id} for scene in
+                                              Case.query.filter_by(case_set_id=s1.id).all()]
+
+            # scene_list["abc"] = [{'label': 'aaaaa', 'id': 1},{'label': 'qqqqqq', 'id': 2}]
+
+    # 获取每个项目下的url
+    for p in _pros:
+        # pro_url[p.name] = []
+        # if p.host:
+        pro_url[p.name] = json.loads(p.host)
+        # if p.host_two:
+        #     pro_url[p.name].append(p.host_two)
+        # if p.host_three:
+        #     pro_url[p.name].append(p.host_three)
+        # if p.host_four:
+        #     pro_url[p.name].append(p.host_four)
+
+    if my_pros:
+        my_pros = {'pro_name': my_pros.name, 'model_list': pro[my_pros.name]}
+    return jsonify(
+        {'data': pro, 'urlData': pro_url, 'status': 1, 'user_pro': my_pros, 'config_name_list': scene_config_lists,
+         'set_list': set_list, 'scene_list': scene_list})
+
+
 @api.route('/project/find', methods=['POST'])
 @login_required
 def find_project():
@@ -36,10 +93,11 @@ def add_project():
     data = request.json
     project_name = data.get('projectName')
     principal = data.get('principal')
-    host = data.get('host')
-    host_two = data.get('hostTwo')
-    host_three = data.get('hostThree')
-    host_four = data.get('hostFour')
+    environment_choice = data.get('environmentChoice')
+    host = json.dumps(data.get('host'))
+    host_two = json.dumps(data.get('hostTwo'))
+    host_three = json.dumps(data.get('hostThree'))
+    host_four = json.dumps(data.get('hostFour'))
     ids = data.get('id')
     header = data.get('header')
     variable = data.get('variable')
@@ -50,6 +108,7 @@ def add_project():
         else:
             old_project_data.name = project_name
             old_project_data.principal = principal
+            old_project_data.environment_choice = environment_choice
             old_project_data.host = host
             old_project_data.host_two = host_two
             old_project_data.host_three = host_three
@@ -64,7 +123,7 @@ def add_project():
 
         else:
             new_project = Project(name=project_name, principal=principal, host=host, host_two=host_two,
-                                  user_id=current_user.id,
+                                  user_id=current_user.id, environment_choice=environment_choice,
                                   host_three=host_three, host_four=host_four, headers=header, variables=variable)
             db.session.add(new_project)
             db.session.commit()
@@ -94,8 +153,14 @@ def edit_project():
     data = request.json
     model_id = data.get('id')
     _edit = Project.query.filter_by(id=model_id).first()
-    _data = {'pro_name': _edit.name, 'principal': _edit.principal, 'host': _edit.host, 'host_two': _edit.host_two,
-             'host_three': _edit.host_three, 'host_four': _edit.host_four, 'headers': json.loads(_edit.headers),
+    _data = {'pro_name': _edit.name,
+             'principal': _edit.principal,
+             'host': json.loads(_edit.host),
+             'host_two': json.loads(_edit.host_two),
+             'host_three': json.loads(_edit.host_three),
+             'host_four': json.loads(_edit.host_four),
+             'headers': json.loads(_edit.headers),
+             'environment_choice': _edit.environment_choice,
              'variables': json.loads(_edit.variables)}
 
     return jsonify({'data': _data, 'status': 1})
