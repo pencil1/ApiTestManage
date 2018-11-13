@@ -128,7 +128,7 @@
                             <span class='strong tooltipped' data-position='top'
                                   data-tooltip='100%'>{{ stat.errors }}</span> test(s) failed,
                             <span class='strong tooltipped' data-position='top'
-                                  data-tooltip='0%'>{{ stat.skipped }}</span> test(s) skipped
+                                  data-tooltip='0%'>{{ stat.failures }}</span> test(s) failures
                         </div>
                     </div>
                 </div>
@@ -140,11 +140,11 @@
                         </div>
                         <div class='block text-small'>
                             <span class='tooltipped' data-position='top' data-tooltip='0%'>
-                                <span class='strong'>{{ stat.expectedFailures }}</span>test(s) expectedFailures</span>
+                                <span class='strong'>{{ stat.successes_scene }}</span>test(s) successes_scene</span>
                         </div>
                         <div class='block text-small'>
                             <span class='strong tooltipped' data-position='top'
-                                  data-tooltip='100%'>{{ stat.unexpectedSuccesses }}</span>test(s) unexpectedSuccesses
+                                  data-tooltip='100%'>{{ stat.failures_scene }}</span>test(s) failures_scene
                         </div>
                     </div>
                 </div>
@@ -155,7 +155,9 @@
             <div class='view-summary'>
                 <h5>Tests</h5>
                 <ul id='test-collection' class='test-collection'>
-                    {% for record in records %}
+				{% for _records in details %}
+				
+                    {% for record in _records.records %}
                         {% if record.status == 'success' %}
                             <li class='test displayed active  ' status='pass' bdd='pass'
                                '>
@@ -175,7 +177,7 @@
                         {% endif %}
                     <div class='test-content hide'>
                         <div class='test-time-info'>
-                            <span class='label start-time'>{{ record.meta_data.response_time }} ms</span>
+                            <span class='label start-time'>{{ record.meta_data.response.response_time_ms }} ms</span>
                         </div>
                         <div class='test-steps'>
                             <table class='bordered table-results'>
@@ -210,7 +212,7 @@
                                             class='material-icons'>low_priority</i></td>
                                     <td class='timestamp'>req_headers</td>
                                     <td class='step-details'>
-                                        {% for key, value in record.meta_data.request_headers.items() %}
+                                        {% for key, value in record.meta_data.request.headers.items() %}
                                             <div>
                                                 <strong>{{ key }}</strong>: {{ value | safe }}
                                             </div>
@@ -227,7 +229,7 @@
                                             class='material-icons'>low_priority</i></td>
                                     <td class='timestamp'>resp_headers</td>
                                     <td class='step-details'>
-                                        {% for key, value in record.meta_data.response_headers.items() %}
+                                        {% for key, value in record.meta_data.response.headers.items() %}
                                             <div>
                                                 <strong>{{ key }}</strong>: {{ value | safe }}
                                             </div>
@@ -264,6 +266,7 @@
                     </div>
                     </li>
                     {% endfor %}
+					{% endfor %}
                 </ul>
             </div>
         </div>

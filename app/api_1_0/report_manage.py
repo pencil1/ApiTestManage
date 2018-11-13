@@ -74,10 +74,14 @@ def get_report():
 def download_report():
     data = request.json
     report_id = data.get('reportId')
+    data_or_report = data.get('dataOrReport')
     _address = REPORT_ADDRESS + str(report_id) + '.txt'
     with open(_address, 'r') as f:
         res = json.loads(f.read())
-    d = render_html_report(res, html_report_template=r'{}/report_template.html'.format(TEMP_REPORT))
+    d = render_html_report(res,
+                           html_report_name='接口自动化测试报告',
+                           html_report_template=r'{}/extent_report_template.html'.format(TEMP_REPORT),
+                           data_or_report=data_or_report)
     # with open(_address, "r", encoding='utf-8') as f:
     #     d = f.read()
     return jsonify({'data': d, 'status': 1})
@@ -111,7 +115,6 @@ def find_report():
     report = [{'name': c.name, 'belong': c.belong_pro, 'id': c.id, 'read_status': c.read_status,
                'address': c.data.replace('.txt', '')} for c in report]
     return jsonify({'data': report, 'total': total, 'status': 1})
-
 
 # @api.route('/proScene/list')
 # def get_pro_scene():

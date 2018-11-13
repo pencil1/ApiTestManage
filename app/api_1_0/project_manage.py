@@ -47,14 +47,14 @@ def get_pro_gather():
     # 获取每个项目下的url
     for p in _pros:
         # pro_url[p.name] = []
-        # if p.host:
-        pro_url[p.name] = json.loads(p.host)
-        # if p.host_two:
-        #     pro_url[p.name].append(p.host_two)
-        # if p.host_three:
-        #     pro_url[p.name].append(p.host_three)
-        # if p.host_four:
-        #     pro_url[p.name].append(p.host_four)
+        if p.environment_choice == 'first':
+            pro_url[p.name] = json.loads(p.host)
+        elif p.environment_choice == 'second':
+            pro_url[p.name] = json.loads(p.host_two)
+        elif p.environment_choice == 'third':
+            pro_url[p.name] = json.loads(p.host_three)
+        elif p.environment_choice == 'fourth':
+            pro_url[p.name] = json.loads(p.host_four)
 
     if my_pros:
         my_pros = {'pro_name': my_pros.name, 'model_list': pro[my_pros.name]}
