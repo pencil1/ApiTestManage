@@ -104,7 +104,7 @@ def add_case():
             return jsonify({'msg': '编号重复', 'status': 0})
         else:
 
-            new_case = Case(num=num, name=name, desc=desc, project_id=project_id, variables=variable,
+            new_case = Case(num=num, name=name, desc=desc, project_id=project_id, variable=variable,
                             func_address=func_address, case_set_id=case_set_id, times=times)
             db.session.add(new_case)
             db.session.commit()

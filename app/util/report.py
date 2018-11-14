@@ -69,7 +69,6 @@ def render_html_report(summary, html_report_name=None, html_report_template=None
     logger.log_debug("render data: {}".format(summary))
 
     report_dir_path = os.path.join(os.path.abspath('..') + r'/reports')
-    start_datetime = summary["time"]["start_at"]
     if html_report_name:
         summary["html_report_name"] = html_report_name
         # report_dir_path = os.path.join(report_dir_path, html_report_name)
