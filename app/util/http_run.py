@@ -200,11 +200,11 @@ class RunCase(object):
 
         if not self.run_type or json.loads(case_data.status_variables)[0]:
             if not self.run_type or json.loads(case_data.status_variables)[1]:
-                _json_variables = json.loads(case_data.json_variable)
+                _json_variables = case_data.json_variable
                 _variables = json.loads(case_data.variable)
 
             else:
-                _json_variables = json.loads(api_case.json_variable)
+                _json_variables = api_case.json_variable
                 _variables = json.loads(case_data.variable)
 
             if api_case.method == 'GET':
@@ -226,7 +226,8 @@ class RunCase(object):
                         #     CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
 
             elif api_case.variable_type == 'json':
-                temp_case_data['request']['json'] = _json_variables
+                if _json_variables:
+                    temp_case_data['request']['json'] = json.loads(_json_variables)
                 # temp_case_data['request']['json'] = _variables
 
         if not self.run_type or json.loads(case_data.status_extract)[0]:
