@@ -192,10 +192,6 @@ def find_cases():
 
     _case = []
     for c in cases:
-        # if c.variable_type == 'json':
-        #     variable = c.variable
-        # else:
-        #     variable = json.loads(c.variable)
         _case.append(
             {'num': c.num, 'name': c.name, 'desc': c.desc, 'url': c.url, 'apiMsgId': c.id, 'gather_id': c.module_id,
              'variableType': c.variable_type,
@@ -204,8 +200,8 @@ def find_cases():
              'extract': json.loads(c.extract),
              'validate': json.loads(c.validate),
              'param': json.loads(c.param),
-             'statusCase': {'extract': [True, True], 'variable': [True, True], 'validate': [True, True],
-                            'param': [True, True]},
+             'statusCase': {'extract': [True, True], 'variable': [True, True],
+                            'validate': [True, True], 'param': [True, True]},
              'status': True, 'case_name': c.name, 'down_func': c.down_func, 'up_func': c.up_func, 'time': 1})
     return jsonify({'data': _case, 'total': total, 'status': 1})
 
