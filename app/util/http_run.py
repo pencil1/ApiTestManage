@@ -165,10 +165,6 @@ class RunCase(object):
                           'request': {'method': api_case.method,
                                       'files': {},
                                       'data': {}}}
-        if case_data.up_func:
-            temp_case_data['setup_hooks'] = [case_data.up_func]
-        if case_data.down_func:
-            temp_case_data['teardown_hooks'] = [case_data.down_func]
         if json.loads(api_case.header):
             temp_case_data['request']['headers'] = {h['key']: h['value'] for h in json.loads(api_case.header)
                                                     if h['key']}
@@ -183,10 +179,20 @@ class RunCase(object):
             temp_case_data['import_module_functions'] = [
                 'func_list.{}'.format(api_case.func_address.replace('.py', ''))]
         # if self.run_type:
+        if not self.run_type:
+            if api_case.up_func:
+                temp_case_data['setup_hooks'] = [api_case.up_func]
+            if api_case.down_func:
+                temp_case_data['teardown_hooks'] = [api_case.down_func]
+        else:
+            if case_data.up_func:
+                temp_case_data['setup_hooks'] = [case_data.up_func]
+            if case_data.down_func:
+                temp_case_data['teardown_hooks'] = [case_data.down_func]
+
         if not self.run_type or json.loads(case_data.status_param)[0]:
             if not self.run_type or json.loads(case_data.status_param)[1]:
                 _param = json.loads(case_data.param)
-
             else:
                 _param = json.loads(api_case.param)
             temp_case_data['request']['params'] = {param['key']: param['value'] for param in

@@ -31,8 +31,8 @@ def add_cases():
     extract = data.get('extract')
     validate = data.get('validate')
     api_msg_id = data.get('apiMsgId')
-    up_func = json.dumps(data.get('upFunc').split(',')) if data.get('upFunc') else data.get('upFunc')
-    down_func = json.dumps(data.get('downFunc').split(',')) if data.get('downFunc') else data.get('down_func')
+    up_func = data.get('upFunc')
+    down_func = data.get('downFunc')
 
     method = data.get('method')
     if method == -1:
@@ -129,15 +129,16 @@ def edit_case():
 
     _data = {'name': _edit.name, 'num': _edit.num, 'desc': _edit.desc, 'url': _edit.url,
              'method': _edit.method, 'funcAddress': _edit.func_address, 'status_url': int(_edit.status_url),
-             'variableType': _edit.variable_type, 'param': json.loads(_edit.param),
-             'header': json.loads(_edit.header), 'variable': json.loads(_edit.variable),
+             'up_func': _edit.up_func, 'down_func': _edit.down_func,
+             'variableType': _edit.variable_type,
+             'param': json.loads(_edit.param),
+             'header': json.loads(_edit.header),
+             'variable': json.loads(_edit.variable),
              'json_variable': _edit.json_variable,
-             'extract': json.loads(_edit.extract), 'validate': json.loads(_edit.validate), }
+             'extract': json.loads(_edit.extract),
+             'validate': json.loads(_edit.validate)}
     current_app.logger.info(_data)
-    if _edit.up_func:
-        _data['up_func'] = ','.join(json.loads(_edit.up_func))
-    if _edit.down_func:
-        _data['down_func'] = ','.join(json.loads(_edit.down_func))
+
     return jsonify({'data': _data, 'status': 1})
 
 
@@ -205,7 +206,7 @@ def find_cases():
              'param': json.loads(c.param),
              'statusCase': {'extract': [True, True], 'variable': [True, True], 'validate': [True, True],
                             'param': [True, True]},
-             'status': True, 'case_name': c.name, 'down_func': '', 'up_func': '', 'time': 1})
+             'status': True, 'case_name': c.name, 'down_func': c.down_func, 'up_func': c.up_func, 'time': 1})
     return jsonify({'data': _case, 'total': total, 'status': 1})
 
 
