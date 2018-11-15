@@ -177,6 +177,8 @@ def find_cases():
     total = 1
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 20
+    if not project_name:
+        return jsonify({'msg': '请先创建项目', 'status': 0})
     if not module_id:
         return jsonify({'msg': '请先创建{}项目下的模块'.format(project_name), 'status': 0})
 
@@ -218,7 +220,8 @@ def del_cases():
 
     del_case = CaseData.query.filter_by(api_msg_id=api_msg_id).all()
     for d in del_case:
-        db.session.delete(d)
+        if d:
+            db.session.delete(d)
 
     db.session.delete(_edit)
 

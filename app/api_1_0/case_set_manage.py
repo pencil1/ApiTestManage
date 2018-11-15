@@ -47,7 +47,6 @@ def stick_set():
 @api.route('/caseSet/find', methods=['POST'])
 def find_set():
     data = request.json
-    total = 1
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
     project_name = data.get('projectName')
