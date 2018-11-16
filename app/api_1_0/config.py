@@ -13,6 +13,8 @@ from flask_login import current_user
 def add_scene_config():
     data = request.json
     project_name = data.get('projectName')
+    if not project_name:
+        return jsonify({'msg': '请选择项目', 'status': 0})
     project_id = Project.query.filter_by(name=project_name).first().id
     name = data.get('sceneConfigName')
     ids = data.get('id')

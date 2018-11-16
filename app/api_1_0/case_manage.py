@@ -111,12 +111,11 @@ def add_case():
             case_id = Case.query.filter_by(name=name, project_id=project_id, case_set_id=case_set_id).first().id
             # case_id = Scene.query.filter_by(name=name, case_set_id=case_set_id).first().id
             for num1, c in enumerate(api_cases):
-                if c['variableType'] == 'json':
-                    variable = c['variable']
-                else:
-                    variable = json.dumps(c['variable'])
                 # if c.statusCase
-                new_api_case = CaseData(num=num1, variable=variable, extract=json.dumps(c['extract']),
+                new_api_case = CaseData(num=num1,
+                                        variable=json.dumps(c['variable']),
+                                        json_variable=c['json_variable'],
+                                        extract=json.dumps(c['extract']),
                                         param=json.dumps(c['param']), time=c['time'],
                                         validate=json.dumps(c['validate']), case_id=case_id, api_msg_id=c['apiMsgId'],
                                         status_variables=json.dumps(c['statusCase']['variable']),
@@ -135,7 +134,7 @@ def find_scene():
     data = request.json
     project_name = data.get('projectName')
     if not project_name:
-        return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
+        return jsonify({'msg': '请选择项目', 'status': 0})
     scene_name = data.get('sceneName')
     set_id = data.get('setId')
     total = 1
@@ -163,7 +162,7 @@ def find_old_scene():
     data = request.json
     project_name = data.get('projectName')
     if not project_name:
-        return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
+        return jsonify({'msg': '请选择项目', 'status': 0})
     scene_name = data.get('sceneName')
     total = 1
     page = data.get('page') if data.get('page') else 1

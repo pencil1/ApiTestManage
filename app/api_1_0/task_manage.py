@@ -78,6 +78,8 @@ def start_task():
 def add_task():
     data = request.json
     project_name = data.get('projectName')
+    if not project_name:
+        return jsonify({'msg': '请选择项目', 'status': 0})
     # set_ids = [i['id'] for i in data.get('setIds')]
     # case_ids = [i['id'] for i in data.get('sceneIds')] if data.get('sceneIds') else ''
     set_ids = data.get('setIds')

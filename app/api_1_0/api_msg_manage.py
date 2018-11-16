@@ -20,6 +20,7 @@ def get_cases():
 @api.route('/apiMsg/add', methods=['POST'])
 def add_cases():
     data = request.json
+    current_app.logger.info(data)
     project_name = data.get('projectName')
     api_msg_name = data.get('apiMsgName')
     if not api_msg_name:
@@ -178,7 +179,7 @@ def find_cases():
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 20
     if not project_name:
-        return jsonify({'msg': '请先创建项目', 'status': 0})
+        return jsonify({'msg': '请选择项目', 'status': 0})
     if not module_id:
         return jsonify({'msg': '请先创建{}项目下的模块'.format(project_name), 'status': 0})
 

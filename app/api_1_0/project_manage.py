@@ -82,7 +82,7 @@ def find_project():
         total = pagination.total
 
     project = [{'name': c.name, 'principal': c.principal, 'id': c.id, 'host': c.host, 'host_two': c.host_two,
-                'host_three': c.host_three, 'host_four': c.host_four} for c in _data]
+                'host_three': c.host_three, 'host_four': c.host_four, 'choice': c.environment_choice} for c in _data]
 
     return jsonify({'data': project, 'total': total, 'status': 1})
 
