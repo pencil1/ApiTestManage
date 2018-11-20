@@ -1,5 +1,7 @@
 import types
 
+import requests
+
 from . import api
 import json
 from flask import jsonify, request
@@ -104,6 +106,22 @@ def deal_data():
     # d.get_dict_keys_path(test)
     # d.data_tidy(test)
     return jsonify({'status': 1, 'msg': '优化成功'})
+
+
+@api.route('/show', methods=['POST'])
+def show():
+    result = requests.get('http://fundgz.1234567.com.cn/js/160505.js?rt=1530243920648')
+    r = result.text.split('gszzl":"')
+
+    # data = request.json
+    # _data = data.get('dictData')
+    # test = json.loads(_data)
+    # d = TraverseDict()
+    # d.get_dict_keys_path(test)
+    # d.data_tidy(test)
+    # d.get_dict_keys_path(test)
+    # d.data_tidy(test)
+    return jsonify({'status': 1, 'msg': '优化成功','data':r[1].split('"')[0]})
 
 
 @api.route('/findSqlList')

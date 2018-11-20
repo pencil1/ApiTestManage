@@ -8,11 +8,21 @@ python => 3
 
 
 ## 开发环境
+
+
+安装依赖包
+
+    pip install -r requirements.txt
+
+
+然后直接运行manage
+
     manage.py
 
 
 ## 生产环境
     gunicorn -c gunicorn_config.py manage:app
+
 
 ### 生产环境下的一些配置
 由于懒，直接把flaskapi.conf文件替换nginx下的nginx.conf
@@ -21,6 +31,12 @@ python => 3
 ### 数据库的迁移
 
 第一次使用：
+
+首先要设置flask的app(windows和linux的环境变量命令不一样)
+
+    set FLASK_APP=manage.py
+
+
 初始化：
 
     (venv)  flask db init 这个命令会在项目下创建 migrations 文件夹，所有迁移脚本都存放其中。
