@@ -28,7 +28,7 @@ python => 3
 由于懒，直接把flaskapi.conf文件替换nginx下的nginx.conf
 
 
-### 数据库的迁移
+
 
 第一次使用：
 
@@ -36,6 +36,13 @@ python => 3
 
     set FLASK_APP=manage.py
 
+
+然后创建管理员账号（账号：admin，密码：123456）
+
+    flask create_admin
+
+
+### 数据库的迁移(数据库迁移不是必要步骤)
 
 初始化：
 

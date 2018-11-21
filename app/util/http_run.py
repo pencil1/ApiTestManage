@@ -47,6 +47,10 @@ class MyHttpRunner(HttpRunner):
                 config = testcase_dict.setdefault("config", {})
 
                 testcase_dict["config"]["functions"] = {}
+
+                # imported_module = importlib.reload(importlib.import_module('func_list.build_in'))
+                # testcase_dict["config"]["functions"].update(loader.load_python_module(imported_module)["functions"])
+
                 if config.get('import_module_functions'):
                     imported_module = importlib.reload(
                         importlib.import_module(config.get('import_module_functions')[0]))
@@ -317,7 +321,6 @@ class RunCase(object):
             db.session.add(new_report)
             db.session.commit()
         d = self.all_cases_data()
-        print(d)
         res = main_ate(d)
 
         res['time']['duration'] = "%.2f" % res['time']['duration']
@@ -381,7 +384,6 @@ class RunCase(object):
                     #     rec['meta_data']['response_headers'] = 'None'
 
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
-        print(res)
         jump_res = json.dumps(res, ensure_ascii=False)
         if self.run_type and self.make_report:
             self.new_report_id = Report.query.filter_by(

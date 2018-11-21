@@ -18,9 +18,10 @@ class Permisson:
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, index=True)
+    account = db.Column(db.String(64), unique=True, index=True)
     password_hash = db.Column(db.String(128))
     name = db.Column(db.String(64))
+    status = db.Column(db.Integer)
     created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
 
     @property
@@ -183,6 +184,7 @@ class Task(db.Model):  # 定时任务的
     task_type = db.Column(db.String())
     task_to_email_address = db.Column(db.String(252))  # 收件人邮箱
     task_send_email_address = db.Column(db.String(252))  # 维护本计划的人的邮箱
+    email_password = db.Column(db.String())
     status = db.Column(db.String(), default=u'创建')  # 任务的运行状态，默认是创建
 
 

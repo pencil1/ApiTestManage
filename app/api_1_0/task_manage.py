@@ -1,4 +1,3 @@
-import os
 import json
 from flask import jsonify, request
 from . import api
@@ -7,17 +6,26 @@ from ..util.login_require import login_required
 from app import scheduler
 from ..util.http_run import RunCase
 from ..util.utils import change_cron
+from ..util.email.SendEmail import SendEmail
+from ..util.report import render_html_report
+from ..util.global_variable import *
 
 
-def aps_test(project_name, case_ids, trigger=None, task_id=None):
+def aps_test(project_name, case_ids, send_address=None, send_password=None, task_to_address=None):
     d = RunCase(project_names=project_name, case_ids=case_ids)
     d.run_type = True
     d.all_cases_data()
-    d.run_case()
-    if trigger:
-        _data = Task.query.filter_by(id=task_id).first()
-        _data.status = '创建'
-        db.session.commit()
+    res = json.loads(d.run_case())
+
+    if send_address:
+        task_to_address = task_to_address.split(',')
+        file = render_html_report(res,
+                                  html_report_name='{}接口自动化测试报告'.format(
+                                      datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')),
+                                  html_report_template=r'{}/extent_report_template.html'.format(TEMP_REPORT),
+                                  data_or_report=False)
+        s = SendEmail(send_address, send_password, task_to_address, file)
+        s.send_email()
     return d
 
 
@@ -67,7 +75,10 @@ def start_task():
             for case_data in Case.query.filter_by(case_set_id=set_id).order_by(Case.num.asc()).all():
                 case_ids.append(case_data.id)
     # scheduler.add_job(str(ids), aps_test, trigger='cron', args=['asd'], **config_time)
-    scheduler.add_job(aps_test, 'cron', args=[_data.project_name, case_ids], id=str(ids), **config_time)  # 添加任务
+    scheduler.add_job(aps_test, 'cron',
+                      args=[_data.project_name, case_ids, _data.task_send_email_address, _data.email_password,
+                            _data.task_to_email_address],
+                      id=str(ids), **config_time)  # 添加任务
     _data.status = '启动'
     db.session.commit()
 
@@ -90,6 +101,11 @@ def add_task():
     task_type = 'cron'
     to_email = data.get('toEmail')
     send_email = data.get('sendEmail')
+    password = data.get('password')
+    # 0 0 1 * * *
+    if not (not to_email and not send_email and not password) and not (to_email and send_email and password):
+        return jsonify({'msg': '发件人、收件人、密码3个必须都为空，或者都必须有值', 'status': 0})
+
     time_config = data.get('timeConfig')
     if len(time_config.strip().split(' ')) != 6:
         return jsonify({'msg': 'cron格式错误', 'status': 0})
@@ -106,6 +122,7 @@ def add_task():
             old_task_data.task_type = task_type
             old_task_data.task_to_email_address = to_email
             old_task_data.task_send_email_address = send_email
+            old_task_data.email_password = password
             old_task_data.num = num
             if old_task_data.status != '创建' and old_task_data.task_config_time != time_config:
                 scheduler.reschedule_job(str(task_id), trigger='cron', **change_cron(time_config))  # 修改任务
@@ -119,7 +136,7 @@ def add_task():
             return jsonify({'msg': '任务名字重复', 'status': 0})
         else:
             new_task = Task(task_name=name, project_name=project_name, set_id=json.dumps(set_ids),
-                            case_id=json.dumps(case_ids),
+                            case_id=json.dumps(case_ids), email_password=password,
                             task_type=task_type, task_to_email_address=to_email, task_send_email_address=send_email,
                             task_config_time=time_config, num=num)
             db.session.add(new_task)
@@ -134,7 +151,8 @@ def edit_task():
     c = Task.query.filter_by(id=task_id).first()
     _data = {'num': c.num, 'task_name': c.task_name, 'task_config_time': c.task_config_time, 'task_type': c.task_type,
              'project_name': c.project_name, 'set_ids': json.loads(c.set_id), 'case_ids': json.loads(c.case_id),
-             'task_to_email_address': c.task_to_email_address, 'task_send_email_address': c.task_send_email_address}
+             'task_to_email_address': c.task_to_email_address, 'task_send_email_address': c.task_send_email_address,
+             'password': c.email_password}
 
     return jsonify({'data': _data, 'status': 1})
 

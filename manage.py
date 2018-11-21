@@ -18,11 +18,21 @@ migrate = Migrate(app, db)
 def make_shell_context():
     return dict(app=app, db=db, User=User, ApiCase=ApiMsg, )
 
-#
+
+@app.cli.command()
+def create_admin():
+    user = User.query.filter_by(name='管理员').first()
+    if user:
+        print('管理员账号已经存在')
+        return
+    else:
+        user = User(name='管理员', account='admin', password='123456', status=1)
+        db.session.add(user)
+        db.session.commit()
+        print('创建完成')
 # manager.add_command("shell", Shell(make_context=make_shell_context))
 # manager.add_command('db', MigrateCommand)
 # manager.add_command('runserver', Server(host='127.0.0.1', port='8080'))  # host设置为本地地址后，局域网内的其他机子都可以访问
-
 
 # manager.add_command('runserver', WSGIServer(('192.168.13.253', '8080'), app))
 
