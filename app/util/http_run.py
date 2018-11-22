@@ -349,7 +349,7 @@ class RunCase(object):
                     if isinstance(rec_2['meta_data']['request']['body'], bytes):
                         if b'filename=' in rec_2['meta_data']['request']['body']:
                             rec_2['meta_data']['request']['body'] = '暂不支持显示文件上传的request_body'
-                            rec_2['meta_data']['request']['files']['file'] = [0]
+                            rec_2['meta_data']['request']['files'] = '文件类型暂不支持显示'
                         else:
                             rec_2['meta_data']['request']['body'] = bytes.decode(rec_2['meta_data']['request']['body'])
 
@@ -384,6 +384,7 @@ class RunCase(object):
                     #     rec['meta_data']['response_headers'] = 'None'
 
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
+        print(res)
         jump_res = json.dumps(res, ensure_ascii=False)
         if self.run_type and self.make_report:
             self.new_report_id = Report.query.filter_by(
