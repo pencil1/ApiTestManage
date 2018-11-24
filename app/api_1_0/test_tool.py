@@ -22,19 +22,19 @@ def del_sql():
     _pros = Project.query.all()
     # for p in _pros:
     #     p.environment_choice = 'first'
-        # p.host_two = json.dumps([])
-        # p.host_three = json.dumps([])
-        # p.host_four = json.dumps([])
-        # pro_url = []
-        # if p.host:
-        #     pro_url.append(p.host)
-        # if p.host_two:
-        #     pro_url.append(p.host_two)
-        # if p.host_three:
-        #     pro_url.append(p.host_three)
-        # if p.host_four:
-        #     pro_url.append(p.host_four)
-        # p.host = json.dumps(pro_url)
+    # p.host_two = json.dumps([])
+    # p.host_three = json.dumps([])
+    # p.host_four = json.dumps([])
+    # pro_url = []
+    # if p.host:
+    #     pro_url.append(p.host)
+    # if p.host_two:
+    #     pro_url.append(p.host_two)
+    # if p.host_three:
+    #     pro_url.append(p.host_three)
+    # if p.host_four:
+    #     pro_url.append(p.host_four)
+    # p.host = json.dumps(pro_url)
     a = ApiMsg.query.all()
     for a1 in a:
         if a1.variable_type == 'data':
@@ -75,7 +75,6 @@ def run_cmd():
 
 @api.route('/optimizeError', methods=['POST'])
 def optimize_error_data():
-
     data = request.json
     error_data = data.get('errorData')
     new_data = '\n'.join(error_data.split('↵'))
@@ -92,7 +91,6 @@ def optimize_error_data():
 
 @api.route('/optimizeErrorData', methods=['POST'])
 def deal_data():
-
     data1 = CaseData.query.all()
     for d in data1:
         d.time = 1
@@ -121,7 +119,7 @@ def show():
     # d.data_tidy(test)
     # d.get_dict_keys_path(test)
     # d.data_tidy(test)
-    return jsonify({'status': 1, 'msg': '优化成功','data':r[1].split('"')[0]})
+    return jsonify({'status': 1, 'msg': '优化成功', 'data': r[1].split('"')[0]})
 
 
 @api.route('/findSqlList')
@@ -149,3 +147,20 @@ def find_sql_list():
     #     print(row)
     conn.close()
     return jsonify({'sql_data': sql_data, 'status': 1, 'title_data': title_data})
+
+
+@api.route('/test/list', methods=['get'])
+def test_list():
+    d = {'status': 1, 'data': {'phone': 15813311111, 'id': 158}}
+
+    return jsonify({'status': 1, 'msg': '优化成功', 'data': d})
+
+
+@api.route('/test/id', methods=['get'])
+def test_id():
+    data = request.json
+    _id = data.get('id')
+    if _id:
+        return jsonify({'status': 1, 'msg': 'id识别成功', 'test_id': _id})
+    else:
+        return jsonify({'status': 1, 'msg': '请输入id'})
