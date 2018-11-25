@@ -15,7 +15,7 @@ def add_case():
     case_set_id = data.get('caseSetId')
     if not case_set_id:
         return jsonify({'msg': '请选择用例集', 'status': 0})
-    func_address = data.get('funcAddress')
+    func_address = json.dumps(data.get('funcAddress'))
     project = data.get('project')
     project_data = Project.query.filter_by(name=project).first()
     project_id = project_data.id
@@ -249,7 +249,7 @@ def edit_scene():
 
                           })
     _data2 = {'num': _data.num, 'name': _data.name, 'desc': _data.desc, 'cases': case_data, 'setId': _data.case_set_id,
-              'func_address': _data.func_address, 'times': _data.times}
+              'func_address': json.loads(_data.func_address), 'times': _data.times}
 
     if _data.variable:
         _data2['variable'] = json.loads(_data.variable)

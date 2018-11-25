@@ -16,7 +16,7 @@ def add_scene_config():
     project_id = Project.query.filter_by(name=project_name).first().id
     name = data.get('sceneConfigName')
     ids = data.get('id')
-    func_address = data.get('funcAddress')
+    func_address = json.dumps(data.get('funcAddress'))
     variable = data.get('variable')
     if re.search('\${(.*?)}', variable, flags=0) and not func_address:
         return jsonify({'msg': '参数引用函数后，必须引用函数文件', 'status': 0})
@@ -99,6 +99,6 @@ def edit_config():
     _data = {'name': _edit.name,
              'num': _edit.num,
              'variables': json.loads(_edit.variables),
-             'func_address': _edit.func_address}
+             'func_address': json.loads(_edit.func_address)}
 
     return jsonify({'data': _data, 'status': 1})

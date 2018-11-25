@@ -88,11 +88,13 @@ def extract_functions(content):
 
 def check_case(case_data, func_address):
     if func_address:
-        import_path = 'func_list.{}'.format(func_address.replace('.py', ''))
-        func_list = importlib.reload(importlib.import_module(import_path))
-        module_functions_dict = {name: item for name, item in vars(func_list).items() if
-                                 isinstance(item, types.FunctionType)}
-        # module_functions_dict = dict(filter(is_function, vars(func_list).items()))
+        module_functions_dict = {}
+        for f in json.loads(func_address):
+            import_path = 'func_list.{}'.format(f.replace('.py', ''))
+            func_list = importlib.reload(importlib.import_module(import_path))
+            module_functions_dict.update({name: item for name, item in vars(func_list).items() if
+                                          isinstance(item, types.FunctionType)})
+            # module_functions_dict = dict(filter(is_function, vars(func_list).items()))
 
     if isinstance(case_data, list):
         for c in case_data:
