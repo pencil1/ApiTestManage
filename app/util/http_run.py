@@ -52,10 +52,10 @@ class MyHttpRunner(HttpRunner):
                 # testcase_dict["config"]["functions"].update(loader.load_python_module(imported_module)["functions"])
 
                 if config.get('import_module_functions'):
-                    imported_module = importlib.reload(
-                        importlib.import_module(config.get('import_module_functions')[0]))
-                    debugtalk_module = loader.load_python_module(imported_module)
-                    testcase_dict["config"]["functions"].update(debugtalk_module["functions"])
+                    for f in config.get('import_module_functions'):
+                        imported_module = importlib.reload(importlib.import_module(f))
+                        debugtalk_module = loader.load_python_module(imported_module)
+                        testcase_dict["config"]["functions"].update(debugtalk_module["functions"])
                 testcase_dict["config"]["functions"].update(self.project_mapping["debugtalk"]["functions"])
                 # self.project_mapping["debugtalk"]["functions"].update(debugtalk_module["functions"])
                 raw_config_variables = config.get("variables", [])
@@ -179,9 +179,10 @@ class RunCase(object):
         else:
             temp_case_data['request']['url'] = api_case.url
 
-        if api_case.func_address:
-            temp_case_data['import_module_functions'] = [
-                'func_list.{}'.format(api_case.func_address.replace('.py', ''))]
+        # if api_case.func_address:
+        #     print(api_case.func_address)
+        #     temp_case_data['import_module_functions'] = [
+        #         'func_list.{}'.format(f.replace('.py', '')) for f in json.loads(api_case.func_address)]
         # if self.run_type:
         if not self.run_type:
             if api_case.up_func:
@@ -283,7 +284,7 @@ class RunCase(object):
 
                     # 获取需要导入的函数文件数据
                     _temp_config['config']['import_module_functions'] = ['func_list.{}'.format(
-                        case_data.func_address.replace('.py', ''))] if case_data.func_address else []
+                        f.replace('.py', '')) for f in json.loads(case_data.func_address)]
 
                     # 获取业务集合的配置数据
                     scene_config = json.loads(case_data.variable) if case_data.variable else []
@@ -302,7 +303,7 @@ class RunCase(object):
             config_data = Config.query.filter_by(id=self.config_id).first()
             _config = json.loads(config_data.variables) if self.config_id else []
             _temp_config['config']['import_module_functions'] = ['func_list.{}'.format(
-                config_data.func_address.replace('.py', ''))] if config_data and config_data.func_address else []
+                f.replace('.py', '')) for f in json.loads(config_data.func_address)]
 
             _temp_config = merge_config(_temp_config, _config)
             _temp_config['teststeps'] = [self.get_test_case(case, pro_base_url) for case in self.api_data]
