@@ -302,8 +302,9 @@ class RunCase(object):
             _temp_config = copy.deepcopy(pro_config)
             config_data = Config.query.filter_by(id=self.config_id).first()
             _config = json.loads(config_data.variables) if self.config_id else []
-            _temp_config['config']['import_module_functions'] = ['func_list.{}'.format(
-                f.replace('.py', '')) for f in json.loads(config_data.func_address)]
+            if self.config_id:
+                _temp_config['config']['import_module_functions'] = ['func_list.{}'.format(
+                    f.replace('.py', '')) for f in json.loads(config_data.func_address)]
 
             _temp_config = merge_config(_temp_config, _config)
             _temp_config['teststeps'] = [self.get_test_case(case, pro_base_url) for case in self.api_data]
