@@ -158,7 +158,7 @@ def test_list():
     return jsonify({'status': 1, 'msg': '优化成功', 'data': d})
 
 
-@api.route('/test/id', methods=['get'])
+@api.route('/test/id', methods=['POST'])
 def test_id():
     data = request.json
     _id = data.get('id')
