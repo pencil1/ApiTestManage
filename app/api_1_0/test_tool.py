@@ -19,7 +19,6 @@ def build_identity():
 
 @api.route('/delSql', methods=['POST'])
 def del_sql():
-    _pros = Project.query.all()
     # for p in _pros:
     #     p.environment_choice = 'first'
     # p.host_two = json.dumps([])
@@ -35,16 +34,19 @@ def del_sql():
     # if p.host_four:
     #     pro_url.append(p.host_four)
     # p.host = json.dumps(pro_url)
-    a = ApiMsg.query.all()
+    a = Config.query.all()
     for a1 in a:
-        if a1.variable_type == 'data':
-            a1.json_variable = ''
+        if a1.func_address:
+            a1.func_address = json.dumps([a1.func_address])
+        else:
+            a1.func_address = json.dumps([])
 
-    b = CaseData.query.all()
+    b = Case.query.all()
     for b1 in b:
-
-        if ApiMsg.query.filter_by(id=b1.api_msg_id).first().variable_type == 'data':
-            b1.json_variable = ''
+        if b1.func_address:
+            b1.func_address = json.dumps([b1.func_address])
+        else:
+            b1.func_address = json.dumps([])
     db.session.commit()
 
     return jsonify({'msg': '修改完成', 'status': 1})
