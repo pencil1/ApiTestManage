@@ -267,5 +267,5 @@ def data_config():
     _data = Config.query.filter_by(id=config_id).first()
 
     return jsonify({'data': {'variables': json.loads(_data.variables),
-                             'func_address': _data.func_address},
+                             'func_address': json.loads(_data.func_address)},
                     'status': 1})
