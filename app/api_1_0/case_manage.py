@@ -117,7 +117,7 @@ def add_case():
                                         json_variable=c['json_variable'],
                                         extract=json.dumps(c['extract']),
                                         param=json.dumps(c['param']), time=c['time'],
-                                        validate=json.dumps(c['validate']), case_id=case_id, api_msg_id=c['api_msg_id'],
+                                        validate=json.dumps(c['validate']), case_id=case_id, api_msg_id=c['apiMsgId'],
                                         status_variables=json.dumps(c['statusCase']['variable']),
                                         status_extract=json.dumps(c['statusCase']['extract']),
                                         status_validate=json.dumps(c['statusCase']['validate']),
@@ -229,7 +229,7 @@ def edit_scene():
         else:
             case_id = case.id
         case_data.append({'num': case.num, 'name': ApiMsg.query.filter_by(id=case.api_msg_id).first().name,
-                          'desc': ApiMsg.query.filter_by(id=case.api_msg_id).first().desc, 'api_msg_id': case.api_msg_id,
+                          'desc': ApiMsg.query.filter_by(id=case.api_msg_id).first().desc, 'apiMsgId': case.api_msg_id,
                           'id': case_id,
                           'status': json.loads(case.status),
                           'variableType': ApiMsg.query.filter_by(id=case.api_msg_id).first().variable_type,

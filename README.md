@@ -34,7 +34,9 @@ python => 3
 
 首先要设置flask的app(windows和linux的环境变量命令不一样)
 
-    set FLASK_APP=manage.py
+    set FLASK_APP=manage.py(windows)
+
+    export FLASK_APP=manage.py(linux)
 
 
 然后创建管理员账号（账号：admin，密码：123456）
