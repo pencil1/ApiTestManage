@@ -153,6 +153,7 @@ def find_sql_list():
 
 @api.route('/test/list', methods=['get'])
 def test_list():
+    print(1111)
     d = {'status': 1, 'data': {'phone': 15813311111, 'id': 158}}
 
     return jsonify({'status': 1, 'msg': '优化成功', 'data': d})
