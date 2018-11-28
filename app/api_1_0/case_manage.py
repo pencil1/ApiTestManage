@@ -117,7 +117,7 @@ def add_case():
                                         json_variable=c['json_variable'],
                                         extract=json.dumps(c['extract']),
                                         param=json.dumps(c['param']), time=c['time'],
-                                        validate=json.dumps(c['validate']), case_id=case_id, api_msg_id=c['apiMsgId'],
+                                        validate=json.dumps(c['validate']), case_id=case_id, api_msg_id=c['api_msg_id'],
                                         status_variables=json.dumps(c['statusCase']['variable']),
                                         status_extract=json.dumps(c['statusCase']['extract']),
                                         status_validate=json.dumps(c['statusCase']['validate']),
