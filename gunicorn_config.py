@@ -6,7 +6,6 @@ gunicorn的配置文件
 """
 # gevent的猴子魔法 变成非阻塞
 gevent.monkey.patch_all()
-
 debug = True
 loglevel = 'info'
 bind = '192.168.6.19:8080'

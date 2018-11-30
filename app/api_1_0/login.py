@@ -67,7 +67,7 @@ def login():
         login_user(user, True)
         token = user.generate_reset_token()
         token = bytes.decode(token)
-        return jsonify({'msg': '登录成功', 'status': 1, 'token': token, 'name': user.name})
+        return jsonify({'msg': '登录成功', 'status': 1, 'token': token, 'name': user.name, 'userId': user.id})
 
 
 @api.route('/user/find', methods=['GET', 'POST'])

@@ -72,6 +72,8 @@ def find_project():
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
 
+    user_data = [{'user_id': u.id, 'user_name': u.name} for u in User.query.all()]
+
     if project_name:
         _data = Project.query.filter(Project.name.like('%{}%'.format(project_name))).all()
         if not _data:
@@ -81,10 +83,12 @@ def find_project():
         _data = pagination.items
         total = pagination.total
 
-    project = [{'name': c.name, 'principal': c.principal, 'id': c.id, 'host': c.host, 'host_two': c.host_two,
-                'host_three': c.host_three, 'host_four': c.host_four, 'choice': c.environment_choice} for c in _data]
+    project = [
+        {'name': c.name, 'principal': User.query.filter_by(id=c.user_id).first().name, 'id': c.id, 'host': c.host,
+         'host_two': c.host_two, 'host_three': c.host_three, 'host_four': c.host_four, 'choice': c.environment_choice}
+        for c in _data]
 
-    return jsonify({'data': project, 'total': total, 'status': 1})
+    return jsonify({'data': project, 'total': total, 'status': 1, 'userData': user_data})
 
 
 @api.route('/project/add', methods=['POST'])
@@ -92,6 +96,7 @@ def find_project():
 def add_project():
     data = request.json
     project_name = data.get('projectName')
+    user_id = data.get('userId')
     principal = data.get('principal')
     environment_choice = data.get('environmentChoice')
     host = json.dumps(data.get('host'))
@@ -107,6 +112,7 @@ def add_project():
             return jsonify({'msg': '项目名字重复', 'status': 0})
         else:
             old_project_data.name = project_name
+            old_project_data.user_id = user_id
             old_project_data.principal = principal
             old_project_data.environment_choice = environment_choice
             old_project_data.host = host
@@ -123,7 +129,7 @@ def add_project():
 
         else:
             new_project = Project(name=project_name, principal=principal, host=host, host_two=host_two,
-                                  user_id=current_user.id, environment_choice=environment_choice,
+                                  user_id=user_id, environment_choice=environment_choice,
                                   host_three=host_three, host_four=host_four, headers=header, variables=variable)
             db.session.add(new_project)
             db.session.commit()
@@ -154,6 +160,7 @@ def edit_project():
     model_id = data.get('id')
     _edit = Project.query.filter_by(id=model_id).first()
     _data = {'pro_name': _edit.name,
+             'user_id': _edit.user_id,
              'principal': _edit.principal,
              'host': json.loads(_edit.host),
              'host_two': json.loads(_edit.host_two),

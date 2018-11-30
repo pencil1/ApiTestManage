@@ -7,9 +7,10 @@ from app import scheduler
 from ..util.http_run import RunCase
 from ..util.utils import change_cron
 from ..util.email.SendEmail import SendEmail
-from ..util.report import render_html_report
+from ..util.report.report import render_html_report
 from ..util.global_variable import *
 from ..util.utils import auto_num
+
 
 def aps_test(project_name, case_ids, send_address=None, send_password=None, task_to_address=None):
     d = RunCase(project_names=project_name, case_ids=case_ids)
@@ -132,6 +133,7 @@ def add_task():
             db.session.commit()
             return jsonify({'msg': '修改成功', 'status': 1})
     else:
+
         if Task.query.filter_by(task_name=name).first():
             return jsonify({'msg': '任务名字重复', 'status': 0})
         else:

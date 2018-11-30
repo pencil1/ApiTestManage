@@ -5,7 +5,7 @@ from . import api
 from app.models import *
 from ..util.http_run import RunCase
 from ..util.global_variable import *
-from ..util.report import render_html_report
+from ..util.report.report import render_html_report
 
 
 @api.route('/projectGather/list')

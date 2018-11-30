@@ -40,8 +40,11 @@ def add_cases():
         return jsonify({'msg': '请求方式不能为空', 'status': 0})
 
     module_id = data.get('moduleId')
-    if not module_id and not project_name:
-        return jsonify({'msg': '项目和模块不能为空', 'status': 0})
+    if not module_id:
+        return jsonify({'msg': '接口模块不能为空', 'status': 0})
+
+    if not project_name:
+        return jsonify({'msg': '项目不能为空', 'status': 0})
 
     url = data.get('url').split('?')[0]
     status_url = data.get('choiceUrl')

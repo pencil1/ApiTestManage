@@ -87,8 +87,8 @@ def extract_functions(content):
 
 
 def check_case(case_data, func_address):
+    module_functions_dict = {}
     if func_address:
-        module_functions_dict = {}
         for f in json.loads(func_address):
             import_path = 'func_list.{}'.format(f.replace('.py', ''))
             func_list = importlib.reload(importlib.import_module(import_path))
@@ -246,6 +246,20 @@ def parse_function(content):
             function_meta["args"].append(parse_string_value(arg))
 
     return function_meta
+
+
+def encode_object(obj):
+    if isinstance(obj, bytes):
+        print(obj)
+        try:
+            return bytes.decode(obj)
+        except Exception as e:
+            print(e)
+            return str(obj)
+    elif isinstance(obj, object):
+        return str(obj)
+
+    raise TypeError(" is not JSON serializable")
 
 
 if __name__ == '__main__':

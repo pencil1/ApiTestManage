@@ -2,12 +2,12 @@
 # -*- coding: UTF-8 -*-
 import os
 import smtplib
-import configparser
 import logging as log
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
 from email.mime.application import MIMEApplication
+from .mail_config import EMAIL_PORT, EMAIL_SERVICE
 
 
 class CheckPath(object):
@@ -26,8 +26,8 @@ class CheckPath(object):
 
 class SendEmail(object):
     def __init__(self, username, password, to_list, file):
-        self.Email_service = 'smtp.exmail.qq.com'
-        self.Email_port = 25
+        self.Email_service = EMAIL_SERVICE
+        self.Email_port = EMAIL_PORT
         self.username = username
         self.password = password
         self.to_list = to_list

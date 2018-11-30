@@ -4,7 +4,7 @@ import json
 from app.models import *
 from httprunner import HttpRunner
 from ..util.global_variable import *
-from ..util.utils import merge_config
+from ..util.utils import merge_config, encode_object
 from httprunner import (loader, parser, utils)
 import importlib
 
@@ -342,52 +342,10 @@ class RunCase(object):
                 res['stat']['successes_scene'] += 1
             else:
                 res['stat']['failures_scene'] += 1
-            res_1['in_out']['in'] = str(res_1['in_out']['in'])
-            # res_1['in_out']['out'] = res_1['in_out']['out'] if res_1['in_out']['out'] else None
-            for num_2, rec_2 in enumerate(res_1['records']):
-                if isinstance(rec_2['meta_data']['response']['content'], bytes):
-                    rec_2['meta_data']['response']['content'] = bytes.decode(rec_2['meta_data']['response']['content'])
-                if rec_2['meta_data']['request'].get('body'):
-                    if isinstance(rec_2['meta_data']['request']['body'], bytes):
-                        if b'filename=' in rec_2['meta_data']['request']['body']:
-                            rec_2['meta_data']['request']['body'] = '暂不支持显示文件上传的request_body'
-                            rec_2['meta_data']['request']['files'] = '文件类型暂不支持显示'
-                        else:
-                            rec_2['meta_data']['request']['body'] = bytes.decode(rec_2['meta_data']['request']['body'])
-
-                if rec_2['meta_data']['request'].get('data'):
-                    if isinstance(rec_2['meta_data']['request']['data'], bytes):
-                        rec_2['meta_data']['request']['data'] = bytes.decode(rec_2['meta_data']['request']['data'])
-
-                if rec_2['meta_data']['response'].get('cookies'):
-                    rec_2['meta_data']['response']['cookies'] = dict(
-                        res['details'][0]['records'][0]['meta_data']['response']['cookies'])
-                    # for num, rec in enumerate(res['details'][0]['records']):
-                    # try:
-                    # if not rec['meta_data'].get('url'):
-                    #     rec['meta_data']['url'] = self.temporary_url[num] + '\n(url请求失败，这为原始url，)'
-                    # if 'Linux' in platform.platform():
-                    #     rec['meta_data']['response_time(ms)'] = rec['meta_data'].get('response_time_ms')
-                    # if rec['meta_data'].get('response_headers'):
-                    #     rec['meta_data']['response_headers'] = dict(res['records'][num]['meta_data']['response_headers'])
-                    # if rec['meta_data'].get('request_headers'):
-                    #     rec['meta_data']['request_headers'] = dict(res['records'][num]['meta_data']['request_headers'])
-                    # if rec['meta_data'].get('request_body'):
-                    #     if isinstance(rec['meta_data']['request_body'], bytes):
-                    #         if b'filename=' in rec['meta_data']['request_body']:
-                    #             rec['meta_data']['request_body'] = '暂不支持显示文件上传的request_body'
-                    #         else:
-                    #             rec['meta_data']['request_body'] = rec['meta_data']['request_body'].decode('unicode-escape')
-
-                    # if rec['meta_data'].get('response_body'):
-                    #     if isinstance(rec['meta_data']['response_body'], bytes):
-                    #         rec['meta_data']['response_body'] = bytes.decode(rec['meta_data']['response_body'])
-                    # if not rec['meta_data'].get('response_headers'):
-                    #     rec['meta_data']['response_headers'] = 'None'
 
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
         print(res)
-        jump_res = json.dumps(res, ensure_ascii=False)
+        jump_res = json.dumps(res, ensure_ascii=False, default=encode_object)
         if self.run_type and self.make_report:
             self.new_report_id = Report.query.filter_by(
                 data='{}.txt'.format(now_time.strftime('%Y/%m/%d %H:%M:%S'))).first().id
