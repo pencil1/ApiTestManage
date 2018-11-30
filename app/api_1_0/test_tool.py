@@ -7,7 +7,7 @@ import json
 from flask import jsonify, request
 from ..util.tool_func import *
 from app.models import *
-
+from ..util.xmindtest import mindtoExcel
 
 @api.route('/buildIdentity')
 def build_identity():
@@ -108,12 +108,18 @@ def deal_data():
     return jsonify({'status': 1, 'msg': '优化成功'})
 
 
-@api.route('/show', methods=['POST'])
+@api.route('/caseChange', methods=['POST'])
 def show():
-    result = requests.get('http://fundgz.1234567.com.cn/js/160505.js?rt=1530243920648')
-    r = result.text.split('gszzl":"')
-
+    data = request.json
+    address = data.get('address')
+    if not address:
+        return jsonify({'status': 0, 'msg': '请上传文件'})
+    result_address = mindtoExcel(address)
+    print(result_address)
+    # print(os.path.abspath('.'))
     # data = request.json
+    # with open(a, 'r', encoding='gb18030') as f:
+    #     _data = json.loads(f.read())
     # _data = data.get('dictData')
     # test = json.loads(_data)
     # d = TraverseDict()
@@ -121,7 +127,7 @@ def show():
     # d.data_tidy(test)
     # d.get_dict_keys_path(test)
     # d.data_tidy(test)
-    return jsonify({'status': 1, 'msg': '优化成功', 'data': r[1].split('"')[0]})
+    return jsonify({'status': 1, 'msg': '优化成功', 'data': result_address})
 
 
 @api.route('/findSqlList')
