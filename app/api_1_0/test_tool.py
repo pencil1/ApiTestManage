@@ -116,7 +116,7 @@ def show():
     if not address:
         return jsonify({'status': 0, 'msg': '请上传文件'})
     result_address = mindtoExcel(address)
-    result_address.replace('/home', '')
+    result_address = result_address.replace('/home', '')
     # print(os.path.abspath('.'))
     # data = request.json
     # with open(a, 'r', encoding='gb18030') as f:
