@@ -14,39 +14,22 @@ def get_pro_gather():
     pro = {}
     pro_url = {}
     scene_config_lists = {}
-
-    #   获取每个项目下的模块名字
-    for p in _pros:
-        modules = Module.query.filter_by(project_id=p.id).all()
-        if modules:
-            pro[p.name] = [{'name': _gat.name, 'moduleId': _gat.id} for _gat in modules]
-        else:
-            pro[p.name] = ['']
-
-        config_list = Config.query.order_by(Config.num.asc()).filter_by(project_id=p.id).all()
-        if config_list:
-            scene_config_lists[p.name] = [{'name': _config_list.name, 'configId': _config_list.id} for _config_list in
-                                          config_list]
-        else:
-            scene_config_lists[p.name] = ['']
-
-    # 获取每个项目下的用例集
     set_list = {}
     scene_list = {}
     for p in _pros:
-        sets = CaseSet.query.filter_by(project_id=p.id).order_by(CaseSet.num.asc()).all()
-        set_list[p.name] = [{'label': s.name, 'id': s.id} for s in sets]
+        # 获取每个项目下的接口模块
+        pro[p.name] = [{'name': m.name, 'moduleId': m.id} for m in p.modules]
+        # 获取每个项目下的配置信息
+        scene_config_lists[p.name] = [{'name': c.name, 'configId': c.id} for c in p.configs]
+        # 获取每个项目下的用例集
+        set_list[p.name] = [{'label': s.name, 'id': s.id} for s in p.case_sets]
 
         # 获取每个用例集的用例
-        for s1 in sets:
-            scene_list["{}".format(s1.id)] = [{'label': scene.name, 'id': scene.id} for scene in
-                                              Case.query.filter_by(case_set_id=s1.id).all()]
+        for s in p.case_sets:
+            scene_list["{}".format(s.id)] = [{'label': scene.name, 'id': scene.id} for scene in
+                                             Case.query.filter_by(case_set_id=s.id).all()]
 
-            # scene_list["abc"] = [{'label': 'aaaaa', 'id': 1},{'label': 'qqqqqq', 'id': 2}]
-
-    # 获取每个项目下的url
-    for p in _pros:
-        # pro_url[p.name] = []
+        # 获取每个项目下的url
         if p.environment_choice == 'first':
             pro_url[p.name] = json.loads(p.host)
         elif p.environment_choice == 'second':

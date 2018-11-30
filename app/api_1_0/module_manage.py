@@ -14,8 +14,10 @@ def find_model():
     if not project_name:
         return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
 
+    pro_d = Project.query.filter_by(name=project_name).first()
+    p = pro_d.modules.paginate(page, per_page=per_page, error_out=False)
+    print(p)
     pro_id = Project.query.filter_by(name=project_name).first().id
-
     all_module = Module.query.filter_by(project_id=pro_id)
     pagination = all_module.order_by(Module.num.asc()).paginate(page, per_page=per_page, error_out=False)
     my_module = pagination.items

@@ -6,13 +6,28 @@ from flask_login import UserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import current_app
 
-
-class Permisson:
-    FOLLOW = 0x01
-    COMMENT = 0x02
-    WRITE_ARTICLES = 0x04
-    MODERATE_COMMENTS = 0x08
-    ADMINISTRATOR = 0xff
+# roles_permissions_map = {'Locked': ['FOLLOW', 'COLLECT'],
+#                          'User': ['FOLLOW', 'COLLECT', 'COMMENT' 'UPLOAD'],
+#                          'Moderator': ['FOLLOW', 'COLLECT', 'COMMENT', 'UPLOAD', 'MODERATE'],
+#                          'Administrator': ['FOLLOW', 'COLLECT', 'COMMENT', 'UPLOAD', 'MODERATE']
+#                          }
+#
+# roles_permissions = db.Table('roles_permissions',
+#                              db.Column('role_id', db.Integer, db.ForeignKey('role.id')),
+#                              db.Column('permission_id', db.Integer, db.ForeignKey('permission.id')))
+#
+#
+# class Role(db.Model):
+#     __tablename__ = 'role'
+#     id = db.Column(db.Integer, primary_key=True)
+#     name = db.Column(db.String(30), unique=True)
+#
+#
+# class Permission(db.Model):
+#     __tablename__ = 'permission'
+#     id = db.Column(db.Integer, primary_key=True)
+#     name = db.Column(db.String(30), unique=True)
+#     roles = db.relationship('Role', secondary=roles_permissions, back_populates='role')
 
 
 class User(UserMixin, db.Model):
@@ -23,6 +38,18 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(64))
     status = db.Column(db.Integer)
     created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
+
+    @staticmethod
+    def init_user():
+        user = User.query.filter_by(name='管理员').first()
+        if user:
+            print('管理员账号已经存在')
+            return
+        else:
+            user = User(name='管理员', account='admin', password='123456', status=1)
+            db.session.add(user)
+            db.session.commit()
+            print('创建完成')
 
     @property
     def password(self):
@@ -54,7 +81,19 @@ class Project(db.Model):
     variables = db.Column(db.String())
     headers = db.Column(db.String())
     created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
-    modules = db.relationship('Module', backref='project', lazy='dynamic')
+    modules = db.relationship('Module')
+    configs = db.relationship('Config', order_by='Config.num.asc()')
+    case_sets = db.relationship('CaseSet', order_by='CaseSet.num.asc()')
+
+
+class Module(db.Model):
+    __tablename__ = 'module'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(), nullable=True)
+    num = db.Column(db.Integer(), nullable=True)
+    created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    api_msg = db.relationship('ApiMsg', backref='module', lazy='dynamic')
 
 
 class Case(db.Model):
@@ -82,16 +121,6 @@ class Config(db.Model):
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
 
 
-class Module(db.Model):
-    __tablename__ = 'module'
-    id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String(), nullable=True)
-    num = db.Column(db.Integer(), nullable=True)
-    created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
-    api_msg = db.relationship('ApiMsg', backref='module', lazy='dynamic')
-
-
 class CaseSet(db.Model):
     __tablename__ = 'case_set'
     id = db.Column(db.Integer(), primary_key=True)
@@ -99,7 +128,7 @@ class CaseSet(db.Model):
     name = db.Column(db.String(), nullable=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
     created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
-    project_id = db.Column(db.Integer, nullable=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
 
 
 class ApiMsg(db.Model):

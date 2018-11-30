@@ -179,6 +179,8 @@ class RunCase(object):
         else:
             temp_case_data['request']['url'] = api_case.url
 
+        # if 'https' in temp_case_data['request']['url']:
+        #     temp_case_data['request']['verify'] = False
         # if api_case.func_address:
         #     print(api_case.func_address)
         #     temp_case_data['import_module_functions'] = [

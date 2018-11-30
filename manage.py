@@ -8,6 +8,7 @@ import os
 from app import create_app, db
 from app.models import User, ApiMsg
 from flask_migrate import Migrate
+
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 # manager = Manager(app)
 migrate = Migrate(app, db)
@@ -19,16 +20,10 @@ def make_shell_context():
 
 
 @app.cli.command()
-def create_admin():
-    user = User.query.filter_by(name='管理员').first()
-    if user:
-        print('管理员账号已经存在')
-        return
-    else:
-        user = User(name='管理员', account='admin', password='123456', status=1)
-        db.session.add(user)
-        db.session.commit()
-        print('创建完成')
+def my_init():
+    User.init_user()
+
+
 # manager.add_command("shell", Shell(make_context=make_shell_context))
 # manager.add_command('db', MigrateCommand)
 # manager.add_command('runserver', Server(host='127.0.0.1', port='8080'))  # host设置为本地地址后，局域网内的其他机子都可以访问

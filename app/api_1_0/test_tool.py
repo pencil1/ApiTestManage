@@ -110,25 +110,23 @@ def deal_data():
 
 
 @api.route('/caseChange', methods=['POST'])
-def show():
+def case_change():
     data = request.json
     address = data.get('address')
     if not address:
         return jsonify({'status': 0, 'msg': '请上传文件'})
-    result_address = mindtoExcel(address)
-    result_address = result_address.replace('/home', '')
-    # print(os.path.abspath('.'))
-    # data = request.json
-    # with open(a, 'r', encoding='gb18030') as f:
-    #     _data = json.loads(f.read())
-    # _data = data.get('dictData')
-    # test = json.loads(_data)
-    # d = TraverseDict()
-    # d.get_dict_keys_path(test)
-    # d.data_tidy(test)
-    # d.get_dict_keys_path(test)
-    # d.data_tidy(test)
+    result_address = mindtoExcel(address).replace('/home', '')
     return jsonify({'status': 1, 'msg': '优化成功', 'data': result_address})
+
+
+@api.route('/show1', methods=['POST'])
+def show1():
+    student = Project.query.filter_by(name=u'测试平台').first()
+    # courses = student.modules.all()  # 该学生选择的所有课程
+
+
+    # print(type(student.configs.order_by(Config.num.asc())))
+    return jsonify({'status': 1, 'msg': '优化成功', 'data': '1'})
 
 
 @api.route('/findSqlList')
