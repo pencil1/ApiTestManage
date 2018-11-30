@@ -9,6 +9,7 @@ from ..util.tool_func import *
 from app.models import *
 from ..util.xmindtest import mindtoExcel
 
+
 @api.route('/buildIdentity')
 def build_identity():
     identity_data = ''.join([b + '\n' for b in list(set([identity_generator() for j in range(100)]))])
@@ -115,7 +116,7 @@ def show():
     if not address:
         return jsonify({'status': 0, 'msg': '请上传文件'})
     result_address = mindtoExcel(address)
-    print(result_address)
+    result_address.replace('/home', '')
     # print(os.path.abspath('.'))
     # data = request.json
     # with open(a, 'r', encoding='gb18030') as f:
