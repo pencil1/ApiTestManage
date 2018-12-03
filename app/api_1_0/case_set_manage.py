@@ -12,23 +12,24 @@ def add_set():
     name = data.get('name')
     ids = data.get('id')
     project_id = Project.query.filter_by(name=project_name).first().id
-
     num = auto_num(data.get('num'), CaseSet, project_id=project_id)
-
     if ids:
-        old_model_data = CaseSet.query.filter_by(id=ids).first()
-        old_model_data.project_id = project_id
-        old_model_data.name = name
+        old_data = CaseSet.query.filter_by(id=ids).first()
+
+        if CaseSet.query.filter_by(name=name, project_id=project_id).first() and name != old_data.name:
+            return jsonify({'msg': '用例集名字重复', 'status': 0})
+        old_data.name = name
+        old_data.project_id = project_id
         db.session.commit()
         return jsonify({'msg': '修改成功', 'status': 1})
     else:
-        # if Module.query.filter_by(name=gather_name, project_id=project_id).first():
-        #     return jsonify({'msg': '模块名字重复', 'status': 0})
-        # else:
-        new_set = CaseSet(name=name, project_id=project_id, num=num)
-        db.session.add(new_set)
-        db.session.commit()
-        return jsonify({'msg': '新建成功', 'status': 1})
+        if CaseSet.query.filter_by(name=name, project_id=project_id).first():
+            return jsonify({'msg': '用例集名字重复', 'status': 0})
+        else:
+            new_set = CaseSet(name=name, project_id=project_id, num=num)
+            db.session.add(new_set)
+            db.session.commit()
+            return jsonify({'msg': '新建成功', 'status': 1})
 
 
 @api.route('/caseSet/stick', methods=['POST'])
@@ -36,11 +37,12 @@ def stick_set():
     data = request.json
     set_id = data.get('id')
     project_name = data.get('projectName')
-    project_id = Project.query.filter_by(name=project_name).first().id
-    _data = CaseSet.query.filter_by(id=set_id).first()
-    num_sort('1', _data.num, CaseSet, project_id=project_id)
-    db.session.commit()
 
+    old_data = CaseSet.query.filter_by(id=set_id).first()
+    old_num = old_data.num
+    list_data = Project.query.filter_by(name=project_name).first().case_sets.all()
+    num_sort(1, old_num, list_data, old_data)
+    db.session.commit()
     return jsonify({'msg': '置顶完成', 'status': 1})
 
 

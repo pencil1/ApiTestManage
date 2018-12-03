@@ -6,6 +6,7 @@ from flask_login import UserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import current_app
 
+
 # roles_permissions_map = {'Locked': ['FOLLOW', 'COLLECT'],
 #                          'User': ['FOLLOW', 'COLLECT', 'COMMENT' 'UPLOAD'],
 #                          'Moderator': ['FOLLOW', 'COLLECT', 'COMMENT', 'UPLOAD', 'MODERATE'],
@@ -81,9 +82,9 @@ class Project(db.Model):
     variables = db.Column(db.String())
     headers = db.Column(db.String())
     created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
-    modules = db.relationship('Module')
-    configs = db.relationship('Config', order_by='Config.num.asc()')
-    case_sets = db.relationship('CaseSet', order_by='CaseSet.num.asc()')
+    modules = db.relationship('Module', order_by='Module.num.asc()', lazy='dynamic')
+    configs = db.relationship('Config', order_by='Config.num.asc()', lazy='dynamic')
+    case_sets = db.relationship('CaseSet', order_by='CaseSet.num.asc()', lazy='dynamic')
 
 
 class Module(db.Model):
@@ -93,21 +94,7 @@ class Module(db.Model):
     num = db.Column(db.Integer(), nullable=True)
     created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
-    api_msg = db.relationship('ApiMsg', backref='module', lazy='dynamic')
-
-
-class Case(db.Model):
-    __tablename__ = 'case'
-    id = db.Column(db.Integer(), primary_key=True)
-    num = db.Column(db.Integer(), nullable=True)
-    name = db.Column(db.String(), nullable=True)
-    desc = db.Column(db.String())
-    func_address = db.Column(db.String())
-    variable = db.Column(db.String())
-    times = db.Column(db.Integer(), nullable=True)
-    created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
-    case_set_id = db.Column(db.Integer, nullable=True)
+    api_msg = db.relationship('ApiMsg', order_by='ApiMsg.num.asc()', lazy='dynamic')
 
 
 class Config(db.Model):
@@ -129,6 +116,21 @@ class CaseSet(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
     created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    cases = db.relationship('Case', order_by='Case.num.asc()', lazy='dynamic')
+
+
+class Case(db.Model):
+    __tablename__ = 'case'
+    id = db.Column(db.Integer(), primary_key=True)
+    num = db.Column(db.Integer(), nullable=True)
+    name = db.Column(db.String(), nullable=True)
+    desc = db.Column(db.String())
+    func_address = db.Column(db.String())
+    variable = db.Column(db.String())
+    times = db.Column(db.Integer(), nullable=True)
+    created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    case_set_id = db.Column(db.Integer, db.ForeignKey('case_set.id'))
 
 
 class ApiMsg(db.Model):

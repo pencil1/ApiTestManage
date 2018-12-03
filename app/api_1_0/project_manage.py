@@ -54,9 +54,7 @@ def find_project():
     total = 1
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
-
     user_data = [{'user_id': u.id, 'user_name': u.name} for u in User.query.all()]
-
     if project_name:
         _data = Project.query.filter(Project.name.like('%{}%'.format(project_name))).all()
         if not _data:
@@ -65,12 +63,12 @@ def find_project():
         pagination = Project.query.order_by(Project.id.asc()).paginate(page, per_page=per_page, error_out=False)
         _data = pagination.items
         total = pagination.total
-
-    project = [
-        {'name': c.name, 'principal': User.query.filter_by(id=c.user_id).first().name, 'id': c.id, 'host': c.host,
-         'host_two': c.host_two, 'host_three': c.host_three, 'host_four': c.host_four, 'choice': c.environment_choice}
-        for c in _data]
-
+    project = [{'id': c.id,
+                'host': c.host,
+                'name': c.name,
+                'choice': c.environment_choice,
+                'principal': User.query.filter_by(id=c.user_id).first().name,
+                'host_two': c.host_two, 'host_three': c.host_three, 'host_four': c.host_four}for c in _data]
     return jsonify({'data': project, 'total': total, 'status': 1, 'userData': user_data})
 
 
@@ -80,7 +78,9 @@ def add_project():
     data = request.json
     project_name = data.get('projectName')
     user_id = data.get('userId')
-    principal = data.get('principal')
+    if not user_id:
+        return jsonify({'msg': '请选择负责人', 'status': 0})
+    # principal = data.get('principal')
     environment_choice = data.get('environmentChoice')
     host = json.dumps(data.get('host'))
     host_two = json.dumps(data.get('hostTwo'))
@@ -96,7 +96,6 @@ def add_project():
         else:
             old_project_data.name = project_name
             old_project_data.user_id = user_id
-            old_project_data.principal = principal
             old_project_data.environment_choice = environment_choice
             old_project_data.host = host
             old_project_data.host_two = host_two
@@ -111,8 +110,11 @@ def add_project():
             return jsonify({'msg': '项目名字重复', 'status': 0})
 
         else:
-            new_project = Project(name=project_name, principal=principal, host=host, host_two=host_two,
-                                  user_id=user_id, environment_choice=environment_choice,
+            new_project = Project(name=project_name,
+                                  host=host,
+                                  host_two=host_two,
+                                  user_id=user_id,
+                                  environment_choice=environment_choice,
                                   host_three=host_three, host_four=host_four, headers=header, variables=variable)
             db.session.add(new_project)
             db.session.commit()
@@ -124,15 +126,16 @@ def add_project():
 def del_project():
     data = request.json
     ids = data.get('id')
-    _edit = Project.query.filter_by(id=ids).first()
-    model = Module.query.filter_by(project_id=_edit.id).first()
-    if current_user.id != _edit.user_id:
+    pro_data = Project.query.filter_by(id=ids).first()
+    if current_user.id != pro_data.user_id:
         return jsonify({'msg': '不能删除别人创建的项目', 'status': 0})
-    if model:
-        return jsonify({'msg': '请先删除项目下的模块', 'status': 0})
-    if Case.query.filter_by(project_id=_edit.id).first():
+    if pro_data.modules.all():
+        return jsonify({'msg': '请先删除项目下的接口模块', 'status': 0})
+    if pro_data.case_sets.all():
         return jsonify({'msg': '请先删除项目下的业务集', 'status': 0})
-    db.session.delete(_edit)
+    if pro_data.configs.all():
+        return jsonify({'msg': '请先删除项目下的业务配置', 'status': 0})
+    db.session.delete(pro_data)
     return jsonify({'msg': '删除成功', 'status': 1})
 
 
@@ -140,8 +143,8 @@ def del_project():
 @login_required
 def edit_project():
     data = request.json
-    model_id = data.get('id')
-    _edit = Project.query.filter_by(id=model_id).first()
+    pro_id = data.get('id')
+    _edit = Project.query.filter_by(id=pro_id).first()
     _data = {'pro_name': _edit.name,
              'user_id': _edit.user_id,
              'principal': _edit.principal,

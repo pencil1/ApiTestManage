@@ -22,17 +22,16 @@ def add_scene_config():
         return jsonify({'msg': '参数引用函数后，必须引用函数文件', 'status': 0})
 
     num = auto_num(data.get('num'), Config, project_id=project_id)
+
     if ids:
         old_data = Config.query.filter_by(id=ids).first()
         old_num = old_data.num
+        list_data = Project.query.filter_by(name=project_name).first().configs.all()
+
         if Config.query.filter_by(name=name, project_id=project_id).first() and name != old_data.name:
             return jsonify({'msg': '配置名字重复', 'status': 0})
 
-        # 当序号存在，且不是本来的序号，进入修改判断
-        if Config.query.filter_by(num=num, project_id=project_id).first() and int(num) != old_num:
-            num_sort(num, old_num, Config, project_id=project_id)
-        else:
-            old_data.num = num
+        num_sort(num, old_num, list_data, old_data)
         old_data.name = name
         old_data.func_address = func_address
         old_data.project_id = project_id

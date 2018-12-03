@@ -1,6 +1,6 @@
 import json
-from xmindparser import xmind_to_dict
-from xmindparser import xmind_to_json
+# from xmindparser import xmind_to_dict
+# from xmindparser import xmind_to_json
 import os
 
 import xlwt

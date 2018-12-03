@@ -22,30 +22,44 @@ def auto_num(num, model, **kwargs):
     return num
 
 
-def num_sort(new_num, old_num, model, **kwargs):
-    """
-    修改排序功能
-    :param new_num:
-    :param old_num:
-    :param model:
-    :param kwargs:
-    :return:
-    """
-    if int(new_num) < old_num:  # 当需要修改的序号少于原来的序号
-        model.query.filter_by(num=old_num, **kwargs).first().num = 99999
-        for n in reversed(range(int(new_num), old_num)):
-            change_num = model.query.filter_by(num=n, **kwargs).first()
-            if change_num:
-                change_num.num = n + 1
-        model.query.filter_by(num=99999, **kwargs).first().num = new_num
+def num_sort(new_num, old_num, list_data, old_data):
+    _temp_data = list_data.pop(list_data.index(old_data))
+    list_data.insert(new_num - 1, _temp_data)
+    if old_num == new_num:
+        pass
+    elif old_num > new_num:
+        for n, m in enumerate(list_data[new_num - 1:old_num + 1]):
+            m.num = new_num + n
 
-    else:  # 当需要修改的序号大于原来的序号
-        model.query.filter_by(num=old_num, **kwargs).first().num = 99999
-        for n in range(old_num + 1, int(new_num) + 1):
-            change_num = model.query.filter_by(num=n, **kwargs).first()
-            if change_num:
-                change_num.num = n - 1
-        model.query.filter_by(num=99999, **kwargs).first().num = new_num
+    elif old_data.num < new_num:
+        for n, m in enumerate(list_data[old_num - 1:new_num + 1]):
+            m.num = old_num + n
+
+#
+# def num_sort(new_num, old_num, model, **kwargs):
+#     """
+#     修改排序功能
+#     :param new_num:
+#     :param old_num:
+#     :param model:
+#     :param kwargs:
+#     :return:
+#     """
+#     if int(new_num) < old_num:  # 当需要修改的序号少于原来的序号
+#         model.query.filter_by(num=old_num, **kwargs).first().num = 99999
+#         for n in reversed(range(int(new_num), old_num)):
+#             change_num = model.query.filter_by(num=n, **kwargs).first()
+#             if change_num:
+#                 change_num.num = n + 1
+#         model.query.filter_by(num=99999, **kwargs).first().num = new_num
+#
+#     else:  # 当需要修改的序号大于原来的序号
+#         model.query.filter_by(num=old_num, **kwargs).first().num = 99999
+#         for n in range(old_num + 1, int(new_num) + 1):
+#             change_num = model.query.filter_by(num=n, **kwargs).first()
+#             if change_num:
+#                 change_num.num = n - 1
+#         model.query.filter_by(num=99999, **kwargs).first().num = new_num
 
 
 variable_regexp = r"\$([\w_]+)"

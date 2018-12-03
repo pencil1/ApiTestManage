@@ -7,14 +7,15 @@ from ..util.http_run import RunCase
 from ..util.utils import *
 
 
-@api.route('/apiMsg/list', methods=['POST'])
-def get_cases():
-    data = request.json
-    gat_name = data.get('gatName')
-    gat_id = Module.query.filter_by(name=gat_name).first().id
-    cases = ApiMsg.query.filter_by(module_id=gat_id).all()
-    cases = [{'num': c.num, 'name': c.name, 'desc': c.desc, 'url': c.url} for c in cases]
-    return jsonify({'data': cases, 'status': 1})
+#
+# @api.route('/apiMsg/list', methods=['POST'])
+# def get_cases():
+#     data = request.json
+#     gat_name = data.get('gatName')
+#     gat_id = Module.query.filter_by(name=gat_name).first().id
+#     cases = ApiMsg.query.filter_by(module_id=gat_id).all()
+#     cases = [{'num': c.num, 'name': c.name, 'desc': c.desc, 'url': c.url} for c in cases]
+#     return jsonify({'data': cases, 'status': 1})
 
 
 @api.route('/apiMsg/add', methods=['POST'])
@@ -72,35 +73,32 @@ def add_cases():
     num = auto_num(data.get('num'), ApiMsg, module_id=module_id)
 
     if api_msg_id:
-        old_api_msg_data = ApiMsg.query.filter_by(id=api_msg_id).first()
-        old_num = old_api_msg_data.num
+        old_data = ApiMsg.query.filter_by(id=api_msg_id).first()
+        old_num = old_data.num
         if ApiMsg.query.filter_by(name=api_msg_name,
-                                  module_id=module_id).first() and api_msg_name != old_api_msg_data.name:
+                                  module_id=module_id).first() and api_msg_name != old_data.name:
             return jsonify({'msg': '接口名字重复', 'status': 0})
 
-        # 当序号存在，且不是本来的序号，进入修改判断
-        if ApiMsg.query.filter_by(num=num, module_id=module_id).first() and int(num) != old_num:
-            num_sort(num, old_num, ApiMsg, module_id=module_id)
-        else:
-            old_api_msg_data.num = num
+        list_data = Module.query.filter_by(id=module_id).first().api_msg.all()
+        num_sort(num, old_num, list_data, old_data)
 
-        old_api_msg_data.project_id = project_id
-        old_api_msg_data.name = api_msg_name
-        old_api_msg_data.validate = validate
-        old_api_msg_data.func_address = func_address
-        old_api_msg_data.up_func = up_func
-        old_api_msg_data.down_func = down_func
-        old_api_msg_data.desc = desc
-        old_api_msg_data.status_url = status_url
-        old_api_msg_data.variable_type = variable_type
-        old_api_msg_data.method = method
-        old_api_msg_data.url = url
-        old_api_msg_data.header = header
-        old_api_msg_data.variable = variable
-        old_api_msg_data.json_variable = json_variable
-        old_api_msg_data.param = param
-        old_api_msg_data.extract = extract
-        old_api_msg_data.module_id = module_id
+        old_data.project_id = project_id
+        old_data.name = api_msg_name
+        old_data.validate = validate
+        old_data.func_address = func_address
+        old_data.up_func = up_func
+        old_data.down_func = down_func
+        old_data.desc = desc
+        old_data.status_url = status_url
+        old_data.variable_type = variable_type
+        old_data.method = method
+        old_data.url = url
+        old_data.header = header
+        old_data.variable = variable
+        old_data.json_variable = json_variable
+        old_data.param = param
+        old_data.extract = extract
+        old_data.module_id = module_id
         db.session.commit()
         return jsonify({'msg': '修改成功', 'status': 1, 'api_msg_id': api_msg_id, 'num': num})
     else:
@@ -196,19 +194,23 @@ def find_cases():
         cases = pagination.items
         total = pagination.total
 
-    _case = []
-    for c in cases:
-        _case.append(
-            {'num': c.num, 'name': c.name, 'desc': c.desc, 'url': c.url, 'apiMsgId': c.id, 'gather_id': c.module_id,
-             'variableType': c.variable_type,
-             'variable': json.loads(c.variable),
-             'json_variable': c.json_variable,
-             'extract': json.loads(c.extract),
-             'validate': json.loads(c.validate),
-             'param': json.loads(c.param),
-             'statusCase': {'extract': [True, True], 'variable': [True, True],
-                            'validate': [True, True], 'param': [True, True]},
-             'status': True, 'case_name': c.name, 'down_func': c.down_func, 'up_func': c.up_func, 'time': 1})
+    _case = [{'num': c.num,
+              'name': c.name,
+              'desc': c.desc,
+              'url': c.url,
+              'apiMsgId': c.id,
+              'gather_id': c.module_id,
+              'variableType': c.variable_type,
+              'variable': json.loads(c.variable),
+              'json_variable': c.json_variable,
+              'extract': json.loads(c.extract),
+              'validate': json.loads(c.validate),
+              'param': json.loads(c.param),
+              'statusCase': {'extract': [True, True], 'variable': [True, True],
+                             'validate': [True, True], 'param': [True, True]},
+              'status': True, 'case_name': c.name, 'down_func': c.down_func, 'up_func': c.up_func, 'time': 1} for c in
+             cases]
+
     return jsonify({'data': _case, 'total': total, 'status': 1})
 
 
@@ -222,10 +224,8 @@ def del_cases():
     if current_user.id != Project.query.filter_by(id=project_id).first().user_id:
         return jsonify({'msg': '不能删除别人项目下的接口', 'status': 0})
 
-    del_case = CaseData.query.filter_by(api_msg_id=api_msg_id).all()
-    for d in del_case:
-        if d:
-            db.session.delete(d)
+    for d in CaseData.query.filter_by(api_msg_id=api_msg_id).all():
+        db.session.delete(d)
 
     db.session.delete(_edit)
 
@@ -245,7 +245,7 @@ def file_change():
 
     import_format = 'har' if import_format == 'HAR' else 'json'
     project_data = Project.query.filter_by(name=project_name).first()
-    host = [project_data.host, project_data.host_two, project_data.host_three, project_data.host_four]
+    host = json.loads(project_data.host)
 
     import_api_address = data.get('importApiAddress')
     if not import_api_address:

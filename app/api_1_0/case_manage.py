@@ -40,29 +40,29 @@ def add_case():
         return jsonify({'msg': variable_check, 'status': 0})
 
     if ids:
-        old_scene_data = Case.query.filter_by(id=ids).first()
-        old_num = old_scene_data.num
+        old_data = Case.query.filter_by(id=ids).first()
+        old_num = old_data.num
         if Case.query.filter_by(name=name, project_id=project_id,
-                                case_set_id=case_set_id).first() and name != old_scene_data.name:
+                                case_set_id=case_set_id).first() and name != old_data.name:
             return jsonify({'msg': '用例名字重复', 'status': 0})
-        elif Case.query.filter_by(num=num, project_id=project_id, case_set_id=case_set_id).first() and num != old_num:
-            num_sort(num, old_num, Case, project_id=project_id, case_set_id=case_set_id)
+        # elif Case.query.filter_by(num=num, project_id=project_id, case_set_id=case_set_id).first() and num != old_num:
+        #     num_sort(num, old_num, Case, project_id=project_id, case_set_id=case_set_id)
         else:
-            old_scene_data.num = num
-        old_scene_data.name = name
-        old_scene_data.times = times
-        old_scene_data.project_id = project_id
-        old_scene_data.desc = desc
-        old_scene_data.case_set_id = case_set_id
-        old_scene_data.func_address = func_address
-        old_scene_data.variable = variable
+            list_data = CaseSet.query.filter_by(id=case_set_id).first().cases.all()
+            num_sort(num, old_num, list_data, old_data)
+            old_data.name = name
+            old_data.times = times
+            old_data.project_id = project_id
+            old_data.desc = desc
+            old_data.case_set_id = case_set_id
+            old_data.func_address = func_address
+            old_data.variable = variable
         # old_scene_data.variable = json_variable
-        db.session.commit()
+            db.session.commit()
         for num1, c in enumerate(api_cases):
             if c.get('id'):
                 old_api_case = CaseData.query.filter_by(id=c.get('id')).first()
                 old_api_case.num = num1
-
                 old_api_case.extract = json.dumps(c['extract'])
                 old_api_case.validate = json.dumps(c['validate'])
                 old_api_case.variable = json.dumps(c['variable'])
@@ -130,24 +130,23 @@ def add_case():
 
 
 @api.route('/case/find', methods=['POST'])
-def find_scene():
+def find_case():
     data = request.json
     project_name = data.get('projectName')
     if not project_name:
         return jsonify({'msg': '请选择项目', 'status': 0})
-    scene_name = data.get('sceneName')
+    case_name = data.get('caseName')
     set_id = data.get('setId')
     total = 1
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
 
-    if scene_name:
-        cases = Case.query.filter_by(case_set_id=set_id).filter(Case.name.like('%{}%'.format(scene_name))).all()
+    if case_name:
+        cases = Case.query.filter_by(case_set_id=set_id).filter(Case.name.like('%{}%'.format(case_name))).all()
         if not cases:
             return jsonify({'msg': '没有该用例', 'status': 0})
     else:
-        cases = Case.query.filter_by(project_id=Project.query.filter_by(name=project_name).first().id,
-                                     case_set_id=set_id)
+        cases = Case.query.filter_by(case_set_id=set_id)
 
         pagination = cases.order_by(Case.num.asc()).paginate(page, per_page=per_page, error_out=False)
         cases = pagination.items
