@@ -2,7 +2,7 @@ import json
 from flask import jsonify, request
 from . import api
 from app.models import *
-from ..util.login_require import login_required
+from ..util.custom_decorator import login_required
 from app import scheduler
 from ..util.http_run import RunCase
 from ..util.utils import change_cron

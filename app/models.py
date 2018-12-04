@@ -7,28 +7,43 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import current_app
 
 
-# roles_permissions_map = {'Locked': ['FOLLOW', 'COLLECT'],
-#                          'User': ['FOLLOW', 'COLLECT', 'COMMENT' 'UPLOAD'],
-#                          'Moderator': ['FOLLOW', 'COLLECT', 'COMMENT', 'UPLOAD', 'MODERATE'],
-#                          'Administrator': ['FOLLOW', 'COLLECT', 'COMMENT', 'UPLOAD', 'MODERATE']
-#                          }
-#
-# roles_permissions = db.Table('roles_permissions',
-#                              db.Column('role_id', db.Integer, db.ForeignKey('role.id')),
-#                              db.Column('permission_id', db.Integer, db.ForeignKey('permission.id')))
-#
-#
-# class Role(db.Model):
-#     __tablename__ = 'role'
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String(30), unique=True)
-#
-#
-# class Permission(db.Model):
-#     __tablename__ = 'permission'
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String(30), unique=True)
-#     roles = db.relationship('Role', secondary=roles_permissions, back_populates='role')
+roles_permissions = db.Table('roles_permissions',
+                             db.Column('role_id', db.Integer, db.ForeignKey('role.id')),
+                             db.Column('permission_id', db.Integer, db.ForeignKey('permission.id')))
+
+
+class Role(db.Model):
+    __tablename__ = 'role'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(30), unique=True)
+    users = db.relationship('User', back_populates='role')
+    permission = db.relationship('Permission', secondary=roles_permissions, back_populates='role')
+
+    @staticmethod
+    def init_role():
+        roles_permissions_map = {'测试人员': ['COMMON'],
+                                 '管理员': ['COMMON', 'ADMINISTER']}
+        for role_name in roles_permissions_map:
+            role = Role.query.filter_by(name=role_name).first()
+            if role is None:
+                role = Role(name=role_name)
+                db.session.add(role)
+                role.permission = []
+            for permission_name in roles_permissions_map[role_name]:
+                permission = Permission.query.filter_by(name=permission_name).first()
+                if permission is None:
+                    permission = Permission(name=permission_name)
+                    db.session.add(permission)
+                role.permission.append(permission)
+                db.session.commit()
+        print('Role and permission created successfully')
+
+
+class Permission(db.Model):
+    __tablename__ = 'permission'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(30), unique=True)
+    role = db.relationship('Role', secondary=roles_permissions, back_populates='permission')
 
 
 class User(UserMixin, db.Model):
@@ -39,18 +54,22 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(64))
     status = db.Column(db.Integer)
     created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
+    role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
+    role = db.relationship('Role', back_populates='users')
 
     @staticmethod
     def init_user():
         user = User.query.filter_by(name='管理员').first()
         if user:
-            print('管理员账号已经存在')
+            print('The administrator account already exists')
+            print('--' * 30)
             return
         else:
-            user = User(name='管理员', account='admin', password='123456', status=1)
+            user = User(name='管理员', account='admin', password='123456', status=1,role_id=2)
             db.session.add(user)
             db.session.commit()
-            print('创建完成')
+            print('Administrator account created successfully')
+            print('--'*30)
 
     @property
     def password(self):
@@ -66,6 +85,10 @@ class User(UserMixin, db.Model):
     def generate_reset_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
         return s.dumps({'reset': self.id})
+
+    def can(self, permission_name):
+        permission = Permission.query.filter_by(name=permission_name).first()
+        return permission is not None and self.role is not None and permission in self.role.permission
 
 
 class Project(db.Model):

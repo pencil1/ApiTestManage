@@ -1,16 +1,20 @@
-from flask import jsonify, request
+from flask import request
 from . import api
 from app.models import *
 import json
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user
+from ..util.custom_decorator import *
 
 
 @api.route('/register', methods=['GET', 'POST'])
+@admin_required
+@login_required
 def register():
     data = request.json
     name = data.get('name')
     account = data.get('account')
     password = data.get('password')
+    role_id = data.get('role_id')
     user_id = data.get('id')
     if user_id:
         old_data = User.query.filter_by(id=user_id).first()
@@ -24,6 +28,7 @@ def register():
             old_data.name = name
             old_data.account = account
             old_data.password = password
+            old_data.role_id = role_id
             db.session.commit()
             return jsonify({'msg': '修改成功', 'status': 1})
     else:
@@ -31,7 +36,7 @@ def register():
             return jsonify({'msg': '名字已存在', 'status': 0})
         elif User.query.filter_by(account=account).first():
             return jsonify({'msg': '账号已存在', 'status': 0})
-        user = User(name=name, account=account, password=password, status=1)
+        user = User(name=name, account=account, password=password, status=1, role_id=role_id)
         db.session.add(user)
         db.session.commit()
         return jsonify({'msg': '注册成功', 'status': 1})
@@ -67,7 +72,8 @@ def login():
         login_user(user, True)
         token = user.generate_reset_token()
         token = bytes.decode(token)
-        return jsonify({'msg': '登录成功', 'status': 1, 'token': token, 'name': user.name, 'userId': user.id})
+        return jsonify({'msg': '登录成功', 'status': 1, 'token': token,
+                        'name': user.name, 'userId': user.id, 'roles': str(user.role_id)})
 
 
 @api.route('/user/find', methods=['GET', 'POST'])
@@ -88,7 +94,10 @@ def find_user():
         _users = pagination.items
         total = pagination.total
     users = [{'userName': c.name, 'user_id': c.id, 'status': c.status} for c in _users]
-    return jsonify({'data': users, 'total': total, 'status': 1})
+
+    role_data = [{'role_id': r.id, 'role_name': r.name} for r in Role.query.all()]
+
+    return jsonify({'data': users, 'total': total, 'status': 1, 'role_data': role_data})
 
 
 @api.route('/user/edit', methods=['POST'])
@@ -97,12 +106,13 @@ def edit_user():
     data = request.json
     user_id = data.get('id')
     _edit = User.query.filter_by(id=user_id).first()
-    _data = {'account': _edit.account, 'name': _edit.name}
+    _data = {'account': _edit.account, 'name': _edit.name, 'role_id': _edit.role_id}
 
     return jsonify({'data': _data, 'status': 1})
 
 
 @api.route('/user/del', methods=['POST'])
+@admin_required
 @login_required
 def del_user():
     data = request.json
@@ -113,6 +123,7 @@ def del_user():
 
 
 @api.route('/user/changeStatus', methods=['POST'])
+@admin_required
 @login_required
 def change_status_user():
     data = request.json

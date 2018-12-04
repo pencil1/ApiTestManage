@@ -7,13 +7,23 @@ from config import config
 from config import config_log
 from config import ConfigTask
 from .util import global_variable  # 初始化文件地址
-
+from sqlalchemy import MetaData
 
 login_manager = LoginManager()
 login_manager.session_protection = 'None'
 # login_manager.login_view = '.login'
 
-db = SQLAlchemy()
+naming_convention = {
+    "ix": 'ix_%(column_0_label)s',
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(column_0_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s"
+}
+db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention))
+
+# db = SQLAlchemy()
+
 scheduler = ConfigTask().scheduler
 basedir = os.path.abspath(os.path.dirname(__file__))
 
