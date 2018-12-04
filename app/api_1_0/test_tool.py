@@ -121,9 +121,11 @@ def case_change():
 
 @api.route('/show1', methods=['POST'])
 def show1():
-    student = Project.query.filter_by(name=u'测试平台').first()
-    # courses = student.modules.all()  # 该学生选择的所有课程
-
+    a = Role.query.filter_by(id=1).first()
+    b = Role.query.filter_by(id=2).first()
+    a.id = 2
+    b.id = 1
+    db.session.commit()
 
     # print(type(student.configs.order_by(Config.num.asc())))
     return jsonify({'status': 1, 'msg': '优化成功', 'data': '1'})

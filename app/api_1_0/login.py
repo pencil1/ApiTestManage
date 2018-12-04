@@ -17,6 +17,7 @@ def register():
     role_id = data.get('role_id')
     user_id = data.get('id')
     if user_id:
+
         old_data = User.query.filter_by(id=user_id).first()
         if User.query.filter_by(name=name).first() and name != old_data.name:
             return jsonify({'msg': '名字已存在', 'status': 0})
