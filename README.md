@@ -42,7 +42,7 @@ python => 3
 
 然后创建管理员账号（账号：admin，密码：123456）
 
-    flask my_init
+    flask initdata
 
 
 ### 数据库的迁移(数据库迁移不是必要步骤)

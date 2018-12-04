@@ -22,7 +22,7 @@ def make_shell_context():
 
 
 @app.cli.command()
-def init():
+def initdata():
     click.echo('Initializing the roles and permissions and admin...')
     Role.init_role()
     User.init_user()  # 初始化
