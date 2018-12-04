@@ -122,9 +122,15 @@ def case_change():
 @api.route('/show1', methods=['POST'])
 def show1():
     a = Role.query.filter_by(id=1).first()
+    a.id = 3
+    db.session.commit()
+
     b = Role.query.filter_by(id=2).first()
-    a.id = 2
     b.id = 1
+    db.session.commit()
+
+    b = Role.query.filter_by(id=3).first()
+    b.id = 2
     db.session.commit()
 
     # print(type(student.configs.order_by(Config.num.asc())))
