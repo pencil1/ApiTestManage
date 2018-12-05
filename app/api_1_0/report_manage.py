@@ -104,15 +104,16 @@ def del_report():
 @api.route('/report/find', methods=['POST'])
 def find_report():
     data = request.json
-    belong_pro = data.get('belong')
+    project_name = data.get('projectName')
+    project_id = Project.query.filter_by(name=project_name).first().id
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
 
-    report_data = Report.query.filter_by(belong_pro=belong_pro)
+    report_data = Report.query.filter_by(project_id=project_id)
     pagination = report_data.order_by(Report.timestamp.desc()).paginate(page, per_page=per_page, error_out=False)
     report = pagination.items
     total = pagination.total
-    report = [{'name': c.name, 'belong': c.belong_pro, 'id': c.id, 'read_status': c.read_status,
+    report = [{'name': c.case_names, 'project_name': project_name, 'id': c.id, 'read_status': c.read_status,
                'address': c.data.replace('.txt', '')} for c in report]
     return jsonify({'data': report, 'total': total, 'status': 1})
 

@@ -319,9 +319,9 @@ class RunCase(object):
 
         if self.run_type and self.make_report:
             new_report = Report(
-                name=','.join([Case.query.filter_by(id=scene_id).first().name for scene_id in self.case_ids]),
+                case_names=','.join([Case.query.filter_by(id=scene_id).first().name for scene_id in self.case_ids]),
                 data='{}.txt'.format(now_time.strftime('%Y/%m/%d %H:%M:%S')),
-                belong_pro=self.project_names, read_status='待阅')
+                project_id=self.project_id, read_status='待阅')
             db.session.add(new_report)
             db.session.commit()
         d = self.all_cases_data()

@@ -164,7 +164,7 @@ def run_case():
         for suite in suite_data:
             case_data_id += json.loads(ApiSuite.query.filter_by(id=suite['id']).first().api_ids)
             api_msg = [ApiMsg.query.filter_by(id=c).first() for c in case_data_id]
-
+    print(project_name)
     d = RunCase(project_names=project_name, api_data=api_msg, config_id=config_id)
     res = json.loads(d.run_case())
     return jsonify({'msg': '测试完成', 'data': res, 'status': 1})

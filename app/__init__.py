@@ -13,6 +13,8 @@ login_manager = LoginManager()
 login_manager.session_protection = 'None'
 # login_manager.login_view = '.login'
 
+
+# 由于数据库迁移的时候，不兼容约束关系的迁移，下面是百度出的解决方案
 naming_convention = {
     "ix": 'ix_%(column_0_label)s',
     "uq": "uq_%(table_name)s_%(column_0_name)s",

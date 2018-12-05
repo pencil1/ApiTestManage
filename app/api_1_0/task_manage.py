@@ -49,7 +49,8 @@ def run_task():
         for set_id in _set_ids:
             for case_data in Case.query.filter_by(case_set_id=set_id).order_by(Case.num.asc()).all():
                 case_ids.append(case_data.id)
-    result = aps_test(_data.project_name, case_ids)
+    project_name = Project.query.filter_by(id=_data.project_id).first().name
+    result = aps_test(project_name, case_ids)
 
     return jsonify({'msg': '测试成功', 'status': 1, 'data': {'report_id': result.new_report_id}})
 
@@ -76,8 +77,9 @@ def start_task():
             for case_data in Case.query.filter_by(case_set_id=set_id).order_by(Case.num.asc()).all():
                 case_ids.append(case_data.id)
     # scheduler.add_job(str(ids), aps_test, trigger='cron', args=['asd'], **config_time)
+    project_name = Project.query.filter_by(id=_data.project_id).first().name
     scheduler.add_job(aps_test, 'cron',
-                      args=[_data.project_name, case_ids, _data.task_send_email_address, _data.email_password,
+                      args=[project_name, case_ids, _data.task_send_email_address, _data.email_password,
                             _data.task_to_email_address],
                       id=str(ids), **config_time)  # 添加任务
     _data.status = '启动'
@@ -92,12 +94,13 @@ def add_task():
     project_name = data.get('projectName')
     if not project_name:
         return jsonify({'msg': '请选择项目', 'status': 0})
+    project_id = Project.query.filter_by(name=project_name).first().id
     # set_ids = [i['id'] for i in data.get('setIds')]
     # case_ids = [i['id'] for i in data.get('sceneIds')] if data.get('sceneIds') else ''
     set_ids = data.get('setIds')
     case_ids = data.get('caseIds')
     task_id = data.get('id')
-    num = auto_num(data.get('num'), Task, project_name=project_name)
+    num = auto_num(data.get('num'), Task, project_id=project_id)
     name = data.get('name')
     task_type = 'cron'
     to_email = data.get('toEmail')
@@ -116,7 +119,7 @@ def add_task():
         if Task.query.filter_by(task_name=name).first() and name != old_task_data.task_name:
             return jsonify({'msg': '任务名字重复', 'status': 0})
         else:
-            old_task_data.project_name = project_name
+            old_task_data.project_id = project_id
             old_task_data.set_id = json.dumps(set_ids)
             old_task_data.case_id = json.dumps(case_ids)
             old_task_data.task_name = name
@@ -137,10 +140,16 @@ def add_task():
         if Task.query.filter_by(task_name=name).first():
             return jsonify({'msg': '任务名字重复', 'status': 0})
         else:
-            new_task = Task(task_name=name, project_name=project_name, set_id=json.dumps(set_ids),
-                            case_id=json.dumps(case_ids), email_password=password,
-                            task_type=task_type, task_to_email_address=to_email, task_send_email_address=send_email,
-                            task_config_time=time_config, num=num)
+            new_task = Task(task_name=name,
+                            project_id=project_id,
+                            set_id=json.dumps(set_ids),
+                            case_id=json.dumps(case_ids),
+                            email_password=password,
+                            task_type=task_type,
+                            task_to_email_address=to_email,
+                            task_send_email_address=send_email,
+                            task_config_time=time_config,
+                            num=num)
             db.session.add(new_task)
             db.session.commit()
             return jsonify({'msg': '新建成功', 'status': 1})
@@ -152,7 +161,7 @@ def edit_task():
     task_id = data.get('id')
     c = Task.query.filter_by(id=task_id).first()
     _data = {'num': c.num, 'task_name': c.task_name, 'task_config_time': c.task_config_time, 'task_type': c.task_type,
-             'project_name': c.project_name, 'set_ids': json.loads(c.set_id), 'case_ids': json.loads(c.case_id),
+             'set_ids': json.loads(c.set_id), 'case_ids': json.loads(c.case_id),
              'task_to_email_address': c.task_to_email_address, 'task_send_email_address': c.task_send_email_address,
              'password': c.email_password}
 
@@ -163,17 +172,18 @@ def edit_task():
 def find_task():
     data = request.json
     project_name = data.get('projectName')
+    project_id = Project.query.filter_by(name=project_name).first().id
     task_name = data.get('taskName')
     total = 1
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
     if task_name:
-        _data = Task.query.filter_by(project_name=project_name).filter(
+        _data = Task.query.filter_by(project_id=project_id).filter(
             Task.task_name.like('%{}%'.format(task_name))).all()
         if not _data:
             return jsonify({'msg': '没有该任务', 'status': 0})
     else:
-        tasks = Task.query.filter_by(project_name=project_name)
+        tasks = Task.query.filter_by(project_id=project_id)
         pagination = tasks.order_by(Task.id.asc()).paginate(page, per_page=per_page, error_out=False)
         _data = pagination.items
         total = pagination.total
