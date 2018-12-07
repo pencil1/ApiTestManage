@@ -1,11 +1,13 @@
-from flask import jsonify, request
-from . import api
+from flask import jsonify, request, current_app
+from . import api, login_required
 from ..util.global_variable import *
 
 
 # 上传文件
 @api.route('/upload', methods=['POST'], strict_slashes=False)
+@login_required
 def api_upload():
+    """ 文件上传 """
     data = request.files
     # try:
     file = data['file']
@@ -18,15 +20,13 @@ def api_upload():
         file.save(os.path.join(FILE_ADDRESS, file.filename))
         return jsonify({'data': os.path.join(FILE_ADDRESS, file.filename), "msg": "上传成功", "status": 1})
 
-    # except Exception as e:
-    #     print(e)
-    #     return jsonify({'data': '', "msg": "上传失败，请联系管理员或者换文件重试", "status": 0})
-
 
 @api.route('/checkFile', methods=['POST'], strict_slashes=False)
+@login_required
 def check_file():
+    """ 检查文件是否存在 """
     data = request.json
-
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     address = data.get('address')
     if os.path.exists(address):
         return jsonify({"msg": "文件已存在", "status": 0})

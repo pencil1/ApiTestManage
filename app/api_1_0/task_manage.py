@@ -5,11 +5,10 @@ from app.models import *
 from ..util.custom_decorator import login_required
 from app import scheduler
 from ..util.http_run import RunCase
-from ..util.utils import change_cron
+from ..util.utils import change_cron, auto_num
 from ..util.email.SendEmail import SendEmail
 from ..util.report.report import render_html_report
 from ..util.global_variable import *
-from ..util.utils import auto_num
 
 
 def aps_test(project_name, case_ids, send_address=None, send_password=None, task_to_address=None):
@@ -33,7 +32,9 @@ def aps_test(project_name, case_ids, send_address=None, send_password=None, task
 @api.route('/task/run', methods=['POST'])
 @login_required
 def run_task():
+    """ 单次运行任务 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
     case_ids = []
@@ -58,7 +59,9 @@ def run_task():
 @api.route('/task/start', methods=['POST'])
 @login_required
 def start_task():
+    """ 任务开启 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
 
@@ -89,14 +92,15 @@ def start_task():
 
 
 @api.route('/task/add', methods=['POST'])
+@login_required
 def add_task():
+    """ 任务添加、修改 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     if not project_name:
         return jsonify({'msg': '请选择项目', 'status': 0})
     project_id = Project.query.filter_by(name=project_name).first().id
-    # set_ids = [i['id'] for i in data.get('setIds')]
-    # case_ids = [i['id'] for i in data.get('sceneIds')] if data.get('sceneIds') else ''
     set_ids = data.get('setIds')
     case_ids = data.get('caseIds')
     task_id = data.get('id')
@@ -156,8 +160,11 @@ def add_task():
 
 
 @api.route('/task/edit', methods=['POST'])
+@login_required
 def edit_task():
+    """ 返回待编辑任务信息 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     task_id = data.get('id')
     c = Task.query.filter_by(id=task_id).first()
     _data = {'num': c.num, 'task_name': c.task_name, 'task_config_time': c.task_config_time, 'task_type': c.task_type,
@@ -169,17 +176,19 @@ def edit_task():
 
 
 @api.route('/task/find', methods=['POST'])
+@login_required
 def find_task():
+    """ 查找任务信息 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     project_id = Project.query.filter_by(name=project_name).first().id
     task_name = data.get('taskName')
-    total = 1
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
     if task_name:
-        _data = Task.query.filter_by(project_id=project_id).filter(
-            Task.task_name.like('%{}%'.format(task_name))).all()
+        _data = Task.query.filter_by(project_id=project_id).filter(Task.task_name.like('%{}%'.format(task_name))).all()
+        total = len(_data)
         if not _data:
             return jsonify({'msg': '没有该任务', 'status': 0})
     else:
@@ -187,7 +196,6 @@ def find_task():
         pagination = tasks.order_by(Task.id.asc()).paginate(page, per_page=per_page, error_out=False)
         _data = pagination.items
         total = pagination.total
-
     task = [{'task_name': c.task_name, 'task_config_time': c.task_config_time,
              'id': c.id, 'task_type': c.task_type, 'status': c.status} for c in _data]
     return jsonify({'data': task, 'total': total, 'status': 1})
@@ -196,7 +204,9 @@ def find_task():
 @api.route('/task/del', methods=['POST'])
 @login_required
 def del_task():
+    """ 删除任务信息 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _edit = Task.query.filter_by(id=ids).first()
     if _edit.status != '创建':
@@ -209,7 +219,9 @@ def del_task():
 @api.route('/task/pause', methods=['POST'])
 @login_required
 def pause_task():
+    """ 暂停任务 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
     _data.status = '暂停'
@@ -222,7 +234,9 @@ def pause_task():
 @api.route('/task/resume', methods=['POST'])
 @login_required
 def resume_task():
+    """ 恢复任务 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
     _data.status = '启动'
@@ -234,7 +248,9 @@ def resume_task():
 @api.route('/task/remove', methods=['POST'])
 @login_required
 def remove_task():
+    """ 移除任务 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
     scheduler.remove_job(str(ids))  # 添加任务

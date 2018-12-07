@@ -1,13 +1,16 @@
 from flask import jsonify, request
-from . import api
+from . import api, login_required
 from app.models import *
 from flask_login import current_user
 from ..util.utils import *
 
 
 @api.route('/caseSet/add', methods=['POST'])
+@login_required
 def add_set():
+    """ 添加用例集合 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     name = data.get('name')
     ids = data.get('id')
@@ -15,7 +18,6 @@ def add_set():
     num = auto_num(data.get('num'), CaseSet, project_id=project_id)
     if ids:
         old_data = CaseSet.query.filter_by(id=ids).first()
-
         if CaseSet.query.filter_by(name=name, project_id=project_id).first() and name != old_data.name:
             return jsonify({'msg': '用例集名字重复', 'status': 0})
         old_data.name = name
@@ -33,8 +35,11 @@ def add_set():
 
 
 @api.route('/caseSet/stick', methods=['POST'])
+@login_required
 def stick_set():
+    """ 置顶用例集合 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     set_id = data.get('id')
     project_name = data.get('projectName')
 
@@ -47,29 +52,32 @@ def stick_set():
 
 
 @api.route('/caseSet/find', methods=['POST'])
+@login_required
 def find_set():
+    """ 查找用例集合 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
     project_name = data.get('projectName')
     if not project_name:
         return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
 
-    pro_id = Project.query.filter_by(name=project_name).first().id
-    # sets = CaseSet.query.filter_by(project_id=pro_id).order_by(CaseSet.num.asc()).all()
-    # sets = [{'label': s.name, 'id': s.id, 'num': s.num} for s in sets]
-    _set = CaseSet.query.filter_by(project_id=pro_id)
-    pagination = _set.order_by(CaseSet.num.asc()).paginate(page, per_page=per_page, error_out=False)
+    all_sets = Project.query.filter_by(name=project_name).first().case_sets
+    pagination = all_sets.paginate(page, per_page=per_page, error_out=False)
     _items = pagination.items
     total = pagination.total
     current_set = [{'label': s.name, 'id': s.id} for s in _items]
-    all_set = [{'label': s.name, 'id': s.id} for s in _set.all()]
+    all_set = [{'label': s.name, 'id': s.id} for s in all_sets.all()]
     return jsonify({'status': 1, 'total': total, 'data': current_set, 'all_set': all_set})
 
 
 @api.route('/caseSet/edit', methods=['POST'])
+@login_required
 def edit_set():
+    """ 返回待编辑用例集合 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     set_id = data.get('id')
     _edit = CaseSet.query.filter_by(id=set_id).first()
     _data = {'name': _edit.name, 'num': _edit.num}
@@ -78,14 +86,17 @@ def edit_set():
 
 
 @api.route('/caseSet/del', methods=['POST'])
+@login_required
 def del_set():
+    """ 删除用例集合 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     set_id = data.get('id')
     _edit = CaseSet.query.filter_by(id=set_id).first()
-    scene = Case.query.filter_by(case_set_id=set_id).first()
+    case = Case.query.filter_by(case_set_id=set_id).first()
     if current_user.id != Project.query.filter_by(id=_edit.project_id).first().user_id:
         return jsonify({'msg': '不能删除别人项目下的模块', 'status': 0})
-    if scene:
+    if case:
         return jsonify({'msg': '请先删除集合下的接口用例', 'status': 0})
 
     db.session.delete(_edit)

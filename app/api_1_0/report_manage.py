@@ -1,29 +1,19 @@
 import json
 import copy
 from flask import jsonify, request
-from . import api
+from . import api, login_required
 from app.models import *
 from ..util.http_run import RunCase
 from ..util.global_variable import *
 from ..util.report.report import render_html_report
 
 
-@api.route('/projectGather/list')
-def get_project_gather():
-    _pros = Project.query.all()
-    pro = {}
-    for p in _pros:
-        modules = Module.query.filter_by(project_id=p.id).all()
-        if modules:
-            pro[p.name] = [{'value': _gat.name, 'ids': _gat.id} for _gat in modules]
-        else:
-            pro[p.name] = ['']
-    return jsonify(pro)
-
-
 @api.route('/report/run', methods=['POST'])
+@login_required
 def run_cases():
+    """ 跑接口 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     if not data.get('projectName'):
         return jsonify({'msg': '请选择项目', 'status': 0})
     if not data.get('sceneIds'):
@@ -37,8 +27,11 @@ def run_cases():
 
 
 @api.route('/report/list', methods=['POST'])
+@login_required
 def get_report():
+    """ 查看报告 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     report_id = data.get('reportId')
     state = data.get('state')
     _address = REPORT_ADDRESS + str(report_id) + '.txt'
@@ -71,8 +64,11 @@ def get_report():
 
 
 @api.route('/report/download', methods=['POST'])
+@login_required
 def download_report():
+    """ 报告下载 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     report_id = data.get('reportId')
     data_or_report = data.get('dataOrReport')
     _address = REPORT_ADDRESS + str(report_id) + '.txt'
@@ -82,14 +78,15 @@ def download_report():
                            html_report_name='接口自动化测试报告',
                            html_report_template=r'{}/extent_report_template.html'.format(TEMP_REPORT),
                            data_or_report=data_or_report)
-    # with open(_address, "r", encoding='utf-8') as f:
-    #     d = f.read()
     return jsonify({'data': d, 'status': 1})
 
 
 @api.route('/report/del', methods=['POST'])
+@login_required
 def del_report():
+    """ 删除报告 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     address = data.get('address') + '.txt'
     _edit = Report.query.filter_by(data=address).first()
     db.session.delete(_edit)
@@ -102,8 +99,11 @@ def del_report():
 
 
 @api.route('/report/find', methods=['POST'])
+@login_required
 def find_report():
+    """ 查找报告 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     project_id = Project.query.filter_by(name=project_name).first().id
     page = data.get('page') if data.get('page') else 1
@@ -117,16 +117,5 @@ def find_report():
                'address': c.data.replace('.txt', '')} for c in report]
     return jsonify({'data': report, 'total': total, 'status': 1})
 
-# @api.route('/proScene/list')
-# def get_pro_scene():
-#     _pros = Project.query.all()
-#     pro = {}
-#     for p in _pros:
-#         scenes = Case.query.filter_by(project_id=p.id).all()
-#         if scenes:
-#             pro[p.name] = [{'value': _gat.name, 'ids': _gat.id} for _gat in scenes]
-#         else:
-#             pro[p.name] = ['']
-#     return jsonify(pro)
 
 # END

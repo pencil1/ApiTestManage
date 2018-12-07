@@ -5,18 +5,22 @@ import json
 from ..util.custom_decorator import login_required
 from flask_login import current_user
 
-
 @api.route('/proGather/list')
+@login_required
 def get_pro_gather():
+    """ 获取基本信息 """
     # if current_user.id == 4:
-    _pros = Project.query.all()
+    _pros = Project.query.order_by('CASE WHEN user_id={} THEN 0 END DESC'.format(current_user.id)).all()
     my_pros = Project.query.filter_by(user_id=current_user.id).first()
     pro = {}
+    pro_and_id = []
     pro_url = {}
     scene_config_lists = {}
     set_list = {}
     scene_list = {}
     for p in _pros:
+        # pro_and_id[p.name] = p.id
+        pro_and_id.append({'name': p.name, 'id': p.id})
         # 获取每个项目下的接口模块
         pro[p.name] = [{'name': m.name, 'moduleId': m.id} for m in p.modules]
         # 获取每个项目下的配置信息
@@ -41,22 +45,29 @@ def get_pro_gather():
 
     if my_pros:
         my_pros = {'pro_name': my_pros.name, 'model_list': pro[my_pros.name]}
+    print(pro_and_id)
     return jsonify(
         {'data': pro, 'urlData': pro_url, 'status': 1, 'user_pro': my_pros, 'config_name_list': scene_config_lists,
-         'set_list': set_list, 'scene_list': scene_list})
+         'set_list': set_list, 'scene_list': scene_list, 'pro_and_id': pro_and_id})
 
 
 @api.route('/project/find', methods=['POST'])
 @login_required
 def find_project():
+    """ 查找项目 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
-    total = 1
+    # a = db.session.execute(r'''
+    # SELECT * FROM "project" WHERE name='测试平台';
+    # ''')
+    # print(a.first())
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
     user_data = [{'user_id': u.id, 'user_name': u.name} for u in User.query.all()]
     if project_name:
         _data = Project.query.filter(Project.name.like('%{}%'.format(project_name))).all()
+        total = len(_data)
         if not _data:
             return jsonify({'msg': '没有该项目', 'status': 0})
     else:
@@ -68,14 +79,16 @@ def find_project():
                 'name': c.name,
                 'choice': c.environment_choice,
                 'principal': User.query.filter_by(id=c.user_id).first().name,
-                'host_two': c.host_two, 'host_three': c.host_three, 'host_four': c.host_four}for c in _data]
+                'host_two': c.host_two, 'host_three': c.host_three, 'host_four': c.host_four} for c in _data]
     return jsonify({'data': project, 'total': total, 'status': 1, 'userData': user_data})
 
 
 @api.route('/project/add', methods=['POST'])
 @login_required
 def add_project():
+    """ 项目增加、编辑 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     user_id = data.get('userId')
     if not user_id:
@@ -108,7 +121,6 @@ def add_project():
     else:
         if Project.query.filter_by(name=project_name).first():
             return jsonify({'msg': '项目名字重复', 'status': 0})
-
         else:
             new_project = Project(name=project_name,
                                   host=host,
@@ -124,7 +136,9 @@ def add_project():
 @api.route('/project/del', methods=['POST'])
 @login_required
 def del_project():
+    """ 删除项目 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     pro_data = Project.query.filter_by(id=ids).first()
     if current_user.id != pro_data.user_id:
@@ -142,7 +156,9 @@ def del_project():
 @api.route('/project/edit', methods=['POST'])
 @login_required
 def edit_project():
+    """ 返回待编辑项目信息 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     pro_id = data.get('id')
     _edit = Project.query.filter_by(id=pro_id).first()
     _data = {'pro_name': _edit.name,
@@ -155,5 +171,4 @@ def edit_project():
              'headers': json.loads(_edit.headers),
              'environment_choice': _edit.environment_choice,
              'variables': json.loads(_edit.variables)}
-
     return jsonify({'data': _data, 'status': 1})

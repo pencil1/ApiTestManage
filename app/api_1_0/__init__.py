@@ -1,5 +1,5 @@
 from flask import Blueprint
-
+from ..util.custom_decorator import login_required
 
 api = Blueprint('api', __name__)
 

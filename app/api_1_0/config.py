@@ -9,15 +9,17 @@ from flask_login import current_user
 @api.route('/config/add', methods=['POST'])
 @login_required
 def add_scene_config():
+    """ 添加配置 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
-    if not project_name:
-        return jsonify({'msg': '请选择项目', 'status': 0})
     project_id = Project.query.filter_by(name=project_name).first().id
     name = data.get('sceneConfigName')
     ids = data.get('id')
     func_address = json.dumps(data.get('funcAddress'))
     variable = data.get('variable')
+    if not project_name:
+        return jsonify({'msg': '请选择项目', 'status': 0})
     if re.search('\${(.*?)}', variable, flags=0) and not func_address:
         return jsonify({'msg': '参数引用函数后，必须引用函数文件', 'status': 0})
 
@@ -51,40 +53,43 @@ def add_scene_config():
 
 
 @api.route('/config/find', methods=['POST'])
+@login_required
 def find_config():
+    """ 查找配置 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
-    if not project_name:
-        return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
     config_name = data.get('configName')
-
-    total = 1
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
+    if not project_name:
+        return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
 
     pro_id = Project.query.filter_by(name=project_name).first().id
     if config_name:
-        scene_config = Config.query.filter_by(project_id=pro_id).filter(
-            Config.name.like('%{}%'.format(config_name))).all()
-        if not scene_config:
+        _config = Config.query.filter_by(project_id=pro_id).filter(Config.name.like('%{}%'.format(config_name))).all()
+        total = len(_config)
+        if not _config:
             return jsonify({'msg': '没有该配置', 'status': 0})
     else:
-        scene_config = Config.query.filter_by(project_id=pro_id)
-        pagination = scene_config.order_by(Config.num.asc()).paginate(page, per_page=per_page, error_out=False)
-        scene_config = pagination.items
+        _config = Config.query.filter_by(project_id=pro_id)
+        pagination = _config.order_by(Config.num.asc()).paginate(page, per_page=per_page, error_out=False)
+        _config = pagination.items
         total = pagination.total
-    scene_config = [{'name': c.name, 'id': c.id, 'num': c.num, 'func_address': c.func_address} for c in scene_config]
-    return jsonify({'data': scene_config, 'total': total, 'status': 1})
+    _config = [{'name': c.name, 'id': c.id, 'num': c.num, 'func_address': c.func_address} for c in _config]
+    return jsonify({'data': _config, 'total': total, 'status': 1})
 
 
 @api.route('/config/del', methods=['POST'])
+@login_required
 def del_config():
+    """ 删除配置 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _edit = Config.query.filter_by(id=ids).first()
     if current_user.id != Project.query.filter_by(id=_edit.project_id).first().user_id:
         return jsonify({'msg': '不能删除别人项目下的配置', 'status': 0})
-
     db.session.delete(_edit)
     return jsonify({'msg': '删除成功', 'status': 1})
 
@@ -92,12 +97,13 @@ def del_config():
 @api.route('/config/edit', methods=['POST'])
 @login_required
 def edit_config():
+    """ 返回待编辑配置信息 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _edit = Config.query.filter_by(id=ids).first()
     _data = {'name': _edit.name,
              'num': _edit.num,
              'variables': json.loads(_edit.variables),
              'func_address': json.loads(_edit.func_address)}
-
     return jsonify({'data': _data, 'status': 1})

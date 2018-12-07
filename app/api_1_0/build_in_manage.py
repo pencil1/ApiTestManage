@@ -1,8 +1,6 @@
-import subprocess
 import types
-import chardet
-from flask import jsonify, request
-from . import api
+from flask import jsonify, request, current_app
+from . import api, login_required
 from ..util.global_variable import *
 import importlib
 from ..util.utils import parse_function, extract_functions
@@ -10,8 +8,11 @@ import traceback
 
 
 @api.route('/func/find', methods=['POST'])
+@login_required
 def get_func():
+    """ 获取函数文件信息 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     func_name = data.get('funcName')
     if not func_name:
         return jsonify({'msg': '请输入文件名', 'status': 0})
@@ -23,7 +24,9 @@ def get_func():
 
 
 @api.route('/func/getAddress', methods=['POST'])
+@login_required
 def get_funcs():
+    """ 查找所以函数文件 """
     for root, dirs, files in os.walk(os.path.abspath('.') + r'/func_list'):
         if '__init__.py' in files:
             files.remove('__init__.py')
@@ -32,34 +35,16 @@ def get_funcs():
     return jsonify({'data': files, 'status': 1})
 
 
-def execute_cmd(cmd):
-    """执行cmd命令，返回结果
-
-      """
-    data = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = data.communicate()
-
-    if stdout:
-        stdout = stdout.strip().decode(chardet.detect(stdout)['encoding'])
-    if stderr:
-        stderr = stderr.strip().decode(chardet.detect(stderr)['encoding'])
-
-    return stdout, stderr
-
-
 @api.route('/func/save', methods=['POST'])
+@login_required
 def save_func():
+    """ 保存函数文件 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     func_data = data.get('funcData')
-
     func_name = data.get('funcName')
-    # resp = execute_cmd([sys.executable, '{}/{}'.format(FUNC_ADDRESS, func_name)])
-    # if resp[1]:
-    #     return jsonify({'msg': '语法错误', 'status': 1, 'error': resp[1]})
-
     if not os.path.exists('{}/{}'.format(FUNC_ADDRESS, func_name)):
         return jsonify({'msg': '文件名不存在', 'status': 0})
-
     with open('{}/{}'.format(FUNC_ADDRESS, func_name), 'w', encoding='utf8') as f:
         f.write(func_data)
     return jsonify({'msg': '保存成功', 'status': 1})
@@ -73,8 +58,11 @@ def is_function(tup):
 
 
 @api.route('/func/check', methods=['POST'])
+@login_required
 def check_func():
+    """ 函数调试 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     func_file_name = data.get('funcFileName')
     func_name = data.get('funcName')
     if not os.path.exists('{}/{}'.format(FUNC_ADDRESS, func_file_name)):
@@ -89,20 +77,23 @@ def check_func():
         if len(ext_func) == 0:
             return jsonify({'msg': '函数解析失败，注意格式问题', 'status': 0})
         func = parse_function(ext_func[0])
-
-        # importlib.reload(importlib.import_module('func_list.{}'.format(func_name.replace('.py', ''))))
         return jsonify({'msg': '请查看', 'status': 1, 'result': module_functions_dict[func['func_name']](*func['args'])})
+
     except Exception as e:
-        new_data = '\n'.join('{}'.format(traceback.format_exc()).split('↵'))
-        return jsonify({'msg': '语法错误，请自行检查', 'result': new_data, 'status': 0})
+        current_app.logger.info(str(e))
+        error_data = '\n'.join('{}'.format(traceback.format_exc()).split('↵'))
+        return jsonify({'msg': '语法错误，请自行检查', 'result': error_data, 'status': 0})
 
 
 @api.route('/func/create', methods=['POST'])
+@login_required
 def create_func():
+    """ 创建函数文件 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     func_name = data.get('funcName')
     if func_name.find('.py') == -1:
-        return jsonify({'msg': '请创建正确的py文件', 'status': 0})
+        return jsonify({'msg': '请创建正确格式的py文件', 'status': 0})
     if not func_name:
         return jsonify({'msg': '文件名不能为空', 'status': 0})
     if os.path.exists('{}/{}'.format(FUNC_ADDRESS, func_name)):
@@ -113,12 +104,14 @@ def create_func():
 
 
 @api.route('/func/remove', methods=['POST'])
+@login_required
 def remove_func():
+    """ 删除函数文件 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     func_name = data.get('funcName')
     if not os.path.exists('{}/{}'.format(FUNC_ADDRESS, func_name)):
         return jsonify({'msg': '文件名不存在', 'status': 0})
     else:
         os.remove('{}/{}'.format(FUNC_ADDRESS, func_name))
-
     return jsonify({'msg': '删除成功', 'status': 1})

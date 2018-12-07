@@ -10,14 +10,15 @@ from ..util.custom_decorator import *
 @admin_required
 @login_required
 def register():
+    """ 注册用户 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     name = data.get('name')
     account = data.get('account')
     password = data.get('password')
     role_id = data.get('role_id')
     user_id = data.get('id')
     if user_id:
-
         old_data = User.query.filter_by(id=user_id).first()
         if User.query.filter_by(name=name).first() and name != old_data.name:
             return jsonify({'msg': '名字已存在', 'status': 0})
@@ -46,12 +47,14 @@ def register():
 @api.route('/logout', methods=['GET'])
 @login_required
 def logout():
+    """ 登出 """
     logout_user()
     return jsonify({'msg': '登出成功', 'status': 1})
 
 
 @api.route('/login', methods=['GET', 'POST'])
 def login():
+    """ 登录 """
     if request.json:
         data = request.json
     elif request.form:
@@ -60,6 +63,7 @@ def login():
         data = request.data
         data = bytes.decode(data)
         data = json.loads(data)
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     account = data.get('account')
     password = data.get('password')
     user = User.query.filter_by(account=account).first()
@@ -80,7 +84,9 @@ def login():
 @api.route('/user/find', methods=['GET', 'POST'])
 @login_required
 def find_user():
+    """ 查找用户 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     user_name = data.get('userName')
     total = 1
     page = data.get('page') if data.get('page') else 1
@@ -104,7 +110,9 @@ def find_user():
 @api.route('/user/edit', methods=['POST'])
 @login_required
 def edit_user():
+    """ 返回待编辑用户信息 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     user_id = data.get('id')
     _edit = User.query.filter_by(id=user_id).first()
     _data = {'account': _edit.account, 'name': _edit.name, 'role_id': _edit.role_id}
@@ -116,7 +124,9 @@ def edit_user():
 @admin_required
 @login_required
 def del_user():
+    """ 删除用户 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _edit = User.query.filter_by(id=ids).first()
     db.session.delete(_edit)
@@ -127,7 +137,9 @@ def del_user():
 @admin_required
 @login_required
 def change_status_user():
+    """ 改变用户状态 """
     data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _edit = User.query.filter_by(id=ids).first()
     if _edit.status == 1:

@@ -165,7 +165,6 @@ class ApiMsg(db.Model):
     desc = db.Column(db.String(), nullable=True, comment='接口描述')
     variable_type = db.Column(db.String(), nullable=True, comment='参数类型选择')
     status_url = db.Column(db.String(), nullable=True, comment='基础url,序号对应项目的环境')
-    func_address = db.Column(db.String())
     up_func = db.Column(db.String(), comment='接口执行前的函数')
     down_func = db.Column(db.String(), comment='接口执行后的函数')
     method = db.Column(db.String(), nullable=True, comment='请求方式')
