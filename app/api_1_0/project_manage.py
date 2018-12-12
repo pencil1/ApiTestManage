@@ -5,6 +5,7 @@ import json
 from ..util.custom_decorator import login_required
 from flask_login import current_user
 
+
 @api.route('/proGather/list')
 @login_required
 def get_pro_gather():
@@ -45,7 +46,6 @@ def get_pro_gather():
 
     if my_pros:
         my_pros = {'pro_name': my_pros.name, 'model_list': pro[my_pros.name]}
-    print(pro_and_id)
     return jsonify(
         {'data': pro, 'urlData': pro_url, 'status': 1, 'user_pro': my_pros, 'config_name_list': scene_config_lists,
          'set_list': set_list, 'scene_list': scene_list, 'pro_and_id': pro_and_id})

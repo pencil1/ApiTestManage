@@ -1,3 +1,4 @@
+import platform
 import types
 
 import requests

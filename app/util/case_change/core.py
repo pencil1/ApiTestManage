@@ -151,7 +151,7 @@ class HarParser(object):
                      entry_json['data'] if h1])
             elif entry_json.get('rawModeData'):
                 testcase_dict['variable_type'] = 'json'
-                testcase_dict['variable'] = entry_json['rawModeData']
+                testcase_dict['json_variable'] = entry_json['rawModeData']
 
 
     def _make_har_request_headers(self, testcase_dict, entry_json):
@@ -202,8 +202,11 @@ class HarParser(object):
                 # TODO: make compatible with more mimeType
                 pass
             testcase_dict["variable_type"] = request_data_key
-            testcase_dict["variables"] = json.dumps(post_data) if request_data_key == 'json' else json.dumps([
-                {'key': k, 'value': v, 'param_type': 'string'} for k, v in post_data.items()])
+            if request_data_key == 'json':
+                testcase_dict["json_variable"] = json.dumps(post_data)
+            else:
+                testcase_dict["variable"] = json.dumps([
+                    {'key': k, 'value': v, 'param_type': 'string'} for k, v in post_data.items()])
 
     def make_testcase(self, entry_json):
         """ extract info from entry dict and make testcase

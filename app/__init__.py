@@ -32,6 +32,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 def create_app(config_name):
     app = Flask(__name__)
+    config_name='default'
     app.config.from_object(config[config_name])
     app.logger.addHandler(config_log())  # 初始化日志
     config[config_name].init_app(app)

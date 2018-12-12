@@ -1,9 +1,9 @@
 import json
-# from xmindparser import xmind_to_dict
-# from xmindparser import xmind_to_json
+from xmindparser import xmind_to_dict
+from xmindparser import xmind_to_json
 import os
 
-# import xlwt
+import xlwt
 
 
 def readjson(file):
@@ -95,7 +95,7 @@ def mindtoExcel(xmind_file):
                     print("row is {},i is {}".format(rownum, i))
                     sheet.write(rownum, i, caseinfo[i])
                 rownum = rownum + 1
-    filename = os.path.abspath(xmind_file[0:-5] + 'xls')
+    filename = os.path.abspath(xmind_file[0:-5] + 'xlsx')
     book.save(filename)
     return filename
 
