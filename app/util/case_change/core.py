@@ -140,7 +140,6 @@ class HarParser(object):
         testcase_dict['header'] = json.dumps(
             [{'key': h['key'], 'value': h['value']} for h in entry_json['headerData'] if h])
         if entry_json['method'] == 'GET':
-
             testcase_dict['param'] = json.dumps(
                 [{'key': h1['key'], 'value': h1['value'], 'param_type': 'string'} for h1 in entry_json['queryParams'] if
                  h1])
@@ -152,7 +151,6 @@ class HarParser(object):
             elif entry_json.get('rawModeData'):
                 testcase_dict['variable_type'] = 'json'
                 testcase_dict['json_variable'] = entry_json['rawModeData']
-
 
     def _make_har_request_headers(self, testcase_dict, entry_json):
         """ parse HAR entry request headers, and make testcase headers.

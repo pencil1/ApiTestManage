@@ -244,7 +244,7 @@ def file_change():
                 break
         else:
             msg['status_url'] = '0'
-        new_case = ApiMsg(module_id=module_id, num=case_num, **msg)
+        new_case = ApiMsg(project_id=project_data.id, module_id=module_id, num=case_num, **msg)
         db.session.add(new_case)
         db.session.commit()
         case_num += 1

@@ -7,31 +7,14 @@
 python => 3
 
 
-## 开发环境
 
-
-安装依赖包
+## 安装依赖包
 
     pip install -r requirements.txt
 
 
-然后直接运行manage
 
-    manage.py
-
-
-## 生产环境
-
-    gunicorn -c gunicorn_config.py manage:app
-
-
-### 生产环境下的一些配置
-由于懒，直接把flaskapi.conf文件替换nginx下的nginx.conf
-
-
-
-
-第一次使用：
+## 第一次使用：
 
 首先要设置flask的app(windows和linux的环境变量命令不一样)
 
@@ -45,7 +28,22 @@ python => 3
     flask initdata
 
 
-### 数据库的迁移(数据库迁移不是必要步骤)
+## 开发环境
+
+    python manage.py
+
+
+## 生产环境
+
+    gunicorn -c gunicorn_config.py manage:app
+
+
+### 生产环境下的一些配置
+由于懒，直接把flaskapi.conf文件替换nginx下的nginx.conf
+
+
+
+## 数据库的迁移(数据库迁移不是必要步骤)
 
 初始化：
 

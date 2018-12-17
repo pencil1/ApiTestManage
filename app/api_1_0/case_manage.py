@@ -122,7 +122,7 @@ def add_case():
                                         name=c['case_name'], up_func=c['up_func'], down_func=c['down_func'])
                 db.session.add(new_api_case)
                 db.session.commit()
-            return jsonify({'msg': '新建成功', 'status': 1})
+            return jsonify({'msg': '新建成功', 'status': 1, 'case_id': case_id})
 
 
 @api.route('/case/find', methods=['POST'])
@@ -244,7 +244,7 @@ def edit_case():
                           'statusCase': {'variable': json.loads(case.status_variables),
                                          'extract': json.loads(case.status_extract),
                                          'validate': json.loads(case.status_validate),
-                                         'param': json.loads(case.status_param)},})
+                                         'param': json.loads(case.status_param)}, })
     _data2 = {'num': _data.num, 'name': _data.name, 'desc': _data.desc, 'cases': case_data, 'setId': _data.case_set_id,
               'func_address': json.loads(_data.func_address), 'times': _data.times}
     if _data.variable:

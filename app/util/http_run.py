@@ -1,6 +1,8 @@
 import copy
 import json
 
+import sys
+
 from app.models import *
 from httprunner import HttpRunner
 from ..util.global_variable import *
@@ -259,6 +261,7 @@ class RunCase(object):
 
         return temp_case_data
 
+
     def all_cases_data(self):
         temp_case = []
         pro_config = self.pro_config(self.project_data)
@@ -316,7 +319,7 @@ class RunCase(object):
 
     def run_case(self):
         now_time = datetime.datetime.now()
-        current_app.logger.info('begin to run cases')
+        # current_app.logger.info('begin to run cases')
         if self.run_type and self.make_report:
             new_report = Report(
                 case_names=','.join([Case.query.filter_by(id=scene_id).first().name for scene_id in self.case_ids]),
@@ -325,7 +328,7 @@ class RunCase(object):
             db.session.add(new_report)
             db.session.commit()
         d = self.all_cases_data()
-        current_app.logger.info('cases message: {}'.format(d))
+        # current_app.logger.info('cases message: {}'.format(d))
         res = main_ate(d)
 
         res['time']['duration'] = "%.2f" % res['time']['duration']

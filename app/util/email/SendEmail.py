@@ -2,7 +2,6 @@
 # -*- coding: UTF-8 -*-
 import os
 import smtplib
-import logging as log
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
@@ -55,11 +54,11 @@ class SendEmail(object):
             service.starttls()
             service.login(self.username, self.password)
             service.sendmail(self.username, self.to_list, message.as_string())
-            log.info('邮件发送成功')
+            print('邮件发送成功')
             service.close()
         except Exception as e:
-            log.error(e)
-            log.error('报错，邮件发送失败')
+            print(e)
+            print('报错，邮件发送失败')
 
 
 if __name__ == '__main__':
