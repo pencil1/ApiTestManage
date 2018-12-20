@@ -33,7 +33,9 @@ def num_sort(new_num, old_num, list_data, old_data):
 
 variable_regexp = r"\$([\w_]+)"
 function_regexp = r"\$\{([\w_]+\([\$\w\.\-_ =,]*\))\}"
+# function_regexp = r"\$\{([\w_]+\([\$\w\W\.\-_ =,]*\))\}"
 function_regexp_compile = re.compile(r"^([\w_]+)\(([\$\w\.\-/_ =,]*)\)$")
+# function_regexp_compile = re.compile(r"^([\w_]+)\(([\$\w\W\.\-/_ =,]*)\)$")
 
 
 def extract_variables(content):
@@ -251,9 +253,9 @@ if __name__ == '__main__':
     # module_functions_dict = {name: item for name, item in vars(func_list).items() if
     #                          isinstance(item, types.FunctionType)}
     # print(module_functions_dict)
-    a = '${func($test,123)}'
+    a = '${func({"birthday": "199-02-02"; "expire_age": "65周岁"; "sex": "2"},123,3245)}'
     b = '${func([123],123)}'
-    print(extract_functions(b))
-    matched = parse_function(extract_functions(b)[0])
-
-    print(matched)
+    print(extract_functions(a))
+    # matched = parse_function(extract_functions(b)[0])
+    #
+    # print(matched)

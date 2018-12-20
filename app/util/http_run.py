@@ -218,6 +218,16 @@ class RunCase(object):
 
             if api_case.method == 'GET':
                 pass
+
+            elif api_case.variable_type == 'text':
+                for variable in _variables:
+                    if variable['param_type'] == 'string' and variable.get('key'):
+                        temp_case_data['request']['files'].update({variable['key']: (None, variable['value'])})
+                    elif variable['param_type'] == 'file' and variable.get('key'):
+                        temp_case_data['request']['files'].update({variable['key']: (
+                            variable['value'].split('/')[-1], open(variable['value'], 'rb'),
+                            CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
+
             elif api_case.variable_type == 'data':
                 for variable in _variables:
                     if variable['param_type'] == 'string' and variable.get('key'):
