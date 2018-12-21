@@ -2,9 +2,7 @@ import json
 import types
 
 from flask import jsonify, request
-
 from app.models import *
-from func_list.xmindtest import mindtoExcel, mindto_csv
 from . import api
 from ..util.tool_func import *
 
@@ -110,6 +108,7 @@ def deal_data():
 
 @api.route('/caseChange', methods=['POST'])
 def case_change():
+    from func_list.xmindtest import mindtoExcel, mindto_csv
     data = request.json
     address = data.get('address')
     choice = data.get('choice')
