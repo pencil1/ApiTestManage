@@ -1,14 +1,12 @@
-import platform
+import json
 import types
 
-import requests
-
-from . import api
-import json
 from flask import jsonify, request
-from ..util.tool_func import *
+
 from app.models import *
-from ..util.xmindtest import mindtoExcel
+from func_list.xmindtest import mindtoExcel, mindto_csv
+from . import api
+from ..util.tool_func import *
 
 
 @api.route('/buildIdentity')
@@ -114,9 +112,13 @@ def deal_data():
 def case_change():
     data = request.json
     address = data.get('address')
+    choice = data.get('choice')
     if not address:
         return jsonify({'status': 0, 'msg': '请上传文件'})
-    result_address = mindtoExcel(address).replace('/home', '')
+    elif choice == 1:
+        result_address = mindtoExcel(address).replace('/home', '')
+    else:
+        result_address = mindto_csv(address).replace('/home', '')
     return jsonify({'status': 1, 'msg': '优化成功', 'data': result_address})
 
 
