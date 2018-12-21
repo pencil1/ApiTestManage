@@ -115,7 +115,7 @@ def case_change():
     choice = data.get('choice')
     if not address:
         return jsonify({'status': 0, 'msg': '请上传文件'})
-    elif choice == 1:
+    elif choice == '1':
         result_address = mindtoExcel(address).replace('/home', '')
     else:
         result_address = mindto_csv(address).replace('/home', '')
