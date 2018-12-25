@@ -15,6 +15,7 @@ class SafeLog(TimedRotatingFileHandler):
     """
     因为TimedRotatingFileHandler在多进程访问log文件时，切分log日志会报错文件被占用，所以修复这个问题
     """
+
     def __init__(self, *args, **kwargs):
         super(SafeLog, self).__init__(*args, **kwargs)
         self.suffix_time = ""
@@ -115,7 +116,13 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or 'sqlite:///' + os.path.join(basedir, 'data.sqlite')
 
 
+class ProductionConfig(Config):
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@localhost:3306/test'
+    SQLALCHEMY_TRACK_MODIFICATIONS = True
+
+
 config = {
 
-    'default': DevelopmentConfig
+    'default': DevelopmentConfig,
+    'production': ProductionConfig,
 }

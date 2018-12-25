@@ -22,7 +22,7 @@ naming_convention = {
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
     "pk": "pk_%(table_name)s"
 }
-db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention))
+db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention), use_native_unicode='utf8')
 
 # db = SQLAlchemy()
 
@@ -32,7 +32,6 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 def create_app(config_name):
     app = Flask(__name__)
-    config_name='default'
     app.config.from_object(config[config_name])
     app.logger.addHandler(config_log())  # 初始化日志
     config[config_name].init_app(app)

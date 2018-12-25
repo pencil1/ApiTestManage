@@ -21,65 +21,19 @@ def convert_list_to_dict(origin_list):
     }
 
 
-def load_api_log_entries(file_path):
-    """ load HAR file and return log entries list
-    @return (list) entries
-        [
-            {
-                "request": {},
-                "response": {}
-            },
-        ]
+def load_api_log_entries(file_path, file_type):
+    """
     """
     with open(file_path, "r+", encoding="utf-8-sig") as f:
         try:
             content_json = json.loads(f.read())
-            if 'har' in file_path:
+            if file_type == 'har':
                 return content_json["log"]["entries"]
-            elif 'json' in file_path:
+            elif file_type == 'json':
                 return content_json['requests']
         except (KeyError, TypeError):
             logging.error("api_1_0 file content error: {}".format(file_path))
             sys.exit(1)
-
-
-def postman_parser(file_path):
-    t = []
-    for a in load_api_log_entries(file_path):
-        testcase_dict = {"url": '',
-                         "name": "待定",
-                         "header": '[]',
-                         "method": 'POST',
-                         "variable_type": 'data',
-                         "variable": '[]',
-                         "extract": '[]',
-                         "validate": '[]',
-                         "param": '[]',
-                         }
-        testcase_dict['name'] = a['name']
-        testcase_dict['method'] = a['method']
-        if not a['url'].startswith('http'):
-            a['url'] = 'http://' + a['url']
-        url = urlparse(a['url'])
-        testcase_dict['url'] = url.path
-        if url.netloc:
-            testcase_dict['status_url'] = url.netloc
-        else:
-            testcase_dict['status_url'] = url.scheme
-        testcase_dict['header'] = json.dumps(
-            [{'key': h['key'], 'value': h['value']} for h in a['headerData'] if h])
-        if a['method'] == 'GET':
-            testcase_dict['param'] = json.dumps(
-                [{'key': h1['key'], 'value': h1['value'], 'param_type': 'string'} for h1 in a['queryParams'] if h1])
-
-        if a['data']:
-            testcase_dict['variables'] = json.dumps(
-                [{'key': h1['key'], 'value': h1['value'], 'param_type': 'string'} for h1 in
-                 a['data'] if h1])
-        elif a.get('rawModeData'):
-            testcase_dict['variables'] = json.dumps(a['rawModeData'])
-        t.append(testcase_dict.copy())
-    return t
 
 
 class HarParser(object):
@@ -103,7 +57,7 @@ class HarParser(object):
     ]
 
     def __init__(self, file_path, file_type='har'):
-        self.log_entries = load_api_log_entries(file_path)
+        self.log_entries = load_api_log_entries(file_path, file_type)
         self.user_agent = None
         self.file_type = file_type
         self.testset = self.make_testset()

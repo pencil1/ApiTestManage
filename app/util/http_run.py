@@ -360,6 +360,7 @@ class RunCase(object):
                 res['stat']['failures_scene'] += 1
 
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
+        print(res)
         jump_res = json.dumps(res, ensure_ascii=False, default=encode_object)
         if self.run_type and self.make_report:
             self.new_report_id = Report.query.filter_by(
