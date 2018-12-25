@@ -204,9 +204,8 @@ class RunCase(object):
                 _param = json.loads(case_data.param)
             else:
                 _param = json.loads(api_case.param)
-            temp_case_data['request']['params'] = {param['key']: param['value'] for param in
+            temp_case_data['request']['params'] = {param['key']: param['value'].replace('%', '&') for param in
                                                    _param if param.get('key')}
-
         if not self.run_type or json.loads(case_data.status_variables)[0]:
             if not self.run_type or json.loads(case_data.status_variables)[1]:
                 _json_variables = case_data.json_variable
@@ -247,7 +246,7 @@ class RunCase(object):
             elif api_case.variable_type == 'json':
                 if _json_variables:
                     temp_case_data['request']['json'] = json.loads(_json_variables)
-                # temp_case_data['request']['json'] = _variables
+                    # temp_case_data['request']['json'] = _variables
 
         if not self.run_type or json.loads(case_data.status_extract)[0]:
             if not self.run_type or json.loads(case_data.status_extract)[1]:
@@ -270,7 +269,6 @@ class RunCase(object):
             temp_case_data['output'] = ['token']
 
         return temp_case_data
-
 
     def all_cases_data(self):
         temp_case = []

@@ -117,7 +117,7 @@ class DevelopmentConfig(Config):
 
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@localhost:3306/test'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@localhost:3306/test'     # 123456表示密码，test代表数据库名称
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
 
