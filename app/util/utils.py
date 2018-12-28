@@ -18,17 +18,20 @@ def auto_num(num, model, **kwargs):
 
 def num_sort(new_num, old_num, list_data, old_data):
     """修改排序,自动按新旧序号重新排列"""
-    _temp_data = list_data.pop(list_data.index(old_data))
-    list_data.insert(new_num - 1, _temp_data)
-    if old_num == new_num:
-        pass
-    elif old_num > new_num:
-        for n, m in enumerate(list_data[new_num - 1:old_num + 1]):
-            m.num = new_num + n
+    if old_data not in list_data:
+        old_data.num = len(list_data)+1
+    else:
+        _temp_data = list_data.pop(list_data.index(old_data))
+        list_data.insert(new_num - 1, _temp_data)
+        if old_num == new_num:
+            pass
+        elif old_num > new_num:
+            for n, m in enumerate(list_data[new_num - 1:old_num + 1]):
+                m.num = new_num + n
 
-    elif old_data.num < new_num:
-        for n, m in enumerate(list_data[old_num - 1:new_num + 1]):
-            m.num = old_num + n
+        elif old_data.num < new_num:
+            for n, m in enumerate(list_data[old_num - 1:new_num + 1]):
+                m.num = old_num + n
 
 
 variable_regexp = r"\$([\w_]+)"

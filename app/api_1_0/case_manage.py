@@ -153,33 +153,6 @@ def find_case():
     return jsonify({'data': cases, 'total': total, 'status': 1})
 
 
-@api.route('/case/findOld', methods=['POST'])
-@login_required
-def find_old_scene():
-    data = request.json
-    project_name = data.get('projectName')
-    if not project_name:
-        return jsonify({'msg': '请选择项目', 'status': 0})
-    scene_name = data.get('sceneName')
-    total = 1
-    page = data.get('page') if data.get('page') else 1
-    per_page = data.get('sizePage') if data.get('sizePage') else 10
-
-    if scene_name:
-        cases = Case.query.filter_by(case_set_id=None).filter(Case.name.like('%{}%'.format(scene_name))).all()
-        if not cases:
-            return jsonify({'msg': '没有该用例', 'status': 0})
-    else:
-        cases = Case.query.filter_by(project_id=Project.query.filter_by(name=project_name).first().id,
-                                     case_set_id=None)
-
-        pagination = cases.order_by(Case.num.asc()).paginate(page, per_page=per_page, error_out=False)
-        cases = pagination.items
-        total = pagination.total
-    cases = [{'num': c.num, 'name': c.name, 'desc': c.desc, 'sceneId': c.id} for c in cases]
-    return jsonify({'data': cases, 'total': total, 'status': 1})
-
-
 @api.route('/case/del', methods=['POST'])
 @login_required
 def del_case():
