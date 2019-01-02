@@ -1,6 +1,15 @@
-from flask import jsonify, current_app
+from flask import jsonify, current_app, request
 from . import api
 import traceback
+
+
+@api.app_errorhandler(404)
+def page_not_found(e):
+    # e = traceback.format_exc()
+    current_app.logger.info('404错误url:{}'.format(request.url))
+    # response = jsonify({'error': 'not found','data':e})
+    # response.status_code = 404
+    return jsonify({'msg': '后台不存在此请求'})
 
 
 @api.app_errorhandler(Exception)
