@@ -6,16 +6,17 @@ from flask_login import login_user, logout_user
 from ..util.custom_decorator import *
 
 
-@api.route('/register', methods=['GET', 'POST'])
+@api.route('/register', methods=['POST'])
 @admin_required
 @login_required
 def register():
-    """ 注册用户 """
+    """ 添加、编辑用户 """
     data = request.json
     current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     name = data.get('name')
     account = data.get('account')
     password = data.get('password')
+    status_password = data.get('statusPassword')
     role_id = data.get('role_id')
     user_id = data.get('id')
     if user_id:
@@ -24,15 +25,17 @@ def register():
             return jsonify({'msg': '名字已存在', 'status': 0})
         elif User.query.filter_by(account=account).first() and account != old_data.account:
             return jsonify({'msg': '账号已存在', 'status': 0})
-        elif not password:
-            return jsonify({'msg': '密码不能为空', 'status': 0})
-        else:
-            old_data.name = name
-            old_data.account = account
-            old_data.password = password
-            old_data.role_id = role_id
-            db.session.commit()
-            return jsonify({'msg': '修改成功', 'status': 1})
+
+        if status_password:
+            if not password:
+                return jsonify({'msg': '密码不能为空', 'status': 0})
+            else:
+                old_data.password = password
+        old_data.name = name
+        old_data.account = account
+        old_data.role_id = role_id
+        db.session.commit()
+        return jsonify({'msg': '修改成功', 'status': 1})
     else:
         if User.query.filter_by(name=name).first():
             return jsonify({'msg': '名字已存在', 'status': 0})
@@ -44,6 +47,28 @@ def register():
         return jsonify({'msg': '注册成功', 'status': 1})
 
 
+@api.route('/changePassword', methods=['POST'])
+@login_required
+def change_password():
+    """ 修改密码 """
+    data = request.json
+    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
+    old_password = data.get('oldPassword')
+    new_password = data.get('newPassword')
+    sure_password = data.get('surePassword')
+    # user_id = data.get('id')
+    if not current_user.verify_password(old_password):
+        return jsonify({'msg': '旧密码错误', 'status': 0})
+    if not new_password:
+        return jsonify({'msg': '新密码不能为空', 'status': 0})
+    if new_password != sure_password:
+        return jsonify({'msg': '新密码和确认密码不一致', 'status': 0})
+    # old_data = User.query.filter_by(id=user_id).first()
+    current_user.password = new_password
+    db.session.commit()
+    return jsonify({'msg': '密码修改成功', 'status': 1})
+
+
 @api.route('/logout', methods=['GET'])
 @login_required
 def logout():
@@ -52,7 +77,7 @@ def logout():
     return jsonify({'msg': '登出成功', 'status': 1})
 
 
-@api.route('/login', methods=['GET', 'POST'])
+@api.route('/login', methods=['POST'])
 def login():
     """ 登录 """
     if request.json:
@@ -81,7 +106,7 @@ def login():
                         'name': user.name, 'userId': user.id, 'roles': str(user.role_id)})
 
 
-@api.route('/user/find', methods=['GET', 'POST'])
+@api.route('/user/find', methods=['POST'])
 @login_required
 def find_user():
     """ 查找用户 """
