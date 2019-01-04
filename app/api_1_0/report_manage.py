@@ -18,12 +18,17 @@ def run_cases():
         return jsonify({'msg': '请选择项目', 'status': 0})
     if not data.get('sceneIds'):
         return jsonify({'msg': '请选择用例', 'status': 0})
-    run_case = RunCase(data.get('projectName'), data.get('sceneIds'))
+    # run_case = RunCase(data.get('projectName'), data.get('sceneIds'))
+
+    project_id = Project.query.filter_by(name=data.get('projectName')).first().id
+    d = RunCase(project_id)
+    d.run_type = True
+    jump_res = d.run_case(d.get_case_test(data.get('sceneIds')))
     if data.get('reportStatus'):
-        run_case.make_report = False
-    run_case.run_type = True
-    res = json.loads(run_case.run_case())
-    return jsonify({'msg': '测试完成', 'status': 1, 'data': {'report_id': run_case.new_report_id, 'data': res}})
+        d.build_report(jump_res, data.get('sceneIds'))
+    res = json.loads(jump_res)
+
+    return jsonify({'msg': '测试完成', 'status': 1, 'data': {'report_id': d.new_report_id, 'data': res}})
 
 
 @api.route('/report/list', methods=['POST'])

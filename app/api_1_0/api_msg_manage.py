@@ -137,8 +137,10 @@ def run_api_msg():
     case_data_id.sort(key=lambda x: x[0])
     api_msg = [ApiMsg.query.filter_by(id=c[1]).first() for c in case_data_id]
 
-    d = RunCase(project_names=project_name, api_data=api_msg, config_id=config_id)
-    res = json.loads(d.run_case())
+    project_id = Project.query.filter_by(name=project_name).first().id
+    d = RunCase(project_id)
+    res = json.loads(d.run_case(d.get_api_test(api_msg, config_id)))
+
     return jsonify({'msg': '测试完成', 'data': res, 'status': 1})
 
 
