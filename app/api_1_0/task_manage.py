@@ -1,21 +1,23 @@
 import json
 from flask import jsonify, request
 from . import api
-from app.models import *
+from app.models import Project, Task, current_app, CaseSet, Case, db
 from ..util.custom_decorator import login_required
 from app import scheduler
 from ..util.http_run import RunCase
 from ..util.utils import change_cron, auto_num
 from ..util.email.SendEmail import SendEmail
 from ..util.report.report import render_html_report
-from ..util.global_variable import *
+from ..util.global_variable import TEMP_REPORT
+import datetime
 
 
 def aps_test(project_name, case_ids, send_address=None, send_password=None, task_to_address=None):
-    d = RunCase(project_names=project_name, case_ids=case_ids)
-    d.run_type = True
-    d.all_cases_data()
-    res = json.loads(d.run_case())
+    project_id = Project.query.filter_by(name=project_name).first().id
+    d = RunCase(project_id)
+    jump_res = d.run_case(d.get_case_test(case_ids))
+    d.build_report(jump_res, case_ids)
+    res = json.loads(jump_res)
 
     if send_address:
         task_to_address = task_to_address.split(',')

@@ -14,18 +14,19 @@ def run_cases():
     """ 跑接口 """
     data = request.json
     current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
+    case_ids = data.get('sceneIds')
     if not data.get('projectName'):
         return jsonify({'msg': '请选择项目', 'status': 0})
-    if not data.get('sceneIds'):
+    if not case_ids:
         return jsonify({'msg': '请选择用例', 'status': 0})
     # run_case = RunCase(data.get('projectName'), data.get('sceneIds'))
 
     project_id = Project.query.filter_by(name=data.get('projectName')).first().id
     d = RunCase(project_id)
-    d.run_type = True
-    jump_res = d.run_case(d.get_case_test(data.get('sceneIds')))
-    if data.get('reportStatus'):
-        d.build_report(jump_res, data.get('sceneIds'))
+    jump_res = d.run_case(d.get_case_test(case_ids))
+
+    if not data.get('reportStatus'):
+        d.build_report(jump_res, case_ids)
     res = json.loads(jump_res)
 
     return jsonify({'msg': '测试完成', 'status': 1, 'data': {'report_id': d.new_report_id, 'data': res}})

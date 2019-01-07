@@ -133,13 +133,14 @@ def run_api_msg():
         return jsonify({'msg': '请勾选信息后，再进行测试', 'status': 0})
 
     # 前端传入的数据不是按照编号来的，所以这里重新排序
-    case_data_id = [(item['num'], item['apiMsgId']) for item in api_msg_data]
-    case_data_id.sort(key=lambda x: x[0])
-    api_msg = [ApiMsg.query.filter_by(id=c[1]).first() for c in case_data_id]
+    api_ids = [(item['num'], item['apiMsgId']) for item in api_msg_data]
+    api_ids.sort(key=lambda x: x[0])
+    # api_data = [ApiMsg.query.filter_by(id=c[1]).first() for c in api_ids]
+    api_ids = [c[1] for c in api_ids]
 
     project_id = Project.query.filter_by(name=project_name).first().id
     d = RunCase(project_id)
-    res = json.loads(d.run_case(d.get_api_test(api_msg, config_id)))
+    res = json.loads(d.run_case(d.get_api_test(api_ids, config_id)))
 
     return jsonify({'msg': '测试完成', 'data': res, 'status': 1})
 
