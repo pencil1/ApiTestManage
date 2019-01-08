@@ -35,14 +35,16 @@ def del_sql():
     a = Config.query.all()
     for a1 in a:
         if a1.func_address:
-            a1.func_address = json.dumps([a1.func_address])
+            if isinstance(json.loads(a1.func_address), list):
+                a1.func_address = ','.join(json.loads(a1.func_address))
         else:
             a1.func_address = json.dumps([])
 
     b = Case.query.all()
     for b1 in b:
         if b1.func_address:
-            b1.func_address = json.dumps([b1.func_address])
+            if isinstance(json.loads(b1.func_address), list):
+                b1.func_address = ','.join(json.loads(b1.func_address))
         else:
             b1.func_address = json.dumps([])
     db.session.commit()

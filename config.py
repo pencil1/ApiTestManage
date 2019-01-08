@@ -90,11 +90,8 @@ class ConfigTask(object):
     """
     定时任务配置
     """
-    jobstores = {'default': SQLAlchemyJobStore(url="sqlite:///" + os.path.join(basedir, "data.sqlite"))}
-    executors = {'default': ThreadPoolExecutor(10), 'processpool': ProcessPoolExecutor(3)}
-
     def __init__(self):
-        self.scheduler = APScheduler(BackgroundScheduler(jobstores=self.jobstores, executors=self.executors))
+        self.scheduler = APScheduler()
 
 
 class Config:
@@ -110,6 +107,9 @@ class Config:
     UPLOAD_FOLDER = '/upload'
     DEBUG = True
 
+
+    SCHEDULER_API_ENABLED = True
+
     @staticmethod
     def init_app(app):
         pass
@@ -117,11 +117,12 @@ class Config:
 
 class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or 'sqlite:///' + os.path.join(basedir, 'data.sqlite')
-
+    SCHEDULER_JOBSTORES = {'default': SQLAlchemyJobStore(url=SQLALCHEMY_DATABASE_URI)}
 
 class ProductionConfig(Config):
     # SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@localhost:3306/test'     # 123456表示密码，test代表数据库名称
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@192.168.6.19:3306/api_test'  # 123456表示密码，test代表数据库名称
+    SCHEDULER_JOBSTORES = {'default': SQLAlchemyJobStore(url=SQLALCHEMY_DATABASE_URI)}
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
 

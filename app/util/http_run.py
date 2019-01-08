@@ -256,6 +256,7 @@ class RunCase(object):
         return _data
 
     def get_api_test(self, api_ids, config_id):
+        scheduler.app.logger.info('本次测试的接口id：{}'.format(api_ids))
         temp_case = []
         _temp_config = copy.deepcopy(self.pro_config_data)
         config_data = Config.query.filter_by(id=config_id).first()
@@ -269,6 +270,7 @@ class RunCase(object):
         return temp_case
 
     def get_case_test(self, case_ids):
+        scheduler.app.logger.info('本次测试的用例id：{}'.format(case_ids))
         temp_case = []
         for case_id in case_ids:
             case_data = Case.query.filter_by(id=case_id).first()
@@ -333,5 +335,5 @@ class RunCase(object):
 
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
         jump_res = json.dumps(res, ensure_ascii=False, default=encode_object)
-        scheduler.app.logger.info('返回数据：{}'.format(jump_res))
+        # scheduler.app.logger.info('返回数据：{}'.format(jump_res))
         return jump_res

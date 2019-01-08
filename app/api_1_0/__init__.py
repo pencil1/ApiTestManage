@@ -16,5 +16,6 @@ def before_request():
 @api.after_request
 def after_request(r):
     result = copy.copy(r.response)
-    current_app.logger.info('url:{} ,method:{},返回数据:{}'.format(request.url, request.method, json.loads(bytes.decode(result[0]))))
+    if 'apiMsg/run' not in request.url and 'report/run' not in request.url and 'report/list' not in request.url:
+        current_app.logger.info('url:{} ,method:{},返回数据:{}'.format(request.url, request.method, json.loads(bytes.decode(result[0]))))
     return r

@@ -1,7 +1,7 @@
 import json
 from flask import jsonify, request
 from . import api
-from app.models import Project, Task, current_app, CaseSet, Case, db
+from app.models import Project, Task, CaseSet, Case, db
 from ..util.custom_decorator import login_required
 from app import scheduler
 from ..util.http_run import RunCase
