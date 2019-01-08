@@ -12,7 +12,6 @@ from ..util.custom_decorator import *
 def register():
     """ 添加、编辑用户 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     name = data.get('name')
     account = data.get('account')
     password = data.get('password')
@@ -52,7 +51,6 @@ def register():
 def change_password():
     """ 修改密码 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     old_password = data.get('oldPassword')
     new_password = data.get('newPassword')
     sure_password = data.get('surePassword')
@@ -88,7 +86,6 @@ def login():
         data = request.data
         data = bytes.decode(data)
         data = json.loads(data)
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     account = data.get('account')
     password = data.get('password')
     user = User.query.filter_by(account=account).first()
@@ -111,7 +108,6 @@ def login():
 def find_user():
     """ 查找用户 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     user_name = data.get('userName')
     total = 1
     page = data.get('page') if data.get('page') else 1
@@ -137,7 +133,6 @@ def find_user():
 def edit_user():
     """ 返回待编辑用户信息 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     user_id = data.get('id')
     _edit = User.query.filter_by(id=user_id).first()
     _data = {'account': _edit.account, 'name': _edit.name, 'role_id': _edit.role_id}
@@ -151,7 +146,6 @@ def edit_user():
 def del_user():
     """ 删除用户 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _edit = User.query.filter_by(id=ids).first()
     db.session.delete(_edit)
@@ -164,7 +158,6 @@ def del_user():
 def change_status_user():
     """ 改变用户状态 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _edit = User.query.filter_by(id=ids).first()
     if _edit.status == 1:

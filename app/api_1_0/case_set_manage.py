@@ -10,7 +10,6 @@ from ..util.utils import *
 def add_set():
     """ 添加用例集合 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     name = data.get('name')
     ids = data.get('id')
@@ -39,7 +38,6 @@ def add_set():
 def stick_set():
     """ 置顶用例集合 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     set_id = data.get('id')
     project_name = data.get('projectName')
 
@@ -56,7 +54,6 @@ def stick_set():
 def find_set():
     """ 查找用例集合 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
     project_name = data.get('projectName')
@@ -77,7 +74,6 @@ def find_set():
 def edit_set():
     """ 返回待编辑用例集合 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     set_id = data.get('id')
     _edit = CaseSet.query.filter_by(id=set_id).first()
     _data = {'name': _edit.name, 'num': _edit.num}
@@ -90,7 +86,6 @@ def edit_set():
 def del_set():
     """ 删除用例集合 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     set_id = data.get('id')
     _edit = CaseSet.query.filter_by(id=set_id).first()
     case = Case.query.filter_by(case_set_id=set_id).first()

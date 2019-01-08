@@ -11,7 +11,6 @@ from flask_login import current_user
 def add_scene_config():
     """ 添加配置 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     project_id = Project.query.filter_by(name=project_name).first().id
     name = data.get('sceneConfigName')
@@ -57,7 +56,6 @@ def add_scene_config():
 def find_config():
     """ 查找配置 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     config_name = data.get('configName')
     page = data.get('page') if data.get('page') else 1
@@ -85,7 +83,6 @@ def find_config():
 def del_config():
     """ 删除配置 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _edit = Config.query.filter_by(id=ids).first()
     if current_user.id != Project.query.filter_by(id=_edit.project_id).first().user_id:
@@ -99,7 +96,6 @@ def del_config():
 def edit_config():
     """ 返回待编辑配置信息 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _edit = Config.query.filter_by(id=ids).first()
     _data = {'name': _edit.name,

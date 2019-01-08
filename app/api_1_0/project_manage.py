@@ -56,7 +56,6 @@ def get_pro_gather():
 def find_project():
     """ 查找项目 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     # a = db.session.execute(r'''
     # SELECT * FROM "project" WHERE name='测试平台';
@@ -88,7 +87,6 @@ def find_project():
 def add_project():
     """ 项目增加、编辑 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     user_id = data.get('userId')
     if not user_id:
@@ -138,7 +136,6 @@ def add_project():
 def del_project():
     """ 删除项目 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     pro_data = Project.query.filter_by(id=ids).first()
     if current_user.id != pro_data.user_id:
@@ -158,7 +155,6 @@ def del_project():
 def edit_project():
     """ 返回待编辑项目信息 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     pro_id = data.get('id')
     _edit = Project.query.filter_by(id=pro_id).first()
     _data = {'pro_name': _edit.name,

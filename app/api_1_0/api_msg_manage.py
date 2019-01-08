@@ -12,7 +12,6 @@ from ..util.utils import *
 def add_api_msg():
     """ 接口信息增加、编辑 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     api_msg_name = data.get('apiMsgName')
     variable_type = data.get('variableType')
@@ -104,7 +103,6 @@ def add_api_msg():
 def edit_api_msg():
     """ 返回待编辑或复制的接口信息 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     case_id = data.get('apiMsgId')
     _edit = ApiMsg.query.filter_by(id=case_id).first()
     _data = {'name': _edit.name, 'num': _edit.num, 'desc': _edit.desc, 'url': _edit.url,
@@ -125,7 +123,6 @@ def edit_api_msg():
 def run_api_msg():
     """ 跑接口信息 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     api_msg_data = data.get('apiMsgData')
     project_name = data.get('projectName')
     config_id = data.get('configId')
@@ -150,7 +147,6 @@ def run_api_msg():
 def find_api_msg():
     """ 查接口信息 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     module_id = data.get('moduleId')
     project_name = data.get('projectName')
     api_name = data.get('apiName')
@@ -197,7 +193,6 @@ def find_api_msg():
 def del_api_msg():
     """ 删除接口信息 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     api_msg_id = data.get('apiMsgId')
     _data = ApiMsg.query.filter_by(id=api_msg_id).first()
 
@@ -219,7 +214,6 @@ def del_api_msg():
 def file_change():
     """ 导入接口信息 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     module_id = data.get('moduleId')
     if not module_id and not project_name:

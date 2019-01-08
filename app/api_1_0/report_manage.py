@@ -13,7 +13,6 @@ from ..util.report.report import render_html_report
 def run_cases():
     """ 跑接口 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     case_ids = data.get('sceneIds')
     if not data.get('projectName'):
         return jsonify({'msg': '请选择项目', 'status': 0})
@@ -37,7 +36,6 @@ def run_cases():
 def get_report():
     """ 查看报告 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     report_id = data.get('reportId')
     state = data.get('state')
     _address = REPORT_ADDRESS + str(report_id) + '.txt'
@@ -74,7 +72,6 @@ def get_report():
 def download_report():
     """ 报告下载 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     report_id = data.get('reportId')
     data_or_report = data.get('dataOrReport')
     _address = REPORT_ADDRESS + str(report_id) + '.txt'
@@ -92,7 +89,6 @@ def download_report():
 def del_report():
     """ 删除报告 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     address = data.get('address') + '.txt'
     _edit = Report.query.filter_by(data=address).first()
     db.session.delete(_edit)
@@ -109,7 +105,6 @@ def del_report():
 def find_report():
     """ 查找报告 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     project_id = Project.query.filter_by(name=project_name).first().id
     page = data.get('page') if data.get('page') else 1

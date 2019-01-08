@@ -7,6 +7,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import logging
 import time
 from logging.handlers import TimedRotatingFileHandler
+from flask_apscheduler import APScheduler
+
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -24,7 +26,7 @@ class SafeLog(TimedRotatingFileHandler):
     def shouldRollover(self, record):
         time_tuple = time.localtime()
         if self.suffix_time != time.strftime(self.suffix, time_tuple) or not os.path.exists(
-                                self.origin_basename + '.' + self.suffix_time):
+                self.origin_basename + '.' + self.suffix_time):
             return 1
         else:
             return 0
@@ -78,8 +80,9 @@ def config_log():
     handler.setLevel(logging.INFO)
     handler.suffix = "%Y-%m-%d.log"
     logging_format = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(lineno)s - %(message)s')
+        '%(asctime)s - %(levelname)s - %(lineno)s - %(message)s')
     handler.setFormatter(logging_format)
+    # handler.setFormatter('%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(lineno)s - %(message)s')
     return handler
 
 
@@ -91,7 +94,7 @@ class ConfigTask(object):
     executors = {'default': ThreadPoolExecutor(10), 'processpool': ProcessPoolExecutor(3)}
 
     def __init__(self):
-        self.scheduler = BackgroundScheduler(jobstores=self.jobstores, executors=self.executors)
+        self.scheduler = APScheduler(BackgroundScheduler(jobstores=self.jobstores, executors=self.executors))
 
 
 class Config:

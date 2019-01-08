@@ -26,7 +26,6 @@ def api_upload():
 def check_file():
     """ 检查文件是否存在 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     address = data.get('address')
     if os.path.exists(address):
         return jsonify({"msg": "文件已存在", "status": 0})

@@ -36,7 +36,6 @@ def aps_test(project_name, case_ids, send_address=None, send_password=None, task
 def run_task():
     """ 单次运行任务 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
     case_ids = []
@@ -63,7 +62,6 @@ def run_task():
 def start_task():
     """ 任务开启 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
 
@@ -83,7 +81,7 @@ def start_task():
                 case_ids.append(case_data.id)
     # scheduler.add_job(str(ids), aps_test, trigger='cron', args=['asd'], **config_time)
     project_name = Project.query.filter_by(id=_data.project_id).first().name
-    scheduler.add_job(aps_test, 'cron',
+    scheduler.add_job(func=aps_test, trigger='cron',
                       args=[project_name, case_ids, _data.task_send_email_address, _data.email_password,
                             _data.task_to_email_address],
                       id=str(ids), **config_time)  # 添加任务
@@ -98,7 +96,6 @@ def start_task():
 def add_task():
     """ 任务添加、修改 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     if not project_name:
         return jsonify({'msg': '请选择项目', 'status': 0})
@@ -166,7 +163,6 @@ def add_task():
 def edit_task():
     """ 返回待编辑任务信息 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     task_id = data.get('id')
     c = Task.query.filter_by(id=task_id).first()
     _data = {'num': c.num, 'task_name': c.task_name, 'task_config_time': c.task_config_time, 'task_type': c.task_type,
@@ -182,7 +178,6 @@ def edit_task():
 def find_task():
     """ 查找任务信息 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     project_id = Project.query.filter_by(name=project_name).first().id
     task_name = data.get('taskName')
@@ -208,7 +203,6 @@ def find_task():
 def del_task():
     """ 删除任务信息 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _edit = Task.query.filter_by(id=ids).first()
     if _edit.status != '创建':
@@ -223,7 +217,6 @@ def del_task():
 def pause_task():
     """ 暂停任务 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
     _data.status = '暂停'
@@ -238,7 +231,6 @@ def pause_task():
 def resume_task():
     """ 恢复任务 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
     _data.status = '启动'
@@ -252,7 +244,6 @@ def resume_task():
 def remove_task():
     """ 移除任务 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
     scheduler.remove_job(str(ids))  # 添加任务

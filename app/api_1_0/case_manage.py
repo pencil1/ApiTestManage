@@ -10,7 +10,6 @@ from ..util.utils import *
 def add_case():
     """ 用例添加、编辑 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     name = data.get('name')
     desc = data.get('desc')
     ids = data.get('ids')
@@ -130,7 +129,6 @@ def add_case():
 def find_case():
     """ 查找用例 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     case_name = data.get('caseName')
     set_id = data.get('setId')
@@ -158,7 +156,6 @@ def find_case():
 def del_case():
     """ 删除用例 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     case_id = data.get('caseId')
     wait_del_case_data = Case.query.filter_by(id=case_id).first()
     if current_user.id != Project.query.filter_by(id=wait_del_case_data.project_id).first().user_id:
@@ -177,7 +174,6 @@ def del_case():
 def del_api_case():
     """ 删除用例下的接口步骤信息 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     case_id = data.get('id')
     _data = CaseData.query.filter_by(id=case_id).first()
     db.session.delete(_data)
@@ -189,7 +185,6 @@ def del_api_case():
 def edit_case():
     """ 返回待编辑用例信息 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     case_id = data.get('caseId')
     status = data.get('copyEditStatus')
     _data = Case.query.filter_by(id=case_id).first()
@@ -232,7 +227,6 @@ def edit_case():
 def data_config():
     """ 返回需要配置信息 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     config_id = data.get('configId')
     _data = Config.query.filter_by(id=config_id).first()
 

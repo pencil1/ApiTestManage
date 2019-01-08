@@ -10,7 +10,6 @@ from ..util.utils import *
 def find_model():
     """ 查找接口模块 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
     project_name = data.get('projectName')
@@ -33,7 +32,6 @@ def find_model():
 def add_model():
     """ 接口模块增加、编辑 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     project_name = data.get('projectName')
     if not project_name:
         return jsonify({'msg': '请先创建项目', 'status': 0})
@@ -68,7 +66,6 @@ def add_model():
 def edit_model():
     """ 返回待编辑模块信息 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     model_id = data.get('id')
     _edit = Module.query.filter_by(id=model_id).first()
     _data = {'gatherName': _edit.name, 'num': _edit.num}
@@ -81,7 +78,6 @@ def edit_model():
 def del_model():
     """ 删除模块 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     ids = data.get('id')
     _edit = Module.query.filter_by(id=ids).first()
     if current_user.id != Project.query.filter_by(id=_edit.project_id).first().user_id:
@@ -97,7 +93,6 @@ def del_model():
 def stick_module():
     """ 置顶模块 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     module_id = data.get('id')
     project_name = data.get('projectName')
     old_data = Module.query.filter_by(id=module_id).first()

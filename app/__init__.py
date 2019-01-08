@@ -43,6 +43,7 @@ def create_app(config_name):
     db.create_all()
 
     login_manager.init_app(app)
+    scheduler.init_app(app)
     scheduler.start()  # 定时任务启动
 
     from .api_1_0 import api as api_blueprint

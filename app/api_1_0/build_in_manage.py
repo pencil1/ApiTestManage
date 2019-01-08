@@ -12,7 +12,6 @@ import traceback
 def get_func():
     """ 获取函数文件信息 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     func_name = data.get('funcName')
     if not func_name:
         return jsonify({'msg': '请输入文件名', 'status': 0})
@@ -40,7 +39,6 @@ def get_funcs():
 def save_func():
     """ 保存函数文件 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     func_data = data.get('funcData')
     func_name = data.get('funcName')
     if not os.path.exists('{}/{}'.format(FUNC_ADDRESS, func_name)):
@@ -62,7 +60,6 @@ def is_function(tup):
 def check_func():
     """ 函数调试 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     func_file_name = data.get('funcFileName')
     func_name = data.get('funcName')
     if not os.path.exists('{}/{}'.format(FUNC_ADDRESS, func_file_name)):
@@ -90,7 +87,6 @@ def check_func():
 def create_func():
     """ 创建函数文件 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     func_name = data.get('funcName')
     if func_name.find('.py') == -1:
         return jsonify({'msg': '请创建正确格式的py文件', 'status': 0})
@@ -108,7 +104,6 @@ def create_func():
 def remove_func():
     """ 删除函数文件 """
     data = request.json
-    current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, data))
     func_name = data.get('funcName')
     if not os.path.exists('{}/{}'.format(FUNC_ADDRESS, func_name)):
         return jsonify({'msg': '文件名不存在', 'status': 0})

@@ -6,6 +6,7 @@ from ..util.global_variable import *
 from ..util.utils import merge_config, encode_object
 from httprunner import (loader, parser, utils)
 import importlib
+from app import scheduler
 
 
 class MyHttpRunner(HttpRunner):
@@ -306,8 +307,7 @@ class RunCase(object):
 
     def run_case(self, test_cases):
         now_time = datetime.datetime.now()
-        # current_app.logger.info('begin to run cases')
-        # current_app.logger.info('cases message: {}'.format(d))
+        scheduler.app.logger.info('测试数据：{}'.format(test_cases))
         res = main_ate(test_cases)
 
         res['time']['duration'] = "%.2f" % res['time']['duration']
@@ -333,5 +333,5 @@ class RunCase(object):
 
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
         jump_res = json.dumps(res, ensure_ascii=False, default=encode_object)
-
+        scheduler.app.logger.info('返回数据：{}'.format(jump_res))
         return jump_res
