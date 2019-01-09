@@ -2,12 +2,9 @@
 import os
 import multiprocessing
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
-from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
-from apscheduler.schedulers.background import BackgroundScheduler
 import logging
 import time
 from logging.handlers import TimedRotatingFileHandler
-from flask_apscheduler import APScheduler
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -86,28 +83,17 @@ def config_log():
     return handler
 
 
-class ConfigTask(object):
-    """
-    定时任务配置
-    """
-    def __init__(self):
-        self.scheduler = APScheduler()
-
-
 class Config:
     SECRET_KEY = 'BaSeQuie'
     basedir = os.path.abspath(os.path.dirname(__file__))
 
     # sqlite数据库的地址
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "data.sqlite")
-
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     CSRF_ENABLED = True
     UPLOAD_FOLDER = '/upload'
     DEBUG = True
-
-
     SCHEDULER_API_ENABLED = True
 
     @staticmethod
@@ -118,6 +104,7 @@ class Config:
 class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or 'sqlite:///' + os.path.join(basedir, 'data.sqlite')
     SCHEDULER_JOBSTORES = {'default': SQLAlchemyJobStore(url=SQLALCHEMY_DATABASE_URI)}
+
 
 class ProductionConfig(Config):
     # SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@localhost:3306/test'     # 123456表示密码，test代表数据库名称

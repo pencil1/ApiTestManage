@@ -5,12 +5,12 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import config
 from config import config_log
-from config import ConfigTask
 from .util import global_variable  # 初始化文件地址
 from sqlalchemy import MetaData
+from flask_apscheduler import APScheduler
 
 login_manager = LoginManager()
-login_manager.session_protection = 'None'
+# login_manager.session_protection = 'None'
 # login_manager.login_view = '.login'
 
 
@@ -26,7 +26,7 @@ db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention), use_nati
 
 # db = SQLAlchemy()
 
-scheduler = ConfigTask().scheduler
+scheduler = APScheduler()
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 

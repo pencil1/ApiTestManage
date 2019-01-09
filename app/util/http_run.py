@@ -185,7 +185,7 @@ class RunCase(object):
                 else:
                     _param = json.loads(api_data.param)
             else:
-                _param = []
+                _param = None
 
             if json.loads(step_data.status_variables)[0]:
                 if json.loads(step_data.status_variables)[1]:
@@ -196,7 +196,7 @@ class RunCase(object):
                     _variables = json.loads(api_data.variable)
             else:
                 _json_variables = None
-                _variables = []
+                _variables = None
 
             if json.loads(step_data.status_extract)[0]:
                 if json.loads(step_data.status_extract)[1]:
@@ -204,7 +204,7 @@ class RunCase(object):
                 else:
                     _extract = api_data.extract
             else:
-                _extract = []
+                _extract = None
 
             if json.loads(step_data.status_validate)[0]:
                 if json.loads(step_data.status_validate)[1]:
@@ -212,7 +212,7 @@ class RunCase(object):
                 else:
                     _validate = api_data.validate
             else:
-                _validate = []
+                _validate = None
 
         else:
             _param = json.loads(api_data.param)
@@ -222,14 +222,17 @@ class RunCase(object):
             _validate = api_data.validate
 
         _data['request']['params'] = {param['key']: param['value'].replace('%', '&') for param in
-                                      _param if param.get('key')}
+                                      _param if param.get('key')} if _param else {}
 
-        _data['extract'] = [{ext['key']: ext['value']} for ext in json.loads(_extract) if ext.get('key')]
+        _data['extract'] = [{ext['key']: ext['value']} for ext in json.loads(_extract) if
+                            ext.get('key')] if _extract else []
 
         _data['validate'] = [{val['comparator']: [val['key'], val['value']]} for val in json.loads(_validate) if
-                             val.get('key')]
+                             val.get('key')] if _validate else []
 
         if api_data.method == 'GET':
+            pass
+        elif not _variables:
             pass
         elif api_data.variable_type == 'text':
             for variable in _variables:
@@ -248,7 +251,8 @@ class RunCase(object):
                     _data['request']['files'].update({variable['key']: (
                         variable['value'].split('/')[-1], open(variable['value'], 'rb'),
                         CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
-
+        elif not _json_variables:
+            pass
         elif api_data.variable_type == 'json':
             if _json_variables:
                 _data['request']['json'] = json.loads(_json_variables)
