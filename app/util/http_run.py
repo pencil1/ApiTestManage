@@ -7,6 +7,7 @@ from ..util.utils import merge_config, encode_object
 from httprunner import (loader, parser, utils)
 import importlib
 from app import scheduler
+from flask.json import JSONEncoder
 
 
 class MyHttpRunner(HttpRunner):
@@ -232,30 +233,28 @@ class RunCase(object):
 
         if api_data.method == 'GET':
             pass
-        elif not _variables:
-            pass
-        elif api_data.variable_type == 'text':
-            for variable in _variables:
-                if variable['param_type'] == 'string' and variable.get('key'):
-                    _data['request']['files'].update({variable['key']: (None, variable['value'])})
-                elif variable['param_type'] == 'file' and variable.get('key'):
-                    _data['request']['files'].update({variable['key']: (
-                        variable['value'].split('/')[-1], open(variable['value'], 'rb'),
-                        CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
+        elif _variables:
+            if api_data.variable_type == 'text':
+                for variable in _variables:
+                    if variable['param_type'] == 'string' and variable.get('key'):
+                        _data['request']['files'].update({variable['key']: (None, variable['value'])})
+                    elif variable['param_type'] == 'file' and variable.get('key'):
+                        _data['request']['files'].update({variable['key']: (
+                            variable['value'].split('/')[-1], open(variable['value'], 'rb'),
+                            CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
 
-        elif api_data.variable_type == 'data':
-            for variable in _variables:
-                if variable['param_type'] == 'string' and variable.get('key'):
-                    _data['request']['data'].update({variable['key']: variable['value']})
-                elif variable['param_type'] == 'file' and variable.get('key'):
-                    _data['request']['files'].update({variable['key']: (
-                        variable['value'].split('/')[-1], open(variable['value'], 'rb'),
-                        CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
-        elif not _json_variables:
-            pass
-        elif api_data.variable_type == 'json':
-            if _json_variables:
-                _data['request']['json'] = json.loads(_json_variables)
+            elif api_data.variable_type == 'data':
+                for variable in _variables:
+                    if variable['param_type'] == 'string' and variable.get('key'):
+                        _data['request']['data'].update({variable['key']: variable['value']})
+                    elif variable['param_type'] == 'file' and variable.get('key'):
+                        _data['request']['files'].update({variable['key']: (
+                            variable['value'].split('/')[-1], open(variable['value'], 'rb'),
+                            CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
+        elif _json_variables:
+            if api_data.variable_type == 'json':
+                if _json_variables:
+                    _data['request']['json'] = json.loads(_json_variables)
 
         return _data
 
@@ -338,6 +337,6 @@ class RunCase(object):
                 res['stat']['failures_scene'] += 1
 
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
-        jump_res = json.dumps(res, ensure_ascii=False, default=encode_object)
+        jump_res = json.dumps(res, ensure_ascii=False, default=encode_object, cls=JSONEncoder)
         # scheduler.app.logger.info('返回数据：{}'.format(jump_res))
         return jump_res
