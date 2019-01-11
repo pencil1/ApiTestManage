@@ -89,10 +89,10 @@ def download_report():
 def del_report():
     """ 删除报告 """
     data = request.json
-    address = data.get('address') + '.txt'
-    _edit = Report.query.filter_by(data=address).first()
+    report_id = data.get('report_id')
+    _edit = Report.query.filter_by(id=report_id).first()
     db.session.delete(_edit)
-    address = address.split('/')[-1]
+    address = str(report_id)+'.txt'
     if not os.path.exists(REPORT_ADDRESS + address):
         return jsonify({'msg': '删除成功', 'status': 1})
     else:
