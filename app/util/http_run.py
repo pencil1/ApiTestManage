@@ -233,28 +233,30 @@ class RunCase(object):
 
         if api_data.method == 'GET':
             pass
-        elif _variables:
-            if api_data.variable_type == 'text':
-                for variable in _variables:
-                    if variable['param_type'] == 'string' and variable.get('key'):
-                        _data['request']['files'].update({variable['key']: (None, variable['value'])})
-                    elif variable['param_type'] == 'file' and variable.get('key'):
-                        _data['request']['files'].update({variable['key']: (
-                            variable['value'].split('/')[-1], open(variable['value'], 'rb'),
-                            CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
+        # elif _variables:
+        #     print(_variables)
+        #     print(111)
+        elif api_data.variable_type == 'text':
+            for variable in _variables:
+                if variable['param_type'] == 'string' and variable.get('key'):
+                    _data['request']['files'].update({variable['key']: (None, variable['value'])})
+                elif variable['param_type'] == 'file' and variable.get('key'):
+                    _data['request']['files'].update({variable['key']: (
+                        variable['value'].split('/')[-1], open(variable['value'], 'rb'),
+                        CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
 
-            elif api_data.variable_type == 'data':
-                for variable in _variables:
-                    if variable['param_type'] == 'string' and variable.get('key'):
-                        _data['request']['data'].update({variable['key']: variable['value']})
-                    elif variable['param_type'] == 'file' and variable.get('key'):
-                        _data['request']['files'].update({variable['key']: (
-                            variable['value'].split('/')[-1], open(variable['value'], 'rb'),
-                            CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
-        elif _json_variables:
-            if api_data.variable_type == 'json':
-                if _json_variables:
-                    _data['request']['json'] = json.loads(_json_variables)
+        elif api_data.variable_type == 'data':
+            for variable in _variables:
+                if variable['param_type'] == 'string' and variable.get('key'):
+                    _data['request']['data'].update({variable['key']: variable['value']})
+                elif variable['param_type'] == 'file' and variable.get('key'):
+                    _data['request']['files'].update({variable['key']: (
+                        variable['value'].split('/')[-1], open(variable['value'], 'rb'),
+                        CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
+
+        elif api_data.variable_type == 'json':
+            if _json_variables:
+                _data['request']['json'] = json.loads(_json_variables)
 
         return _data
 
