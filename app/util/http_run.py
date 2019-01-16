@@ -236,7 +236,7 @@ class RunCase(object):
         # elif _variables:
         #     print(_variables)
         #     print(111)
-        elif api_data.variable_type == 'text':
+        elif api_data.variable_type == 'text' and _variables:
             for variable in _variables:
                 if variable['param_type'] == 'string' and variable.get('key'):
                     _data['request']['files'].update({variable['key']: (None, variable['value'])})
@@ -245,7 +245,7 @@ class RunCase(object):
                         variable['value'].split('/')[-1], open(variable['value'], 'rb'),
                         CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
 
-        elif api_data.variable_type == 'data':
+        elif api_data.variable_type == 'data' and _variables:
             for variable in _variables:
                 if variable['param_type'] == 'string' and variable.get('key'):
                     _data['request']['data'].update({variable['key']: variable['value']})
