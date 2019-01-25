@@ -116,6 +116,7 @@ def find_report():
     total = pagination.total
     report = [{'name': c.case_names, 'project_name': project_name, 'id': c.id, 'read_status': c.read_status,
                'address': c.data.replace('.txt', '')} for c in report]
+
     return jsonify({'data': report, 'total': total, 'status': 1})
 
 

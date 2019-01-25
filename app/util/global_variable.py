@@ -710,7 +710,4 @@ def _check_file_path():
 _check_file_path()
 
 if __name__ == '__main__':
-    a = "E:\project/files/平安团体意外险模板.xlsx"
-    a1 = a.split('.')[-1]
-    print(a1)
-    print(CONTENT_TYPE['.{}'.format(a.split('.')[-1])])
+    pass

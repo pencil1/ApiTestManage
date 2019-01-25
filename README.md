@@ -3,6 +3,8 @@
 
 前端传送门：https://github.com/pencil1/ApiTestWeb
 
+线上demo地址：http://47.107.147.188/#/login （账号：ceshi 密码：123456）
+
 ## Environment
 python => 3
 
@@ -16,14 +18,14 @@ python => 3
 
 ## 第一次使用：
 
-首先要设置flask的app(windows和linux的环境变量命令不一样)
+首先要设置flask的app(windows和linux的环境变量命令不一样，项目根目录下执行)
 
     set FLASK_APP=manage.py(windows)
 
     export FLASK_APP=manage.py(linux)
 
 
-然后创建管理员账号（账号：admin，密码：123456）
+然后创建管理员账号（账号：admin，密码：123456，项目根目录下执行）
 
     flask initdata
 
