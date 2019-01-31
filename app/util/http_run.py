@@ -303,7 +303,6 @@ class RunCase(object):
         # if self.run_type and self.make_report:
         new_report = Report(
             case_names=','.join([Case.query.filter_by(id=scene_id).first().name for scene_id in case_ids]),
-            data=datetime.datetime.now(),
             project_id=self.project_ids, read_status='待阅')
         db.session.add(new_report)
         db.session.commit()
@@ -313,7 +312,7 @@ class RunCase(object):
             f.write(jump_res)
 
     def run_case(self, test_cases):
-        now_time = datetime.datetime.now()
+        now_time = datetime.now()
         scheduler.app.logger.info('测试数据：{}'.format(test_cases))
         res = main_ate(test_cases)
 
@@ -337,6 +336,14 @@ class RunCase(object):
                 res['stat']['successes_scene'] += 1
             else:
                 res['stat']['failures_scene'] += 1
+        res['stat']['all_scene'] = res['stat']['successes_scene'] + res['stat']['failures_scene']
+
+        res['stat']['successes_scene1'] = "{} ({}%)".format(res['stat']['successes_scene'],
+                                                            int(res['stat']['successes_scene'] / res['stat'][
+                                                                'all_scene'] * 100))
+        res['stat']['failures_scene1'] = "{} ({}%)".format(res['stat']['failures_scene'],
+                                                           int(res['stat']['failures_scene'] / res['stat'][
+                                                               'all_scene'] * 100))
 
         res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
         jump_res = json.dumps(res, ensure_ascii=False, default=encode_object, cls=JSONEncoder)

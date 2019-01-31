@@ -1,7 +1,7 @@
 # encoding: utf-8
 from werkzeug.security import check_password_hash, generate_password_hash
 from . import db, login_manager
-import datetime
+from datetime import datetime
 from flask_login import UserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import current_app
@@ -54,9 +54,10 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128), comment='密码')
     name = db.Column(db.String(64), comment='姓名')
     status = db.Column(db.Integer, comment='状态，1为启用，2为冻结')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'), comment='所属的角色id')
     role = db.relationship('Role', back_populates='users')
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now())
+    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
     @staticmethod
     def init_user():
@@ -105,10 +106,11 @@ class Project(db.Model):
     principal = db.Column(db.String(16), nullable=True)
     variables = db.Column(db.String(2048), comment='项目的公共变量')
     headers = db.Column(db.String(1024), comment='项目的公共头部信息')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow, comment='创建时间')
     modules = db.relationship('Module', order_by='Module.num.asc()', lazy='dynamic')
     configs = db.relationship('Config', order_by='Config.num.asc()', lazy='dynamic')
     case_sets = db.relationship('CaseSet', order_by='CaseSet.num.asc()', lazy='dynamic')
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')
+    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
 class Module(db.Model):
@@ -116,9 +118,10 @@ class Module(db.Model):
     id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
     name = db.Column(db.String(64), nullable=True, comment='接口模块')
     num = db.Column(db.Integer(), nullable=True, comment='模块序号')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow, comment='创建时间')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
     api_msg = db.relationship('ApiMsg', order_by='ApiMsg.num.asc()', lazy='dynamic')
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')
+    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
 class Config(db.Model):
@@ -128,8 +131,9 @@ class Config(db.Model):
     name = db.Column(db.String(128), comment='配置名称')
     variables = db.Column(db.String(21000), comment='配置参数')
     func_address = db.Column(db.String(128), comment='配置函数')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow, comment='创建时间')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')
+    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
 class CaseSet(db.Model):
@@ -137,10 +141,10 @@ class CaseSet(db.Model):
     id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
     num = db.Column(db.Integer(), nullable=True, comment='用例集合序号')
     name = db.Column(db.String(256), nullable=True, comment='用例集名称')
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
-    created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow, comment='创建时间')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
     cases = db.relationship('Case', order_by='Case.num.asc()', lazy='dynamic')
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')
+    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
 class Case(db.Model):
@@ -152,15 +156,15 @@ class Case(db.Model):
     func_address = db.Column(db.String(256), comment='用例需要引用的函数')
     variable = db.Column(db.Text(), comment='用例公共参数')
     times = db.Column(db.Integer(), nullable=True, comment='执行次数')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow, comment='创建时间')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
     case_set_id = db.Column(db.Integer, db.ForeignKey('case_set.id'), comment='所属的用例集id')
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')
+    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
 class ApiMsg(db.Model):
     __tablename__ = 'api_msg'
     id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
     num = db.Column(db.Integer(), nullable=True, comment='接口序号')
     name = db.Column(db.String(128), nullable=True, comment='接口名称')
     desc = db.Column(db.String(256), nullable=True, comment='接口描述')
@@ -178,24 +182,13 @@ class ApiMsg(db.Model):
     header = db.Column(db.String(2048), comment='头部信息')
     module_id = db.Column(db.Integer, db.ForeignKey('module.id'), comment='所属的接口模块id')
     project_id = db.Column(db.Integer, nullable=True, comment='所属的项目id')
-
-
-class ApiSuite(db.Model):
-    __tablename__ = 'apiSuite'
-    id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
-    create_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
-    update_time = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
-    num = db.Column(db.Integer(), nullable=True, comment='fke')
-    name = db.Column(db.String(128), nullable=True)
-    api_ids = db.Column(db.String(16), nullable=True)
-    module_id = db.Column(db.Integer, db.ForeignKey('module.id'))
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now())
+    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
 class CaseData(db.Model):
     __tablename__ = 'case_data'
     id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
     num = db.Column(db.Integer(), nullable=True, comment='步骤序号，执行顺序按序号来')
     status = db.Column(db.String(16), comment='状态，true表示执行，false表示不执行')
     name = db.Column(db.String(128), comment='步骤名称')
@@ -213,16 +206,17 @@ class CaseData(db.Model):
     status_validate = db.Column(db.String(64))
     case_id = db.Column(db.Integer, db.ForeignKey('case.id'))
     api_msg_id = db.Column(db.Integer, db.ForeignKey('api_msg.id'))
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now())
+    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
 class Report(db.Model):
     __tablename__ = 'report'
     id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow)
     case_names = db.Column(db.String(128), nullable=True, comment='用例的名称集合')
     read_status = db.Column(db.String(16), nullable=True, comment='阅读状态')
-    data = db.Column(db.String(512), nullable=True)
     project_id = db.Column(db.String(16), nullable=True)
+    create_time = db.Column(db.DateTime(), index=True, default=datetime.now())
 
 
 class Task(db.Model):
@@ -231,7 +225,6 @@ class Task(db.Model):
     num = db.Column(db.Integer(), comment='任务序号')
     task_name = db.Column(db.String(64), comment='任务名称')
     task_config_time = db.Column(db.String(256), nullable=True, comment='cron表达式')
-    timestamp = db.Column(db.DateTime(), default=datetime.datetime.now(), comment='任务的创建时间')
     set_id = db.Column(db.String(2048))
     case_id = db.Column(db.String(2048))
     task_type = db.Column(db.String(16))
@@ -240,6 +233,8 @@ class Task(db.Model):
     email_password = db.Column(db.String(256), comment='发件人邮箱密码')
     status = db.Column(db.String(16), default=u'创建', comment='任务的运行状态，默认是创建')
     project_id = db.Column(db.String(16), nullable=True)
+    created_time = db.Column(db.DateTime(), default=datetime.now(), comment='任务的创建时间')
+    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
 @login_manager.user_loader

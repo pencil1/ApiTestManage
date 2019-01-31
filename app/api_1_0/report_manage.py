@@ -24,7 +24,7 @@ def run_cases():
     d = RunCase(project_id)
     jump_res = d.run_case(d.get_case_test(case_ids))
 
-    if not data.get('reportStatus'):
+    if data.get('reportStatus'):
         d.build_report(jump_res, case_ids)
     res = json.loads(jump_res)
 
@@ -111,11 +111,11 @@ def find_report():
     per_page = data.get('sizePage') if data.get('sizePage') else 10
 
     report_data = Report.query.filter_by(project_id=project_id)
-    pagination = report_data.order_by(Report.timestamp.desc()).paginate(page, per_page=per_page, error_out=False)
+    pagination = report_data.order_by(Report.create_time.desc()).paginate(page, per_page=per_page, error_out=False)
     report = pagination.items
     total = pagination.total
     report = [{'name': c.case_names, 'project_name': project_name, 'id': c.id, 'read_status': c.read_status,
-               'address': c.data.replace('.txt', '')} for c in report]
+               'address': c.create_time.strftime('%Y-%m-%d %H:%m:%S')} for c in report]
 
     return jsonify({'data': report, 'total': total, 'status': 1})
 
