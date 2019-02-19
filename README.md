@@ -1,5 +1,5 @@
 # ApiTestManage
-喜欢哒！顺手帮忙点个star呗~~谢谢！！如有疑问可联系qq：362508572   或q群：700387899
+感觉项目不错的点个star，你的支持是作者源源不断的动力~谢谢！！如有疑问可联系qq：362508572   或q群：700387899 或issue
 
 前端传送门：https://github.com/pencil1/ApiTestWeb
 
@@ -16,9 +16,9 @@ python => 3
 
 
 
-## 第一次使用：
+## 使用flask命令，必须先设置：
 
-首先要设置flask的app(windows和linux的环境变量命令不一样，项目根目录下执行)
+设置flask的app(windows和linux的环境变量命令不一样，项目根目录下执行)
 
     set FLASK_APP=manage.py(windows)
 

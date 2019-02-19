@@ -11,6 +11,8 @@ def add_case():
     """ 用例添加、编辑 """
     data = request.json
     name = data.get('name')
+    if not name:
+        return jsonify({'msg': '用例名称不能为空', 'status': 0})
     desc = data.get('desc')
     ids = data.get('ids')
     times = data.get('times')

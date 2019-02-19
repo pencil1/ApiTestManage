@@ -12,6 +12,8 @@ def add_set():
     data = request.json
     project_name = data.get('projectName')
     name = data.get('name')
+    if not name:
+        return jsonify({'msg': '用例集名称不能为空', 'status': 0})
     ids = data.get('id')
     project_id = Project.query.filter_by(name=project_name).first().id
     num = auto_num(data.get('num'), CaseSet, project_id=project_id)

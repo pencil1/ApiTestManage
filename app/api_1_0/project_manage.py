@@ -46,6 +46,7 @@ def get_pro_gather():
 
     if my_pros:
         my_pros = {'pro_name': my_pros.name, 'model_list': pro[my_pros.name]}
+
     return jsonify(
         {'data': pro, 'urlData': pro_url, 'status': 1, 'user_pro': my_pros, 'config_name_list': scene_config_lists,
          'set_list': set_list, 'scene_list': scene_list, 'pro_and_id': pro_and_id})
@@ -88,6 +89,8 @@ def add_project():
     """ 项目增加、编辑 """
     data = request.json
     project_name = data.get('projectName')
+    if not project_name:
+        return jsonify({'msg': '项目名称不能为空', 'status': 0})
     user_id = data.get('userId')
     if not user_id:
         return jsonify({'msg': '请选择负责人', 'status': 0})

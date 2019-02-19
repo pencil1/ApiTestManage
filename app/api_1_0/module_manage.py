@@ -36,6 +36,9 @@ def add_model():
     if not project_name:
         return jsonify({'msg': '请先创建项目', 'status': 0})
     name = data.get('name')
+    if not name:
+        return jsonify({'msg': '模块名称不能为空', 'status': 0})
+
     ids = data.get('id')
     project_id = Project.query.filter_by(name=project_name).first().id
     num = auto_num(data.get('num'), Module, project_id=project_id)

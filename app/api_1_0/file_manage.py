@@ -1,4 +1,4 @@
-from flask import jsonify, request, current_app
+from flask import jsonify, request
 from . import api, login_required
 from ..util.global_variable import *
 
