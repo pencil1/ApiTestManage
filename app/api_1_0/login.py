@@ -40,10 +40,11 @@ def register():
             return jsonify({'msg': '名字已存在', 'status': 0})
         elif User.query.filter_by(account=account).first():
             return jsonify({'msg': '账号已存在', 'status': 0})
-        user = User(name=name, account=account, password=password, status=1, role_id=role_id)
-        db.session.add(user)
-        db.session.commit()
-        return jsonify({'msg': '注册成功', 'status': 1})
+        else:
+            user = User(name=name, account=account, password=password, status=1, role_id=role_id)
+            db.session.add(user)
+            db.session.commit()
+            return jsonify({'msg': '注册成功', 'status': 1})
 
 
 @api.route('/changePassword', methods=['POST'])
@@ -162,7 +163,9 @@ def change_status_user():
     _edit = User.query.filter_by(id=ids).first()
     if _edit.status == 1:
         _edit.status = 0
+        db.session.commit()
+        return jsonify({'msg': '冻结成功', 'status': 1})
     else:
         _edit.status = 1
-    db.session.commit()
-    return jsonify({'msg': '置换成功', 'status': 1})
+        db.session.commit()
+        return jsonify({'msg': '恢复成功', 'status': 1})

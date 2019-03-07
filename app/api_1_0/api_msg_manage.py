@@ -158,16 +158,16 @@ def find_api_msg():
         return jsonify({'msg': '请先创建{}项目下的模块'.format(project_name), 'status': 0})
 
     if api_name:
-        api_data = ApiMsg.query.filter_by(module_id=module_id).filter(ApiMsg.name.like('%{}%'.format(api_name))).all()
-        total = len(api_data)
+        api_data = ApiMsg.query.filter_by(module_id=module_id).filter(ApiMsg.name.like('%{}%'.format(api_name)))
+        # total = len(api_data)
         if not api_data:
             return jsonify({'msg': '没有该接口信息', 'status': 0})
     else:
         api_data = ApiMsg.query.filter_by(module_id=module_id)
-        pagination = api_data.order_by(ApiMsg.num.asc()).paginate(page, per_page=per_page, error_out=False)
-        api_data = pagination.items
-        total = pagination.total
 
+    pagination = api_data.order_by(ApiMsg.num.asc()).paginate(page, per_page=per_page, error_out=False)
+    api_data = pagination.items
+    total = pagination.total
     _api = [{'num': c.num,
              'name': c.name,
              'desc': c.desc,
@@ -184,7 +184,6 @@ def find_api_msg():
                             'validate': [True, True], 'param': [True, True]},
              'status': True, 'case_name': c.name, 'down_func': c.down_func, 'up_func': c.up_func, 'time': 1}
             for c in api_data]
-
     return jsonify({'data': _api, 'total': total, 'status': 1})
 
 
