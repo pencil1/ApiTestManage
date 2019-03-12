@@ -11,7 +11,7 @@ from flask_migrate import Migrate
 import click
 
 # production default
-app = create_app(os.getenv('FLASK_CONFIG') or 'production')
+app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 migrate = Migrate(app, db, render_as_batch=True)
 # migrate = Migrate(app, db)
 

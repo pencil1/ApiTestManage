@@ -9,10 +9,21 @@ from ..util.tool_func import *
 
 @api.route('/buildIdentity')
 def build_identity():
-    identity_data = ''.join([b + '\n' for b in list(set([identity_generator() for j in range(100)]))])
-    return jsonify({'data': identity_data, 'status': 1})
-    # identity_data = [{'identity': b} for b in list(set([identity_generator() for j in range(100)]))]
-    # return jsonify({'data': identity_data, 'status': 1, 'title': ['身份证']})
+    c = CaseData.query.all()
+    # a = [302, 303, 305, 306, 309, 310, 312, 315, 317, 320, 321, 322, 324, 325, 327, 328, 330, 331, 333, 334, 336, 354, 356, 357, 359, 360, 362, 363, 365, 366, 368, 369, 371, 439]
+    # for a1 in a:
+    #     a2 = CaseData.query.filter_by(id=a1).first()
+    #     print(a1)
+    #     print(a2.variable)
+    for c1 in c:
+
+        if 'u64cdu4f5cu6210u529f' in c1.validate:
+            c1.validate = c1.validate.replace('u64cdu4f5cu6210u529f','操作成功')
+
+    db.session.commit()
+    return jsonify({'msg': '修改完成', 'status': 1})
+    # identity_data = ''.join([b + '\n' for b in list(set([identity_generator() for j in range(100)]))])
+    # return jsonify({'data': identity_data, 'status': 1})
 
 
 @api.route('/delSql', methods=['POST'])

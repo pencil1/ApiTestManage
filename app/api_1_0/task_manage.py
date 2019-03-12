@@ -246,7 +246,7 @@ def remove_task():
     data = request.json
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
-    scheduler.remove_job(str(ids))  # 添加任务
+    scheduler.remove_job(str(ids))  # 移除任务
     _data.status = '创建'
     db.session.commit()
     return jsonify({'msg': '移除成功', 'status': 1})

@@ -76,8 +76,7 @@ def config_log():
                       encoding='UTF-8')
     handler.setLevel(logging.INFO)
     handler.suffix = "%Y-%m-%d.log"
-    logging_format = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(lineno)s - %(message)s')
+    logging_format = logging.Formatter('%(asctime)s - %(levelname)s - %(lineno)s - %(message)s')
     handler.setFormatter(logging_format)
     # handler.setFormatter('%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(lineno)s - %(message)s')
     return handler
@@ -107,10 +106,11 @@ class DevelopmentConfig(Config):
 
 
 class ProductionConfig(Config):
-    # SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@localhost:3306/test'     # 123456表示密码，test代表数据库名称
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@192.168.6.19:3306/api_test'  # 123456表示密码，test代表数据库名称
+    # SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@47.107.147.188:3306/api_test'  # 123456表示密码，test代表数据库名称
     SCHEDULER_JOBSTORES = {'default': SQLAlchemyJobStore(url=SQLALCHEMY_DATABASE_URI)}
     SQLALCHEMY_TRACK_MODIFICATIONS = True
+    SQLALCHEMY_POOL_TIMEOUT = 20
 
 
 config = {
