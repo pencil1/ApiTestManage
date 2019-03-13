@@ -5,9 +5,31 @@ from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 import logging
 import time
 from logging.handlers import TimedRotatingFileHandler
-
+import urllib3.fields as f
+import six
+import email
 
 basedir = os.path.abspath(os.path.dirname(__file__))
+
+
+def my_format_header_param(name, value):
+    if not any(ch in value for ch in '"\\\r\n'):
+        result = '%s="%s"' % (name, value)
+        try:
+            result.encode('utf-8')
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            pass
+        else:
+            return result
+    if not six.PY3 and isinstance(value, six.text_type):  # Python 2:
+        value = value.encode('utf-8')
+    value = email.utils.encode_rfc2231(value, 'utf-8')
+    value = '%s*=%s' % (name, value)
+    return value
+
+
+# 猴子补丁，修复request上传文件时，不能传中文
+f.format_header_param = my_format_header_param
 
 
 class SafeLog(TimedRotatingFileHandler):
