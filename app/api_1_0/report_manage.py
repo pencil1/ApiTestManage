@@ -22,7 +22,8 @@ def run_cases():
 
     project_id = Project.query.filter_by(name=data.get('projectName')).first().id
     d = RunCase(project_id)
-    jump_res = d.run_case(d.get_case_test(case_ids))
+    d.get_case_test(case_ids)
+    jump_res = d.run_case()
 
     if data.get('reportStatus'):
         d.build_report(jump_res, case_ids)

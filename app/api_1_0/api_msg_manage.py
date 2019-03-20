@@ -137,7 +137,8 @@ def run_api_msg():
 
     project_id = Project.query.filter_by(name=project_name).first().id
     d = RunCase(project_id)
-    res = json.loads(d.run_case(d.get_api_test(api_ids, config_id)))
+    d.get_api_test(api_ids, config_id)
+    res = json.loads(d.run_case())
 
     return jsonify({'msg': '测试完成', 'data': res, 'status': 1})
 

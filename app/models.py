@@ -106,6 +106,7 @@ class Project(db.Model):
     principal = db.Column(db.String(16), nullable=True)
     variables = db.Column(db.String(2048), comment='项目的公共变量')
     headers = db.Column(db.String(1024), comment='项目的公共头部信息')
+    func_file = db.Column(db.String(64), nullable=True, unique=True, comment='函数文件')
     modules = db.relationship('Module', order_by='Module.num.asc()', lazy='dynamic')
     configs = db.relationship('Config', order_by='Config.num.asc()', lazy='dynamic')
     case_sets = db.relationship('CaseSet', order_by='CaseSet.num.asc()', lazy='dynamic')

@@ -103,6 +103,7 @@ def add_project():
     ids = data.get('id')
     header = data.get('header')
     variable = data.get('variable')
+    func_file = data.get('funcFile')
     if ids:
         old_project_data = Project.query.filter_by(id=ids).first()
         if Project.query.filter_by(name=project_name).first() and project_name != old_project_data.name:
@@ -117,6 +118,7 @@ def add_project():
             old_project_data.host_four = host_four
             old_project_data.headers = header
             old_project_data.variables = variable
+            old_project_data.func_file = func_file
             db.session.commit()
             return jsonify({'msg': '修改成功', 'status': 1})
     else:
@@ -127,6 +129,7 @@ def add_project():
                                   host=host,
                                   host_two=host_two,
                                   user_id=user_id,
+                                  func_file=func_file,
                                   environment_choice=environment_choice,
                                   host_three=host_three, host_four=host_four, headers=header, variables=variable)
             db.session.add(new_project)
@@ -163,6 +166,7 @@ def edit_project():
     _data = {'pro_name': _edit.name,
              'user_id': _edit.user_id,
              'principal': _edit.principal,
+             'func_file': _edit.func_file,
              'host': json.loads(_edit.host),
              'host_two': json.loads(_edit.host_two),
              'host_three': json.loads(_edit.host_three),
