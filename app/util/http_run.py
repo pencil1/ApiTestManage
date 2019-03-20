@@ -1,23 +1,13 @@
-import copy
 import json
-
 import types
-
 from app.models import *
 from httprunner.api import HttpRunner
 from ..util.global_variable import *
-from ..util.utils import merge_config, encode_object
-from httprunner import (loader, parser, utils)
+from ..util.httprunner_change import *
+from ..util.utils import encode_object
 import importlib
 from app import scheduler
 from flask.json import JSONEncoder
-
-
-def main_ate(cases):
-    runner = HttpRunner()
-    runner.run(cases)
-    summary = runner._summary
-    return summary
 
 
 class RunCase(object):
@@ -28,7 +18,6 @@ class RunCase(object):
         self.new_report_id = None
         self.TEST_DATA = {'testcases': [], 'project_mapping': {'functions': {}, 'variables': {}}}
         self.init_project_data()
-        self.functions = dict()
 
     def init_project_data(self):
         pro_base_url = {}
@@ -50,22 +39,17 @@ class RunCase(object):
         :param project_data:
         :return:
         """
-        # pro_cfg_data = {'config': {'name': 'config_name', 'request': {}, 'output': []},
-        #                 'teststeps': [],
-        #                 'name': 'config_name'}
-        #
-        # pro_cfg_data['config']['request']['headers'] = {h['key']: h['value'] for h in
-        #                                                 json.loads(project_data.variables) if h.get('key')}
-
         self.TEST_DATA['project_mapping']['variables'] = {h['key']: h['value'] for h in
                                                           json.loads(project_data.variables) if h.get('key')}
         if project_data.func_file:
-            _f = project_data.func_file.replace('.py', '')
-            func_list = importlib.reload(importlib.import_module('func_list.{}'.format(_f)))
+            self.extract_func([project_data.func_file.replace('.py', '')])
+
+    def extract_func(self, func_list):
+        for f in func_list:
+            func_list = importlib.reload(importlib.import_module('func_list.{}'.format(f)))
             module_functions_dict = {name: item for name, item in vars(func_list).items()
                                      if isinstance(item, types.FunctionType)}
             self.TEST_DATA['project_mapping']['functions'].update(module_functions_dict)
-        # return pro_cfg_data
 
     def assemble_step(self, api_id=None, step_data=None, pro_base_url=None, status=False):
         """
@@ -189,26 +173,18 @@ class RunCase(object):
     def get_api_test(self, api_ids, config_id):
         scheduler.app.logger.info('本次测试的接口id：{}'.format(api_ids))
         _steps = {'teststeps': [], 'config': {'variables': {}}}
-        # _temp_config = copy.deepcopy(self.pro_config_data)
-        config_data = Config.query.filter_by(id=config_id).first()
-        _config = json.loads(config_data.variables) if config_id else []
-        _steps['config']['variables'].update({v['key']: v['value'] for v in _config if v['key']})
 
         if config_id:
-            for p in ['func_list.{}'.format(f.replace('.py', '')) for f in json.loads(config_data.func_address)]:
-                func_list = importlib.reload(importlib.import_module(p))
-                module_functions_dict = {name: item for name, item in vars(func_list).items()
-                                         if isinstance(item, types.FunctionType)}
-                self.TEST_DATA['project_mapping']['functions'].update(module_functions_dict)
-        # _temp_config = merge_config(_temp_config, _config)
+            config_data = Config.query.filter_by(id=config_id).first()
+            _config = json.loads(config_data.variables) if config_id else []
+            _steps['config']['variables'].update({v['key']: v['value'] for v in _config if v['key']})
+            self.extract_func(['{}'.format(f.replace('.py', '')) for f in json.loads(config_data.func_address)])
+
         _steps['teststeps'] = [self.assemble_step(api_id, None, self.pro_base_url, False) for api_id in api_ids]
         self.TEST_DATA['testcases'].append(_steps)
-        # _d['project_mapping']['functions'] = self.functions
-        # return _d
 
     def get_case_test(self, case_ids):
         scheduler.app.logger.info('本次测试的用例id：{}'.format(case_ids))
-        _d = {'testcases': [], 'project_mapping': {'functions': {}, 'variables': {}}}
 
         for case_id in case_ids:
             case_data = Case.query.filter_by(id=case_id).first()
@@ -220,20 +196,13 @@ class RunCase(object):
                 # 获取业务集合的配置数据
                 _config = json.loads(case_data.variable) if case_data.variable else []
                 _steps['config']['variables'].update({v['key']: v['value'] for v in _config if v['key']})
-                # # 获取需要导入的函数
-                # _temp_config['config']['import_module_functions'] = ['func_list.{}'.format(
-                #     f.replace('.py', '')) for f in json.loads(case_data.func_address)]
 
-                for p in ['func_list.{}'.format(f.replace('.py', '')) for f in json.loads(case_data.func_address)]:
-                    func_list = importlib.reload(importlib.import_module(p))
-                    module_functions_dict = {name: item for name, item in vars(func_list).items()
-                                             if isinstance(item, types.FunctionType)}
-                    self.TEST_DATA['project_mapping']['functions'].update(module_functions_dict)
+                # # 获取需要导入的函数
+                self.extract_func(['{}'.format(f.replace('.py', '')) for f in json.loads(case_data.func_address)])
 
                 for _step in CaseData.query.filter_by(case_id=case_id).order_by(CaseData.num.asc()).all():
                     if _step.status == 'true':  # 判断用例状态，是否执行
                         _steps['teststeps'].append(self.assemble_step(None, _step, self.pro_base_url, True))
-                # temp_case.append(_temp_config)
                 self.TEST_DATA['testcases'].append(_steps)
 
     def build_report(self, jump_res, case_ids):
@@ -249,12 +218,10 @@ class RunCase(object):
             f.write(jump_res)
 
     def run_case(self):
-        now_time = datetime.now()
-        # scheduler.app.logger.info('测试数据：{}'.format(test_cases))
-        res = main_ate(self.TEST_DATA)
-
-        res['time']['duration'] = "%.2f" % res['time']['duration']
-        res['time']['start_at'] = now_time.strftime('%Y/%m/%d %H:%M:%S')
-        jump_res = json.dumps(res, ensure_ascii=False, default=encode_object, cls=JSONEncoder)
+        scheduler.app.logger.info('测试数据：{}'.format(self.TEST_DATA))
+        # res = main_ate(self.TEST_DATA)
+        runner = HttpRunner()
+        runner.run(self.TEST_DATA)
+        jump_res = json.dumps(runner._summary, ensure_ascii=False, default=encode_object, cls=JSONEncoder)
         # scheduler.app.logger.info('返回数据：{}'.format(jump_res))
         return jump_res

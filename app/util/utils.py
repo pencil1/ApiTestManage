@@ -133,22 +133,6 @@ def convert(variable):
     return _temp
 
 
-def merge_config(pro_config, scene_config):
-    """ 合并公用项目配置和业务集合配置 """
-    for _s in scene_config:
-        for _p in pro_config['config']['variables']:
-            if _p['key'] == _s['key']:
-                break
-        else:
-            pro_config['config']['variables'].append(_s)
-
-    _temp = convert(pro_config['config']['variables'])
-    pro_config['config']['variables'] = [{v['key']: v['value']} for v in json.loads(_temp)
-                                         if v['key']]
-    # pro_config['config']['output'] = ['token']
-    return pro_config
-
-
 def change_cron(expression):
     args = {}
     expression = expression.split(' ')
