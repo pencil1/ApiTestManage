@@ -74,14 +74,10 @@ def download_report():
     """ 报告下载 """
     data = request.json
     report_id = data.get('reportId')
-    data_or_report = data.get('dataOrReport')
     _address = REPORT_ADDRESS + str(report_id) + '.txt'
     with open(_address, 'r') as f:
         res = json.loads(f.read())
-    d = render_html_report(res,
-                           html_report_name='接口自动化测试报告',
-                           html_report_template=r'{}/extent_report_template.html'.format(TEMP_REPORT),
-                           data_or_report=data_or_report)
+    d = render_html_report(res)
     return jsonify({'data': d, 'status': 1})
 
 
