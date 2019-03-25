@@ -8,27 +8,22 @@ from ..util.http_run import RunCase
 from ..util.utils import change_cron, auto_num
 from ..util.email.SendEmail import SendEmail
 from ..util.report.report import render_html_report
-from ..util.global_variable import TEMP_REPORT
-import datetime
 
 
 def aps_test(project_name, case_ids, send_address=None, send_password=None, task_to_address=None):
     project_id = Project.query.filter_by(name=project_name).first().id
     d = RunCase(project_id)
-    jump_res = d.run_case(d.get_case_test(case_ids))
+    d.get_case_test(case_ids)
+    jump_res = d.run_case()
     d.build_report(jump_res, case_ids)
     res = json.loads(jump_res)
 
     if send_address:
         task_to_address = task_to_address.split(',')
-        file = render_html_report(res,
-                                  html_report_name='{}接口自动化测试报告'.format(
-                                      datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')),
-                                  html_report_template=r'{}/extent_report_template.html'.format(TEMP_REPORT),
-                                  data_or_report=False)
+        file = render_html_report(res)
         s = SendEmail(send_address, send_password, task_to_address, file)
         s.send_email()
-    return d
+    return d.new_report_id
 
 
 @api.route('/task/run', methods=['POST'])
@@ -52,9 +47,9 @@ def run_task():
             for case_data in Case.query.filter_by(case_set_id=set_id).order_by(Case.num.asc()).all():
                 case_ids.append(case_data.id)
     project_name = Project.query.filter_by(id=_data.project_id).first().name
-    result = aps_test(project_name, case_ids)
+    new_report_id = aps_test(project_name, case_ids)
 
-    return jsonify({'msg': '测试成功', 'status': 1, 'data': {'report_id': result.new_report_id}})
+    return jsonify({'msg': '测试成功', 'status': 1, 'data': {'report_id': new_report_id}})
 
 
 @api.route('/task/start', methods=['POST'])

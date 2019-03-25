@@ -183,7 +183,7 @@ class RunCase(object):
         :return:
         """
         scheduler.app.logger.info('本次测试的接口id：{}'.format(api_ids))
-        _steps = {'teststeps': [], 'config': {'variables': {}}}
+        _steps = {'teststeps': [], 'config': {'variables': {}}, 'output': ['phone']}
 
         if config_id:
             config_data = Config.query.filter_by(id=config_id).first()
