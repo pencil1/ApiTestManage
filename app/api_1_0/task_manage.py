@@ -10,8 +10,7 @@ from ..util.email.SendEmail import SendEmail
 from ..util.report.report import render_html_report
 
 
-def aps_test(project_name, case_ids, send_address=None, send_password=None, task_to_address=None):
-    project_id = Project.query.filter_by(name=project_name).first().id
+def aps_test(project_id, case_ids, send_address=None, send_password=None, task_to_address=None):
     d = RunCase(project_id)
     d.get_case_test(case_ids)
     jump_res = d.run_case()
@@ -26,6 +25,23 @@ def aps_test(project_name, case_ids, send_address=None, send_password=None, task
     return d.new_report_id
 
 
+def get_case_id(pro_id, set_id, case_id):
+    case_ids = []
+    if len(case_id) != 0:
+        case_ids += [i['id'] for i in case_id]
+    else:
+        if len(case_id) == 0 and len(set_id) != 0:
+            _set_ids = [i['id'] for i in set_id]
+        else:
+            _set_ids = [_set.id for _set in
+                        CaseSet.query.filter_by(project_id=pro_id).order_by(CaseSet.num.asc()).all()]
+
+        for set_id in _set_ids:
+            for case_data in Case.query.filter_by(case_set_id=set_id).order_by(Case.num.asc()).all():
+                case_ids.append(case_data.id)
+    return case_ids
+
+
 @api.route('/task/run', methods=['POST'])
 @login_required
 def run_task():
@@ -33,21 +49,8 @@ def run_task():
     data = request.json
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
-    case_ids = []
-    if len(json.loads(_data.case_id)) != 0:
-        case_ids += [i['id'] for i in json.loads(_data.case_id)]
-    else:
-        if len(json.loads(_data.case_id)) == 0 and len(json.loads(_data.set_id)) == 0:
-            project_id = Project.query.filter_by(name=_data.project_name).first().id
-            _set_ids = [_set.id for _set in
-                        CaseSet.query.filter_by(project_id=project_id).order_by(CaseSet.num.asc()).all()]
-        else:
-            _set_ids = [i['id'] for i in json.loads(_data.set_id)]
-        for set_id in _set_ids:
-            for case_data in Case.query.filter_by(case_set_id=set_id).order_by(Case.num.asc()).all():
-                case_ids.append(case_data.id)
-    project_name = Project.query.filter_by(id=_data.project_id).first().name
-    new_report_id = aps_test(project_name, case_ids)
+    cases_id = get_case_id(_data.project_id, json.loads(_data.set_id), json.loads(_data.case_id))
+    new_report_id = aps_test(_data.project_id, cases_id)
 
     return jsonify({'msg': '测试成功', 'status': 1, 'data': {'report_id': new_report_id}})
 
@@ -59,25 +62,10 @@ def start_task():
     data = request.json
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
-
     config_time = change_cron(_data.task_config_time)
-    case_ids = []
-    if len(json.loads(_data.case_id)) != 0:
-        case_ids += [i['id'] for i in json.loads(_data.case_id)]
-    else:
-        if len(json.loads(_data.case_id)) == 0 and len(json.loads(_data.set_id)) == 0:
-            project_id = Project.query.filter_by(name=_data.project_name).first().id
-            _set_ids = [_set.id for _set in
-                        CaseSet.query.filter_by(project_id=project_id).order_by(CaseSet.num.asc()).all()]
-        else:
-            _set_ids = [i['id'] for i in json.loads(_data.set_id)]
-        for set_id in _set_ids:
-            for case_data in Case.query.filter_by(case_set_id=set_id).order_by(Case.num.asc()).all():
-                case_ids.append(case_data.id)
-    # scheduler.add_job(str(ids), aps_test, trigger='cron', args=['asd'], **config_time)
-    project_name = Project.query.filter_by(id=_data.project_id).first().name
+    cases_id = get_case_id(_data.project_id, json.loads(_data.set_id), json.loads(_data.case_id))
     scheduler.add_job(func=aps_test, trigger='cron',
-                      args=[project_name, case_ids, _data.task_send_email_address, _data.email_password,
+                      args=[_data.project_id, cases_id, _data.task_send_email_address, _data.email_password,
                             _data.task_to_email_address],
                       id=str(ids), **config_time)  # 添加任务
     _data.status = '启动'
