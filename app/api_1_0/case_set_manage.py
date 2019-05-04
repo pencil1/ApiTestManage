@@ -8,7 +8,7 @@ from ..util.utils import *
 @api.route('/caseSet/add', methods=['POST'])
 @login_required
 def add_set():
-    """ 添加用例集合1 """
+    """ 添加用例集合 """
     data = request.json
     project_name = data.get('projectName')
     name = data.get('name')
