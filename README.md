@@ -24,7 +24,7 @@ python => 3
 
     export FLASK_APP=manage.py(linux)
 
-
+(注意：进行初始化之前，必须保证项目是可以启动的，就是能运行manage.py)
 然后创建管理员账号（账号：admin，密码：123456，项目根目录下执行）
 
     flask initdata
