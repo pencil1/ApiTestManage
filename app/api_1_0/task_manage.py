@@ -1,20 +1,21 @@
 import json
 from flask import jsonify, request
 from . import api
-from app.models import Project, Task, CaseSet, Case, db
+from app.models import Project, Task, CaseSet, Case, db, User
 from ..util.custom_decorator import login_required
 from app import scheduler
 from ..util.http_run import RunCase
 from ..util.utils import change_cron, auto_num
 from ..util.email.SendEmail import SendEmail
 from ..util.report.report import render_html_report
+from flask_login import current_user
 
 
-def aps_test(project_id, case_ids, send_address=None, send_password=None, task_to_address=None):
+def aps_test(project_id, case_ids, send_address=None, send_password=None, task_to_address=None, performer='无'):
     d = RunCase(project_id)
     d.get_case_test(case_ids)
     jump_res = d.run_case()
-    d.build_report(jump_res, case_ids)
+    d.build_report(jump_res, case_ids, performer)
     res = json.loads(jump_res)
 
     if send_address:
@@ -50,7 +51,7 @@ def run_task():
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
     cases_id = get_case_id(_data.project_id, json.loads(_data.set_id), json.loads(_data.case_id))
-    new_report_id = aps_test(_data.project_id, cases_id)
+    new_report_id = aps_test(_data.project_id, cases_id,performer=User.query.filter_by(id=current_user.id).first().name)
 
     return jsonify({'msg': '测试成功', 'status': 1, 'data': {'report_id': new_report_id}})
 
@@ -66,7 +67,7 @@ def start_task():
     cases_id = get_case_id(_data.project_id, json.loads(_data.set_id), json.loads(_data.case_id))
     scheduler.add_job(func=aps_test, trigger='cron',
                       args=[_data.project_id, cases_id, _data.task_send_email_address, _data.email_password,
-                            _data.task_to_email_address],
+                            _data.task_to_email_address, User.query.filter_by(id=current_user.id).first().name],
                       id=str(ids), **config_time)  # 添加任务
     _data.status = '启动'
     db.session.commit()

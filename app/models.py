@@ -217,6 +217,7 @@ class Report(db.Model):
     case_names = db.Column(db.String(128), nullable=True, comment='用例的名称集合')
     read_status = db.Column(db.String(16), nullable=True, comment='阅读状态')
     project_id = db.Column(db.String(16), nullable=True)
+    performer = db.Column(db.String(16), comment='执行者')
     create_time = db.Column(db.DateTime(), index=True, default=datetime.now)
 
 

@@ -6,6 +6,7 @@ from app.models import *
 from ..util.http_run import RunCase
 from ..util.global_variable import *
 from ..util.report.report import render_html_report
+from flask_login import current_user
 
 
 @api.route('/report/run', methods=['POST'])
@@ -26,7 +27,8 @@ def run_cases():
     jump_res = d.run_case()
 
     if data.get('reportStatus'):
-        d.build_report(jump_res, case_ids)
+        performer = User.query.filter_by(id=current_user.id).first().name
+        d.build_report(jump_res, case_ids, performer)
     res = json.loads(jump_res)
 
     return jsonify({'msg': '测试完成', 'status': 1, 'data': {'report_id': d.new_report_id, 'data': res}})
@@ -112,6 +114,7 @@ def find_report():
     report = pagination.items
     total = pagination.total
     report = [{'name': c.case_names, 'project_name': project_name, 'id': c.id, 'read_status': c.read_status,
+               'performer': c.performer,
                'create_time': str(c.create_time).split('.')[0]} for c in report]
 
     return jsonify({'data': report, 'total': total, 'status': 1})
