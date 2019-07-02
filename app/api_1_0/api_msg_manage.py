@@ -181,8 +181,9 @@ def find_api_msg():
              'extract': json.loads(c.extract),
              'validate': json.loads(c.validate),
              'param': json.loads(c.param),
+             'header': json.loads(c.header),
              'statusCase': {'extract': [True, True], 'variable': [True, True],
-                            'validate': [True, True], 'param': [True, True]},
+                            'validate': [True, True], 'param': [True, True], 'header': [True, True]},
              'status': True, 'case_name': c.name, 'down_func': c.down_func, 'up_func': c.up_func, 'time': 1}
             for c in api_data]
     return jsonify({'data': _api, 'total': total, 'status': 1})

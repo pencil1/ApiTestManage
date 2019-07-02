@@ -205,6 +205,8 @@ class CaseData(db.Model):
     status_extract = db.Column(db.String(64))
     validate = db.Column(db.String(2048))
     status_validate = db.Column(db.String(64))
+    header = db.Column(db.String(2048))
+    status_header = db.Column(db.String(64))
     case_id = db.Column(db.Integer, db.ForeignKey('case.id'))
     api_msg_id = db.Column(db.Integer, db.ForeignKey('api_msg.id'))
     created_time = db.Column(db.DateTime, index=True, default=datetime.now())

@@ -65,6 +65,7 @@ def add_case():
                 old_api_case.extract = json.dumps(c['extract'])
                 old_api_case.validate = json.dumps(c['validate'])
                 old_api_case.variable = json.dumps(c['variable'])
+                old_api_case.header = json.dumps(c['header'])
                 old_api_case.json_variable = c['json_variable']
                 old_api_case.param = json.dumps(c['param'])
                 old_api_case.time = c['time']
@@ -72,6 +73,7 @@ def add_case():
                 old_api_case.status_extract = json.dumps(c['statusCase']['extract'])
                 old_api_case.status_validate = json.dumps(c['statusCase']['validate'])
                 old_api_case.status_param = json.dumps(c['statusCase']['param'])
+                old_api_case.status_header = json.dumps(c['statusCase']['header'])
                 old_api_case.name = c['case_name']
                 old_api_case.status = json.dumps(c['status'])
                 old_api_case.up_func = c['up_func']
@@ -91,6 +93,8 @@ def add_case():
                                         status_extract=json.dumps(c['statusCase']['extract']),
                                         status_validate=json.dumps(c['statusCase']['validate']),
                                         status_param=json.dumps(c['statusCase']['param']),
+                                        header=json.dumps(c['header']),
+                                        status_header=json.dumps(c['statusCase']['header']),
                                         status=json.dumps(c['status']),
                                         name=c['case_name'], up_func=c['up_func'], down_func=c['down_func'])
                 db.session.add(new_api_case)
@@ -113,12 +117,15 @@ def add_case():
                                         variable=json.dumps(c['variable']),
                                         json_variable=c['json_variable'],
                                         extract=json.dumps(c['extract']),
-                                        param=json.dumps(c['param']), time=c['time'],
+                                        param=json.dumps(c['param']),
+                                        time=c['time'],
                                         validate=json.dumps(c['validate']), case_id=case_id, api_msg_id=c['apiMsgId'],
                                         status_variables=json.dumps(c['statusCase']['variable']),
                                         status_extract=json.dumps(c['statusCase']['extract']),
                                         status_validate=json.dumps(c['statusCase']['validate']),
                                         status_param=json.dumps(c['statusCase']['param']),
+                                        header=json.dumps(c['header']),
+                                        status_header=json.dumps(c['statusCase']['header']),
                                         status=json.dumps(c['status']),
                                         name=c['case_name'], up_func=c['up_func'], down_func=c['down_func'])
                 db.session.add(new_api_case)
@@ -211,10 +218,14 @@ def edit_case():
                           'param': json.loads(case.param),
                           'extract': json.loads(case.extract),
                           'validate': json.loads(case.validate),
+                          'header': json.loads(case.header),
                           'statusCase': {'variable': json.loads(case.status_variables),
                                          'extract': json.loads(case.status_extract),
                                          'validate': json.loads(case.status_validate),
-                                         'param': json.loads(case.status_param)}, })
+                                         'param': json.loads(case.status_param),
+                                         'header': json.loads(case.status_header),
+                                         },
+                          })
     _data2 = {'num': _data.num, 'name': _data.name, 'desc': _data.desc, 'cases': case_data, 'setId': _data.case_set_id,
               'func_address': json.loads(_data.func_address), 'times': _data.times}
     if _data.variable:
