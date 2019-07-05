@@ -6,15 +6,15 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
 from email.mime.application import MIMEApplication
-from .mail_config import EMAIL_PORT, EMAIL_SERVICE
+from .mail_config import EMAIL_PORT, EMAIL_SERVICE, EMAIL_USER, EMAIL_PWD
 
 
 class SendEmail(object):
     def __init__(self, username, password, to_list, file):
         self.Email_service = EMAIL_SERVICE
         self.Email_port = EMAIL_PORT
-        self.username = username
-        self.password = password
+        self.username = EMAIL_USER
+        self.password = EMAIL_PWD
         self.to_list = to_list
         self.file = file
 
@@ -36,7 +36,7 @@ class SendEmail(object):
 
         try:
             service = smtplib.SMTP()
-            service.connect(self.Email_service, 25)  # 25 为 SMTP 端口号
+            service.connect(self.Email_service, self.Email_port)  # 25 为 SMTP 端口号
             service.starttls()
             service.login(self.username, self.password)
             service.sendmail(self.username, self.to_list, message.as_string())
