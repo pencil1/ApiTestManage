@@ -113,8 +113,8 @@ def add_task():
             old_task_data.task_name = name
             old_task_data.task_type = task_type
             old_task_data.task_to_email_address = to_email
-            old_task_data.task_send_email_address = send_email
-            old_task_data.email_password = password
+            #old_task_data.task_send_email_address = send_email
+            #old_task_data.email_password = password
             old_task_data.num = num
             if old_task_data.status != '创建' and old_task_data.task_config_time != time_config:
                 scheduler.reschedule_job(str(task_id), trigger='cron', **change_cron(time_config))  # 修改任务
@@ -132,10 +132,8 @@ def add_task():
                             project_id=project_id,
                             set_id=json.dumps(set_ids),
                             case_id=json.dumps(case_ids),
-                            email_password=password,
                             task_type=task_type,
                             task_to_email_address=to_email,
-                            task_send_email_address=send_email,
                             task_config_time=time_config,
                             num=num)
             db.session.add(new_task)
