@@ -11,20 +11,18 @@ from ..util.report.report import render_html_report
 from flask_login import current_user
 
 
-def aps_test(project_id, case_ids, send_address=None, send_password=None, task_to_address=None, performer='无'):
+def aps_test(project_id, case_ids, task_to_address=None, performer='无'):
     d = RunCase(project_id)
     d.get_case_test(case_ids)
     jump_res = d.run_case()
     d.build_report(jump_res, case_ids, performer)
     res = json.loads(jump_res)
-    scheduler.app.logger.info("发送邮件:"+str(send_address))
-    scheduler.app.logger.info("task_to_address:"+str(task_to_address))
 
-    if send_address:
-        task_to_address = task_to_address.split(',')
-        file = render_html_report(res)
-        s = SendEmail(send_address, send_password, task_to_address, file)
-        s.send_email()
+    scheduler.app.logger.info("task_to_address:" + str(task_to_address))
+    task_to_address = task_to_address.split(',')
+    file = render_html_report(res)
+    s = SendEmail(task_to_address, file)
+    s.send_email()
     return d.new_report_id
 
 
@@ -53,7 +51,8 @@ def run_task():
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
     cases_id = get_case_id(_data.project_id, json.loads(_data.set_id), json.loads(_data.case_id))
-    new_report_id = aps_test(_data.project_id, cases_id,performer=User.query.filter_by(id=current_user.id).first().name)
+    new_report_id = aps_test(_data.project_id, cases_id,
+                             performer=User.query.filter_by(id=current_user.id).first().name)
 
     return jsonify({'msg': '测试成功', 'status': 1, 'data': {'report_id': new_report_id}})
 
@@ -68,7 +67,7 @@ def start_task():
     config_time = change_cron(_data.task_config_time)
     cases_id = get_case_id(_data.project_id, json.loads(_data.set_id), json.loads(_data.case_id))
     scheduler.add_job(func=aps_test, trigger='cron',
-                      args=[_data.project_id, cases_id, _data.task_send_email_address, _data.email_password,
+                      args=[_data.project_id, cases_id,
                             _data.task_to_email_address, User.query.filter_by(id=current_user.id).first().name],
                       id=str(ids), **config_time)  # 添加任务
     _data.status = '启动'
@@ -93,11 +92,11 @@ def add_task():
     name = data.get('name')
     task_type = 'cron'
     to_email = data.get('toEmail')
-    send_email = data.get('sendEmail')
-    password = data.get('password')
+    #send_email = data.get('sendEmail')
+    #password = data.get('password')
     # 0 0 1 * * *
-    if not (not to_email and not send_email and not password) and not (to_email and send_email and password):
-        return jsonify({'msg': '发件人、收件人、密码3个必须都为空，或者都必须有值', 'status': 0})
+    if not (not to_email ) and not (to_email):
+        return jsonify({'msg': '发件人必须有值', 'status': 0})
 
     time_config = data.get('timeConfig')
     if len(time_config.strip().split(' ')) != 6:

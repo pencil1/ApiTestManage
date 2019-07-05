@@ -10,7 +10,7 @@ from .mail_config import EMAIL_PORT, EMAIL_SERVICE, EMAIL_USER, EMAIL_PWD
 
 
 class SendEmail(object):
-    def __init__(self, username, password, to_list, file):
+    def __init__(self, to_list, file):
         self.Email_service = EMAIL_SERVICE
         self.Email_port = EMAIL_PORT
         self.username = EMAIL_USER
@@ -20,7 +20,6 @@ class SendEmail(object):
 
     def send_email(self):
         # 第三方 SMTP 服务
-
         message = MIMEMultipart()
         part = MIMEText('Dear all:\n       附件为接口自动化测试报告，此为自动发送邮件，请勿回复，谢谢！', 'plain', 'utf-8')
         message.attach(part)
