@@ -35,7 +35,7 @@ class SendEmail(object):
 
         try:
             service = smtplib.SMTP()
-            service.connect(self.Email_service, 25)  # 25 为 SMTP 端口号
+            service.connect(self.Email_service, '465')  # 25 为 SMTP 端口号
             service.starttls()
             service.login(self.username, self.password)
             service.sendmail(self.username, self.to_list, message.as_string())
