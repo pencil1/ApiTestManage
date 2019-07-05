@@ -17,6 +17,8 @@ def aps_test(project_id, case_ids, send_address=None, send_password=None, task_t
     jump_res = d.run_case()
     d.build_report(jump_res, case_ids, performer)
     res = json.loads(jump_res)
+    scheduler.app.logger.info("发送邮件:"+send_address)
+    scheduler.app.logger.info("task_to_address:"+task_to_address)
 
     if send_address:
         task_to_address = task_to_address.split(',')
