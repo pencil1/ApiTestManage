@@ -34,9 +34,10 @@ class SendEmail(object):
         message.attach(att1)
 
         try:
-            service = smtplib.SMTP()
-            service.connect(self.Email_service, '465')  # 25 为 SMTP 端口号
-            service.starttls()
+            #service = smtplib.SMTP()
+            #service.connect(self.Email_service, 465)  # 25 为 SMTP 端口号
+            #service.starttls()
+            service = smtplib.SMTP_SSL(self.Email_service, 465)
             service.login(self.username, self.password)
             service.sendmail(self.username, self.to_list, message.as_string())
             print('邮件发送成功')
