@@ -78,8 +78,8 @@ class RunCase(object):
                              'files': {},
                              'data': {}}}
 
-        _data['request']['headers'] = {h['key']: h['value'] for h in json.loads(api_data.header)
-                                       if h['key']} if json.loads(api_data.header) else {}
+        # _data['request']['headers'] = {h['key']: h['value'] for h in json.loads(api_data.header)
+        #                                if h['key']} if json.loads(api_data.header) else {}
 
         if api_data.status_url != '-1':
             _data['request']['url'] = pro_base_url['{}'.format(api_data.project_id)][
@@ -130,15 +130,27 @@ class RunCase(object):
             else:
                 _validate = None
 
+            if json.loads(step_data.status_header)[0]:
+                if json.loads(step_data.status_header)[1]:
+                    _header = json.loads(step_data.header)
+                else:
+                    _header = json.loads(api_data.header)
+            else:
+                _header = None
+
         else:
             _param = json.loads(api_data.param)
             _json_variables = api_data.json_variable
             _variables = json.loads(api_data.variable)
+            _header = json.loads(api_data.header)
             _extract = api_data.extract
             _validate = api_data.validate
 
         _data['request']['params'] = {param['key']: param['value'].replace('%', '&') for param in
                                       _param if param.get('key')} if _param else {}
+
+        _data['request']['headers'] = {headers['key']: headers['value'].replace('%', '&') for headers in
+                                       _header if headers.get('key')} if _header else {}
 
         _data['extract'] = [{ext['key']: ext['value']} for ext in json.loads(_extract) if
                             ext.get('key')] if _extract else []
