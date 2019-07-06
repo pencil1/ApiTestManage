@@ -6,6 +6,7 @@ from app.models import *
 from ..util.http_run import RunCase
 from ..util.global_variable import *
 from ..util.report.report import render_html_report
+from flask_login import current_user
 
 
 @api.route('/report/run', methods=['POST'])
@@ -26,7 +27,8 @@ def run_cases():
     jump_res = d.run_case()
 
     if data.get('reportStatus'):
-        d.build_report(jump_res, case_ids)
+        performer = User.query.filter_by(id=current_user.id).first().name
+        d.build_report(jump_res, case_ids, performer)
     res = json.loads(jump_res)
 
     return jsonify({'msg': '测试完成', 'status': 1, 'data': {'report_id': d.new_report_id, 'data': res}})
@@ -74,14 +76,10 @@ def download_report():
     """ 报告下载 """
     data = request.json
     report_id = data.get('reportId')
-    data_or_report = data.get('dataOrReport')
     _address = REPORT_ADDRESS + str(report_id) + '.txt'
     with open(_address, 'r') as f:
         res = json.loads(f.read())
-    d = render_html_report(res,
-                           html_report_name='接口自动化测试报告',
-                           html_report_template=r'{}/extent_report_template.html'.format(TEMP_REPORT),
-                           data_or_report=data_or_report)
+    d = render_html_report(res)
     return jsonify({'data': d, 'status': 1})
 
 
@@ -116,6 +114,7 @@ def find_report():
     report = pagination.items
     total = pagination.total
     report = [{'name': c.case_names, 'project_name': project_name, 'id': c.id, 'read_status': c.read_status,
+               'performer': c.performer,
                'create_time': str(c.create_time).split('.')[0]} for c in report]
 
     return jsonify({'data': report, 'total': total, 'status': 1})

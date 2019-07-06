@@ -1,26 +1,12 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-import os
+
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
 from email.mime.application import MIMEApplication
 from .mail_config import EMAIL_PORT, EMAIL_SERVICE
-
-
-class CheckPath(object):
-    def __init__(self, file):
-        self.file = file
-        # 获取工程目录
-
-    def read_superior_path(self):
-        path = os.getcwd()
-        parent_path = os.path.dirname(path)
-        path_data_conf = parent_path + self.file
-        if not (os.path.exists(path_data_conf)):
-            log.error("请检查是否存在 : {}".format(path_data_conf))
-        return path_data_conf
 
 
 class SendEmail(object):
@@ -44,7 +30,7 @@ class SendEmail(object):
         message['Subject'] = Header(subject, 'utf-8')
 
         # 添加附件
-        att1 = MIMEApplication(open(self.file, 'rb').read())
+        att1 = MIMEApplication(self.file)
         att1.add_header('Content-Disposition', 'attachment', filename=('gbk', '', '接口测试报告.html'))
         message.attach(att1)
 

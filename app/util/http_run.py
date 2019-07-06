@@ -45,6 +45,11 @@ class RunCase(object):
             self.extract_func([project_data.func_file.replace('.py', '')])
 
     def extract_func(self, func_list):
+        """
+        提取函数文件中的函数
+        :param func_list: 函数文件地址list
+        :return:
+        """
         for f in func_list:
             func_list = importlib.reload(importlib.import_module('func_list.{}'.format(f)))
             module_functions_dict = {name: item for name, item in vars(func_list).items()
@@ -171,8 +176,14 @@ class RunCase(object):
         return _data
 
     def get_api_test(self, api_ids, config_id):
+        """
+        接口调试时，用到的方法
+        :param api_ids: 接口id列表
+        :param config_id: 配置id
+        :return:
+        """
         scheduler.app.logger.info('本次测试的接口id：{}'.format(api_ids))
-        _steps = {'teststeps': [], 'config': {'variables': {}}}
+        _steps = {'teststeps': [], 'config': {'variables': {}}, 'output': ['phone']}
 
         if config_id:
             config_data = Config.query.filter_by(id=config_id).first()
@@ -184,6 +195,11 @@ class RunCase(object):
         self.TEST_DATA['testcases'].append(_steps)
 
     def get_case_test(self, case_ids):
+        """
+        用例调试时，用到的方法
+        :param case_ids: 用例id列表
+        :return:
+        """
         scheduler.app.logger.info('本次测试的用例id：{}'.format(case_ids))
 
         for case_id in case_ids:
@@ -193,23 +209,22 @@ class RunCase(object):
                 _steps = {'teststeps': [], 'config': {'variables': {}, 'name': ''}}
                 _steps['config']['name'] = case_data.name
 
-                # 获取业务集合的配置数据
+                # 获取用例的配置数据
                 _config = json.loads(case_data.variable) if case_data.variable else []
                 _steps['config']['variables'].update({v['key']: v['value'] for v in _config if v['key']})
 
-                # # 获取需要导入的函数
                 self.extract_func(['{}'.format(f.replace('.py', '')) for f in json.loads(case_data.func_address)])
 
                 for _step in CaseData.query.filter_by(case_id=case_id).order_by(CaseData.num.asc()).all():
-                    if _step.status == 'true':  # 判断用例状态，是否执行
+                    if _step.status == 'true':  # 判断步骤状态，是否执行
                         _steps['teststeps'].append(self.assemble_step(None, _step, self.pro_base_url, True))
                 self.TEST_DATA['testcases'].append(_steps)
 
-    def build_report(self, jump_res, case_ids):
-        # if self.run_type and self.make_report:
+    def build_report(self, jump_res, case_ids, performer='无'):
+
         new_report = Report(
             case_names=','.join([Case.query.filter_by(id=scene_id).first().name for scene_id in case_ids]),
-            project_id=self.project_ids, read_status='待阅')
+            project_id=self.project_ids, read_status='待阅', performer=performer)
         db.session.add(new_report)
         db.session.commit()
 

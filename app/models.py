@@ -56,7 +56,7 @@ class User(UserMixin, db.Model):
     status = db.Column(db.Integer, comment='状态，1为启用，2为冻结')
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'), comment='所属的角色id')
     role = db.relationship('Role', back_populates='users')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now())
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now)
     update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
     @staticmethod
@@ -106,11 +106,11 @@ class Project(db.Model):
     principal = db.Column(db.String(16), nullable=True)
     variables = db.Column(db.String(2048), comment='项目的公共变量')
     headers = db.Column(db.String(1024), comment='项目的公共头部信息')
-    func_file = db.Column(db.String(64), nullable=True, unique=True, comment='函数文件')
+    func_file = db.Column(db.String(64), comment='函数文件')
     modules = db.relationship('Module', order_by='Module.num.asc()', lazy='dynamic')
     configs = db.relationship('Config', order_by='Config.num.asc()', lazy='dynamic')
     case_sets = db.relationship('CaseSet', order_by='CaseSet.num.asc()', lazy='dynamic')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
     update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
@@ -121,7 +121,7 @@ class Module(db.Model):
     num = db.Column(db.Integer(), nullable=True, comment='模块序号')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
     api_msg = db.relationship('ApiMsg', order_by='ApiMsg.num.asc()', lazy='dynamic')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
     update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
@@ -133,7 +133,7 @@ class Config(db.Model):
     variables = db.Column(db.String(21000), comment='配置参数')
     func_address = db.Column(db.String(128), comment='配置函数')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
     update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
@@ -144,7 +144,7 @@ class CaseSet(db.Model):
     name = db.Column(db.String(256), nullable=True, comment='用例集名称')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
     cases = db.relationship('Case', order_by='Case.num.asc()', lazy='dynamic')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
     update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
@@ -159,7 +159,7 @@ class Case(db.Model):
     times = db.Column(db.Integer(), nullable=True, comment='执行次数')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
     case_set_id = db.Column(db.Integer, db.ForeignKey('case_set.id'), comment='所属的用例集id')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
     update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
@@ -183,7 +183,7 @@ class ApiMsg(db.Model):
     header = db.Column(db.String(2048), comment='头部信息')
     module_id = db.Column(db.Integer, db.ForeignKey('module.id'), comment='所属的接口模块id')
     project_id = db.Column(db.Integer, nullable=True, comment='所属的项目id')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now())
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now)
     update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
@@ -209,7 +209,7 @@ class CaseData(db.Model):
     status_header = db.Column(db.String(64))
     case_id = db.Column(db.Integer, db.ForeignKey('case.id'))
     api_msg_id = db.Column(db.Integer, db.ForeignKey('api_msg.id'))
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now())
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now)
     update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
@@ -219,7 +219,8 @@ class Report(db.Model):
     case_names = db.Column(db.String(128), nullable=True, comment='用例的名称集合')
     read_status = db.Column(db.String(16), nullable=True, comment='阅读状态')
     project_id = db.Column(db.String(16), nullable=True)
-    create_time = db.Column(db.DateTime(), index=True, default=datetime.now())
+    performer = db.Column(db.String(16), comment='执行者')
+    create_time = db.Column(db.DateTime(), index=True, default=datetime.now)
 
 
 class Task(db.Model):
@@ -236,7 +237,7 @@ class Task(db.Model):
     email_password = db.Column(db.String(256), comment='发件人邮箱密码')
     status = db.Column(db.String(16), default=u'创建', comment='任务的运行状态，默认是创建')
     project_id = db.Column(db.String(16), nullable=True)
-    created_time = db.Column(db.DateTime(), default=datetime.now(), comment='任务的创建时间')
+    created_time = db.Column(db.DateTime(), default=datetime.now, comment='任务的创建时间')
     update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
