@@ -10,8 +10,8 @@ from .mail_config import EMAIL_PORT, EMAIL_SERVICE, EMAIL_USER, EMAIL_PWD
 import base64
 
 
-
 class SendEmail(object):
+
     def __init__(self, to_list, file):
         self.Email_service = EMAIL_SERVICE
         self.Email_port = EMAIL_PORT
@@ -20,34 +20,33 @@ class SendEmail(object):
         self.to_list = to_list
         self.file = file
 
-    def dd_b64( headstr):
+    def b64(headstr):
         """对邮件header及附件的文件名进行两次base64编码，防止outlook中乱码。email库源码中先对邮件进行一次base64解码然后组装邮件，所以两次编码"""
         headstr = '=?utf-8?b?' + base64.b64encode(headstr.encode('UTF-8')).decode() + '?='
         headstr = '=?utf-8?b?' + base64.b64encode(headstr.encode('UTF-8')).decode() + '?='
         return headstr
-
 
     def send_email(self):
         # 第三方 SMTP 服务
         message = MIMEMultipart()
         part = MIMEText('Dear all:\n       附件为接口自动化测试报告，此为自动发送邮件，请勿回复，谢谢！', 'plain', 'utf-8')
         message.attach(part)
-        message['From'] = Header(dd_b64("测试组"), dd_b64('utf-8'))
+        message['From'] = Header(self.b64("测试组"), self.b64('utf-8'))
         message['To'] = Header(''.join(self.to_list), 'utf-8')
         subject = '接口测试邮件'
-        message['Subject'] = Header(subject, 'utf-8')
+        message['Subject'] = Header(self.b64(subject), 'utf-8')
 
         # 添加附件
         att1 = MIMEApplication(self.file)
-        att1.add_header('Content-Disposition', 'attachment', filename=('gbk', '', dd_b64('接口测试报告.html')))
+        att1.add_header('Content-Disposition', 'attachment', filename=('gbk', '', self.b64('接口测试报告.html')))
         att1.add_header("Content-Type", 'application/octet-stream')
 
         message.attach(att1)
 
         try:
-            #service = smtplib.SMTP()
-            #service.connect(self.Email_service, 465)  # 25 为 SMTP 端口号
-            #service.starttls()
+            # service = smtplib.SMTP()
+            # service.connect(self.Email_service, 465)  # 25 为 SMTP 端口号
+            # service.starttls()
             service = smtplib.SMTP_SSL(self.Email_service, 465)
             service.login(self.username, self.password)
             service.sendmail(self.username, self.to_list, message.as_string())
