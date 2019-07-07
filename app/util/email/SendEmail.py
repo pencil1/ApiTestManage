@@ -23,14 +23,16 @@ class SendEmail(object):
         message = MIMEMultipart()
         part = MIMEText('Dear all:\n       附件为接口自动化测试报告，此为自动发送邮件，请勿回复，谢谢！', 'plain', 'utf-8')
         message.attach(part)
-        message['From'] = Header("测试组", 'plain', 'utf-8')
+        message['From'] = Header("测试组", 'utf-8')
         message['To'] = Header(''.join(self.to_list), 'utf-8')
         subject = '接口测试邮件'
         message['Subject'] = Header(subject, 'utf-8')
 
         # 添加附件
         att1 = MIMEApplication(self.file)
-        att1.add_header('Content-Disposition', 'attachment', filename=('utf-8', '', '接口测试报告.html'))
+        att1.add_header('Content-Disposition', 'attachment', filename=('gbk', '', '接口测试报告.html'))
+        att1.add_header("Content-Type", 'application/octet-stream')
+
         message.attach(att1)
 
         try:
