@@ -2,15 +2,18 @@
 # -*- coding: UTF-8 -*-
 
 import smtplib
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
 from email.mime.application import MIMEApplication
 from .mail_config import EMAIL_PORT, EMAIL_SERVICE, EMAIL_USER, EMAIL_PWD
 import base64
+from email import encoders
 
 
 class SendEmail(object):
+    _attachments = []
 
     def __init__(self, to_list, file):
         self.Email_service = EMAIL_SERVICE
@@ -27,6 +30,16 @@ class SendEmail(object):
         headstr = '=?utf-8?b?' + base64.b64encode(headstr.encode('UTF-8')).decode() + '?='
         return headstr
 
+    def add_attachment(self):
+        '''
+            添加附件
+        '''
+        att = MIMEBase('application', 'octet-stream')
+        att.set_payload(self.file)
+        att.add_header('Content-Disposition', 'attachment', filename=('gbk', '', "接口测试报告.html"))
+        encoders.encode_base64(att)
+        self._attachments.append(att)
+
     def send_email(self):
         # 第三方 SMTP 服务
         message = MIMEMultipart()
@@ -38,11 +51,10 @@ class SendEmail(object):
         message['Subject'] = Header(subject, 'utf-8')
 
         # 添加附件
-        att1 = MIMEApplication(self.file,'base64', 'utf-8')
-        att1.add_header('Content-Disposition', 'attachment', filename=('gbk', '', '接口测试报告.html'))
-        att1.add_header("Content-Type", 'application/octet-stream')
-
-        message.attach(att1)
+        #att1 = MIMEApplication(self.file,'base64', 'utf-8')
+        #att1.add_header('Content-Disposition', 'attachment', filename=('gbk', '', '接口测试报告.html'))
+        self.add_attachment()
+        message.attach(self._attachments[0])
 
         try:
             # service = smtplib.SMTP()
