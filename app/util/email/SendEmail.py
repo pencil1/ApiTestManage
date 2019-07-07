@@ -19,6 +19,7 @@ class SendEmail(object):
         self.password = EMAIL_PWD
         self.to_list = to_list
         self.file = file
+        print(file)
 
     def b64(self, headstr):
         """对邮件header及附件的文件名进行两次base64编码，防止outlook中乱码。email库源码中先对邮件进行一次base64解码然后组装邮件，所以两次编码"""
@@ -31,14 +32,14 @@ class SendEmail(object):
         message = MIMEMultipart()
         part = MIMEText('Dear all:\n       附件为接口自动化测试报告，此为自动发送邮件，请勿回复，谢谢！', 'plain', 'utf-8')
         message.attach(part)
-        message['From'] = Header(self.b64("测试组"), self.b64('utf-8'))
+        message['From'] = Header("测试组", 'utf-8')
         message['To'] = Header(''.join(self.to_list), 'utf-8')
         subject = '接口测试邮件'
-        message['Subject'] = Header(self.b64(subject), 'utf-8')
+        message['Subject'] = Header(subject, 'utf-8')
 
         # 添加附件
-        att1 = MIMEApplication(self.file)
-        att1.add_header('Content-Disposition', 'attachment', filename=('gbk', '', self.b64('接口测试报告.html')))
+        att1 = MIMEApplication(self.file,'base64', 'utf-8')
+        att1.add_header('Content-Disposition', 'attachment', filename=('gbk', '', '接口测试报告.html'))
         att1.add_header("Content-Type", 'application/octet-stream')
 
         message.attach(att1)
