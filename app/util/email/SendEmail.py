@@ -30,7 +30,7 @@ class SendEmail(object):
 
         # 添加附件
         att1 = MIMEApplication(self.file)
-        att1.add_header('Content-Disposition', 'attachment', filename=('gbk', '', '接口测试报告.html'))
+        att1.add_header('Content-Disposition', 'attachment', filename=('utf-8', '', '接口测试报告.html'))
         message.attach(att1)
 
         try:
