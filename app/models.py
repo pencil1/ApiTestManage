@@ -159,6 +159,7 @@ class Case(db.Model):
     times = db.Column(db.Integer(), nullable=True, comment='执行次数')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
     case_set_id = db.Column(db.Integer, db.ForeignKey('case_set.id'), comment='所属的用例集id')
+    environment = db.Column(db.Integer(), comment='环境类型')
     created_time = db.Column(db.DateTime, index=True, default=datetime.now(), comment='创建时间')
     update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 

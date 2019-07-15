@@ -15,7 +15,8 @@ import datetime
 def aps_test(project_name, case_ids, send_address=None, send_password=None, task_to_address=None):
     project_id = Project.query.filter_by(name=project_name).first().id
     d = RunCase(project_id)
-    jump_res = d.run_case(d.get_case_test(case_ids))
+    d.get_case_test(case_ids)
+    jump_res = d.run_case()
     d.build_report(jump_res, case_ids)
     res = json.loads(jump_res)
 

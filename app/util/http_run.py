@@ -13,24 +13,26 @@ from flask.json import JSONEncoder
 class RunCase(object):
     def __init__(self, project_ids=None):
         self.project_ids = project_ids
-        self.pro_config_data = None
+        self.pro_environment = None
         self.pro_base_url = None
         self.new_report_id = None
         self.TEST_DATA = {'testcases': [], 'project_mapping': {'functions': {}, 'variables': {}}}
         self.init_project_data()
 
     def init_project_data(self):
-        pro_base_url = {}
-        for pro_data in Project.query.all():
-            if pro_data.environment_choice == 'first':
-                pro_base_url['{}'.format(pro_data.id)] = json.loads(pro_data.host)
-            elif pro_data.environment_choice == 'second':
-                pro_base_url['{}'.format(pro_data.id)] = json.loads(pro_data.host_two)
-            if pro_data.environment_choice == 'third':
-                pro_base_url['{}'.format(pro_data.id)] = json.loads(pro_data.host_three)
-            if pro_data.environment_choice == 'fourth':
-                pro_base_url['{}'.format(pro_data.id)] = json.loads(pro_data.host_four)
-        self.pro_base_url = pro_base_url
+        pro_data = Project.query.filter_by(id=self.project_ids).first()
+        self.pro_base_url = [json.loads(pro_data.host), json.loads(pro_data.host_two), json.loads(pro_data.host_three),
+                             json.loads(pro_data.host_four)]
+        # for pro_data in Project.query.all():
+        if pro_data.environment_choice == 'first':
+            self.pro_environment = json.loads(pro_data.host)
+        elif pro_data.environment_choice == 'second':
+            self.pro_environment = json.loads(pro_data.host_two)
+        if pro_data.environment_choice == 'third':
+            self.pro_environment = json.loads(pro_data.host_three)
+        if pro_data.environment_choice == 'fourth':
+            self.pro_environment = json.loads(pro_data.host_four)
+        # self.pro_base_url = pro_base_url
         self.pro_config(Project.query.filter_by(id=self.project_ids).first())
 
     def pro_config(self, project_data):
@@ -77,8 +79,7 @@ class RunCase(object):
                                        if h['key']} if json.loads(api_data.header) else {}
 
         if api_data.status_url != '-1':
-            _data['request']['url'] = pro_base_url['{}'.format(api_data.project_id)][
-                                          int(api_data.status_url)] + api_data.url.split('?')[0]
+            _data['request']['url'] = pro_base_url[int(api_data.status_url)] + api_data.url.split('?')[0]
         else:
             _data['request']['url'] = api_data.url
 
@@ -180,15 +181,18 @@ class RunCase(object):
             _steps['config']['variables'].update({v['key']: v['value'] for v in _config if v['key']})
             self.extract_func(['{}'.format(f.replace('.py', '')) for f in json.loads(config_data.func_address)])
 
-        _steps['teststeps'] = [self.assemble_step(api_id, None, self.pro_base_url, False) for api_id in api_ids]
+        _steps['teststeps'] = [self.assemble_step(api_id, None, self.pro_environment, False) for api_id in api_ids]
         self.TEST_DATA['testcases'].append(_steps)
 
     def get_case_test(self, case_ids):
         scheduler.app.logger.info('本次测试的用例id：{}'.format(case_ids))
-
         for case_id in case_ids:
             case_data = Case.query.filter_by(id=case_id).first()
             case_times = case_data.times if case_data.times else 1
+            if case_data.environment == -1 or case_data.environment == None:
+                url_environment = self.pro_environment
+            else:
+                url_environment = self.pro_base_url[case_data.environment]
             for s in range(case_times):
                 _steps = {'teststeps': [], 'config': {'variables': {}, 'name': ''}}
                 _steps['config']['name'] = case_data.name
@@ -202,7 +206,7 @@ class RunCase(object):
 
                 for _step in CaseData.query.filter_by(case_id=case_id).order_by(CaseData.num.asc()).all():
                     if _step.status == 'true':  # 判断用例状态，是否执行
-                        _steps['teststeps'].append(self.assemble_step(None, _step, self.pro_base_url, True))
+                        _steps['teststeps'].append(self.assemble_step(None, _step, url_environment, True))
                 self.TEST_DATA['testcases'].append(_steps)
 
     def build_report(self, jump_res, case_ids):
