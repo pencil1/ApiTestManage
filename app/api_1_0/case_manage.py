@@ -23,6 +23,8 @@ def add_case():
     project_id = project_data.id
     variable = data.get('variable')
     api_cases = data.get('apiCases')
+    environment = data.get('environment')
+
     merge_variable = json.dumps(json.loads(variable) + json.loads(project_data.variables))
     _temp_check = extract_variables(convert(json.loads(merge_variable)))
     if not case_set_id:
@@ -54,6 +56,7 @@ def add_case():
             old_data.times = times
             old_data.project_id = project_id
             old_data.desc = desc
+            old_data.environment = environment
             old_data.case_set_id = case_set_id
             old_data.func_address = func_address
             old_data.variable = variable
@@ -108,7 +111,7 @@ def add_case():
         else:
 
             new_case = Case(num=num, name=name, desc=desc, project_id=project_id, variable=variable,
-                            func_address=func_address, case_set_id=case_set_id, times=times)
+                            func_address=func_address, case_set_id=case_set_id, times=times, environment=environment)
             db.session.add(new_case)
             db.session.commit()
             case_id = new_case.id
@@ -155,7 +158,8 @@ def find_case():
         pagination = cases.order_by(Case.num.asc()).paginate(page, per_page=per_page, error_out=False)
         cases = pagination.items
         total = pagination.total
-    cases = [{'num': c.num, 'name': c.name, 'label': c.name, 'leaf': True, 'desc': c.desc, 'sceneId': c.id}
+    cases = [{'num': c.num, 'name': c.name, 'label': c.name, 'leaf': True, 'desc': c.desc, 'sceneId': c.id,
+              }
              for c in cases]
     return jsonify({'data': cases, 'total': total, 'status': 1})
 
@@ -227,7 +231,7 @@ def edit_case():
                                          },
                           })
     _data2 = {'num': _data.num, 'name': _data.name, 'desc': _data.desc, 'cases': case_data, 'setId': _data.case_set_id,
-              'func_address': json.loads(_data.func_address), 'times': _data.times}
+              'func_address': json.loads(_data.func_address), 'times': _data.times, 'environment': _data.environment}
     if _data.variable:
         _data2['variable'] = json.loads(_data.variable)
     else:

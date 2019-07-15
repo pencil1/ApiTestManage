@@ -13,24 +13,26 @@ from flask.json import JSONEncoder
 class RunCase(object):
     def __init__(self, project_ids=None):
         self.project_ids = project_ids
-        self.pro_config_data = None
+        self.pro_environment = None
         self.pro_base_url = None
         self.new_report_id = None
         self.TEST_DATA = {'testcases': [], 'project_mapping': {'functions': {}, 'variables': {}}}
         self.init_project_data()
 
     def init_project_data(self):
-        pro_base_url = {}
-        for pro_data in Project.query.all():
-            if pro_data.environment_choice == 'first':
-                pro_base_url['{}'.format(pro_data.id)] = json.loads(pro_data.host)
-            elif pro_data.environment_choice == 'second':
-                pro_base_url['{}'.format(pro_data.id)] = json.loads(pro_data.host_two)
-            if pro_data.environment_choice == 'third':
-                pro_base_url['{}'.format(pro_data.id)] = json.loads(pro_data.host_three)
-            if pro_data.environment_choice == 'fourth':
-                pro_base_url['{}'.format(pro_data.id)] = json.loads(pro_data.host_four)
-        self.pro_base_url = pro_base_url
+        pro_data = Project.query.filter_by(id=self.project_ids).first()
+        self.pro_base_url = [json.loads(pro_data.host), json.loads(pro_data.host_two), json.loads(pro_data.host_three),
+                             json.loads(pro_data.host_four)]
+        # for pro_data in Project.query.all():
+        if pro_data.environment_choice == 'first':
+            self.pro_environment = json.loads(pro_data.host)
+        elif pro_data.environment_choice == 'second':
+            self.pro_environment = json.loads(pro_data.host_two)
+        if pro_data.environment_choice == 'third':
+            self.pro_environment = json.loads(pro_data.host_three)
+        if pro_data.environment_choice == 'fourth':
+            self.pro_environment = json.loads(pro_data.host_four)
+        # self.pro_base_url = pro_base_url
         self.pro_config(Project.query.filter_by(id=self.project_ids).first())
 
     def pro_config(self, project_data):
@@ -45,11 +47,6 @@ class RunCase(object):
             self.extract_func([project_data.func_file.replace('.py', '')])
 
     def extract_func(self, func_list):
-        """
-        提取函数文件中的函数
-        :param func_list: 函数文件地址list
-        :return:
-        """
         for f in func_list:
             func_list = importlib.reload(importlib.import_module('func_list.{}'.format(f)))
             module_functions_dict = {name: item for name, item in vars(func_list).items()
@@ -82,8 +79,7 @@ class RunCase(object):
                                        if h['key']} if json.loads(api_data.header) else {}
 
         if api_data.status_url != '-1':
-            _data['request']['url'] = pro_base_url['{}'.format(api_data.project_id)][
-                                          int(api_data.status_url)] + api_data.url.split('?')[0]
+            _data['request']['url'] = pro_base_url[int(api_data.status_url)] + api_data.url.split('?')[0]
         else:
             _data['request']['url'] = api_data.url
 
@@ -176,14 +172,8 @@ class RunCase(object):
         return _data
 
     def get_api_test(self, api_ids, config_id):
-        """
-        接口调试时，用到的方法
-        :param api_ids: 接口id列表
-        :param config_id: 配置id
-        :return:
-        """
         scheduler.app.logger.info('本次测试的接口id：{}'.format(api_ids))
-        _steps = {'teststeps': [], 'config': {'variables': {}}, 'output': ['phone']}
+        _steps = {'teststeps': [], 'config': {'variables': {}}}
 
         if config_id:
             config_data = Config.query.filter_by(id=config_id).first()
@@ -191,40 +181,39 @@ class RunCase(object):
             _steps['config']['variables'].update({v['key']: v['value'] for v in _config if v['key']})
             self.extract_func(['{}'.format(f.replace('.py', '')) for f in json.loads(config_data.func_address)])
 
-        _steps['teststeps'] = [self.assemble_step(api_id, None, self.pro_base_url, False) for api_id in api_ids]
+        _steps['teststeps'] = [self.assemble_step(api_id, None, self.pro_environment, False) for api_id in api_ids]
         self.TEST_DATA['testcases'].append(_steps)
 
     def get_case_test(self, case_ids):
-        """
-        用例调试时，用到的方法
-        :param case_ids: 用例id列表
-        :return:
-        """
         scheduler.app.logger.info('本次测试的用例id：{}'.format(case_ids))
-
         for case_id in case_ids:
             case_data = Case.query.filter_by(id=case_id).first()
             case_times = case_data.times if case_data.times else 1
+            if case_data.environment == -1 or case_data.environment == None:
+                url_environment = self.pro_environment
+            else:
+                url_environment = self.pro_base_url[case_data.environment]
             for s in range(case_times):
                 _steps = {'teststeps': [], 'config': {'variables': {}, 'name': ''}}
                 _steps['config']['name'] = case_data.name
 
-                # 获取用例的配置数据
+                # 获取业务集合的配置数据
                 _config = json.loads(case_data.variable) if case_data.variable else []
                 _steps['config']['variables'].update({v['key']: v['value'] for v in _config if v['key']})
 
+                # # 获取需要导入的函数
                 self.extract_func(['{}'.format(f.replace('.py', '')) for f in json.loads(case_data.func_address)])
 
                 for _step in CaseData.query.filter_by(case_id=case_id).order_by(CaseData.num.asc()).all():
-                    if _step.status == 'true':  # 判断步骤状态，是否执行
-                        _steps['teststeps'].append(self.assemble_step(None, _step, self.pro_base_url, True))
+                    if _step.status == 'true':  # 判断用例状态，是否执行
+                        _steps['teststeps'].append(self.assemble_step(None, _step, url_environment, True))
                 self.TEST_DATA['testcases'].append(_steps)
 
-    def build_report(self, jump_res, case_ids, performer='无'):
-
+    def build_report(self, jump_res, case_ids):
+        # if self.run_type and self.make_report:
         new_report = Report(
             case_names=','.join([Case.query.filter_by(id=scene_id).first().name for scene_id in case_ids]),
-            project_id=self.project_ids, read_status='待阅', performer=performer)
+            project_id=self.project_ids, read_status='待阅')
         db.session.add(new_report)
         db.session.commit()
 
