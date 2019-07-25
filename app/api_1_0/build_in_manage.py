@@ -74,6 +74,7 @@ def check_func():
         if len(ext_func) == 0:
             return jsonify({'msg': '函数解析失败，注意格式问题', 'status': 0})
         func = parse_function(ext_func[0])
+
         return jsonify({'msg': '请查看', 'status': 1, 'result': module_functions_dict[func['func_name']](*func['args'])})
 
     except Exception as e:
