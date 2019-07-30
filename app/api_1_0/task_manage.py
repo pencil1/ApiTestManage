@@ -51,7 +51,8 @@ def run_task():
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
     cases_id = get_case_id(_data.project_id, json.loads(_data.set_id), json.loads(_data.case_id))
-    new_report_id = aps_test(_data.project_id, cases_id,performer=User.query.filter_by(id=current_user.id).first().name)
+    new_report_id = aps_test(_data.project_id, cases_id,
+                             performer=User.query.filter_by(id=current_user.id).first().name)
 
     return jsonify({'msg': '测试成功', 'status': 1, 'data': {'report_id': new_report_id}})
 

@@ -219,6 +219,7 @@ class Report(db.Model):
     id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
     case_names = db.Column(db.String(128), nullable=True, comment='用例的名称集合')
     read_status = db.Column(db.String(16), nullable=True, comment='阅读状态')
+    performer = db.Column(db.String(16), nullable=True, comment='执行者')
     project_id = db.Column(db.String(16), nullable=True)
     create_time = db.Column(db.DateTime(), index=True, default=datetime.now)
 

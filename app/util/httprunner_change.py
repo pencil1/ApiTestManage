@@ -49,7 +49,8 @@ def request(self, method, url, name=None, **kwargs):
     response = self._send_request_safe_mode(method, url, **kwargs)
 
     # requests包get响应内容中文乱码解决
-    response.encoding = response.apparent_encoding
+    if response.apparent_encoding:
+        response.encoding = response.apparent_encoding
 
     response_time_ms = round((time.time() - start_timestamp) * 1000, 2)
 
