@@ -155,6 +155,7 @@ class RunCase(object):
                              val.get('key')] if _validate else []
 
         if api_data.method == 'GET':
+
             pass
         # elif _variables:
         #     print(_variables)
