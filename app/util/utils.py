@@ -130,6 +130,8 @@ def convert(variable):
                 "${}".format(variable_name),
                 str(content.get(variable_name)), 1
             )
+            content = {v['key']: v['value'] for v in json.loads(_temp) if v['key'] != ''}
+
     return _temp
 
 
