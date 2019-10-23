@@ -102,7 +102,7 @@ def add_case():
                                         name=c['case_name'], up_func=c['up_func'], down_func=c['down_func'])
                 db.session.add(new_api_case)
                 db.session.commit()
-        return jsonify({'msg': '修改成功', 'status': 1})
+        return jsonify({'msg': '修改成功', 'status': 1, 'case_id': ids})
     else:
         if Case.query.filter_by(name=name, project_id=project_id, case_set_id=case_set_id).first():
             return jsonify({'msg': '用例名字重复', 'status': 0})
