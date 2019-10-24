@@ -1,9 +1,8 @@
 import json
 import types
 from app.models import *
-from httprunner.api import HttpRunner
+from .httprunner.api import HttpRunner
 from ..util.global_variable import *
-from ..util.httprunner_change import *
 from ..util.utils import encode_object
 import importlib
 from app import scheduler
@@ -71,7 +70,9 @@ class RunCase(object):
             # api_data = case_data
 
         _data = {'name': step_data.name,
+                 'skipIf': "${test1(0)}",
                  'request': {'method': api_data.method,
+
                              'files': {},
                              'data': {}}}
 

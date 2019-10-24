@@ -1,0 +1,480 @@
+<head>
+  <meta content="text/html; charset=utf-8" http-equiv="content-type" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> - TestReport</title>
+  <style>
+    body {
+      background-color: #f2f2f2;
+      color: #333;
+      margin: 0 auto;
+      width: 960px;
+    }
+    #summary {
+      width: 960px;
+      margin-bottom: 20px;
+    }
+    #summary th {
+      background-color: skyblue;
+      padding: 5px 12px;
+    }
+    #summary td {
+      background-color: lightblue;
+      text-align: center;
+      padding: 4px 8px;
+    }
+    .details {
+      width: 960px;
+      margin-bottom: 20px;
+    }
+    .details th {
+      background-color: skyblue;
+      padding: 5px 12px;
+    }
+    .details tr .passed {
+      background-color: lightgreen;
+    }
+    .details tr .failed {
+      background-color: red;
+    }
+    .details tr .unchecked {
+      background-color: gray;
+    }
+    .details td {
+      background-color: lightblue;
+      padding: 5px 12px;
+    }
+    .details .detail {
+      background-color: lightgrey;
+      font-size: smaller;
+      padding: 5px 10px;
+      line-height: 20px;
+      text-align: left;
+    }
+    .details .success {
+      background-color: greenyellow;
+    }
+    .details .error {
+      background-color: red;
+    }
+    .details .failure {
+      background-color: salmon;
+    }
+    .details .skipped {
+      background-color: gray;
+    }
+
+    .button {
+      font-size: 1em;
+      padding: 6px;
+      width: 4em;
+      text-align: center;
+      background-color: #06d85f;
+      border-radius: 20px/50px;
+      cursor: pointer;
+      transition: all 0.3s ease-out;
+    }
+    a.button{
+      color: gray;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .button:hover {
+      background: #2cffbd;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.7);
+      transition: opacity 500ms;
+      visibility: hidden;
+      opacity: 0;
+      line-height: 25px;
+    }
+    .overlay:target {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .popup {
+      margin: 70px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      width: 50%;
+      position: relative;
+      transition: all 3s ease-in-out;
+    }
+
+    .popup h2 {
+      margin-top: 0;
+      color: #333;
+      font-family: Tahoma, Arial, sans-serif;
+    }
+    .popup .close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      transition: all 200ms;
+      font-size: 30px;
+      font-weight: bold;
+      text-decoration: none;
+      color: #333;
+    }
+    .popup .close:hover {
+      color: #06d85f;
+    }
+    .popup .content {
+      max-height: 80%;
+      overflow: auto;
+      text-align: left;
+    }
+    .popup .separator {
+      color:royalblue
+    }
+
+    @media screen and (max-width: 700px) {
+      .box {
+        width: 70%;
+      }
+      .popup {
+        width: 70%;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+  <h1>Test Report: </h1>
+
+  <h2>Summary</h2>
+  <table id="summary">
+    <tr>
+      <th>START AT</th>
+      <td colspan="4">2019-08-06 16:41:29</td>
+    </tr>
+    <tr>
+      <th>DURATION</th>
+      <td colspan="4">1.225 seconds</td>
+    </tr>
+    <tr>
+      <th>PLATFORM</th>
+      <td>HttpRunner 2.0.6 </td>
+      <td>CPython 3.5.2 </td>
+      <td colspan="2">Windows-10-10.0.17763-SP0</td>
+    </tr>
+    <tr>
+      <th>STAT</th>
+      <th colspan="2">TESTCASES (success/fail)</th>
+      <th colspan="2">TESTSTEPS (success/fail/error/skip)</th>
+    </tr>
+    <tr>
+      <td>total (details) =></td>
+      <td colspan="2">1 (0/1)</td>
+      <td colspan="2">1 (0/0/1/0)</td>
+    </tr>
+  </table>
+
+  <h2>Details</h2>
+
+  
+  
+  <h3>testcase 0</h3>
+  <table id="suite_1" class="details">
+    <tr>
+      <td>TOTAL: 1</td>
+      <td>SUCCESS: 0</td>
+      <td>FAILED: 0</td>
+      <td>ERROR: 1</td>
+      <td>SKIPPED: 0</td>
+    </tr>
+    <tr>
+      <th>Status</th>
+      <th colspan="2">Name</th>
+      <th>Response Time</th>
+      <th>Detail</th>
+    </tr>
+
+    
+    
+    
+    <tr id="record_1_1">
+      <th class="error" style="width:5em;">error</th>
+      <td colspan="2">接口</td>
+      <td style="text-align:center;width:6em;">1211.76 ms</td>
+      <td class="detail">
+
+        
+        
+        <a class="button" href="#popup_log_1_1_1">log-1</a>
+        <div id="popup_log_1_1_1" class="overlay">
+          <div class="popup">
+            <h2>Request and Response data</h2>
+            <a class="close" href="#record_1_1_1">&times;</a>
+
+            <div class="content">
+              <h3>Name: 接口</h3>
+
+              
+
+              
+
+              <h3>Request:</h3>
+              <div style="overflow: auto">
+                <table>
+                  
+                    <tr>
+                      <th>url</th>
+                      <td>
+                        
+                          http://192.168.0.109/activity/join/228
+                        
+                      </td>
+                    </tr>
+                  
+                    <tr>
+                      <th>verify</th>
+                      <td>
+                        
+                          True
+                        
+                      </td>
+                    </tr>
+                  
+                    <tr>
+                      <th>data</th>
+                      <td>
+                        
+                          {}
+                        
+                      </td>
+                    </tr>
+                  
+                    <tr>
+                      <th>files</th>
+                      <td>
+                        
+                          {}
+                        
+                      </td>
+                    </tr>
+                  
+                    <tr>
+                      <th>timeout</th>
+                      <td>
+                        
+                          120
+                        
+                      </td>
+                    </tr>
+                  
+                    <tr>
+                      <th>params</th>
+                      <td>
+                        
+                          {}
+                        
+                      </td>
+                    </tr>
+                  
+                    <tr>
+                      <th>headers</th>
+                      <td>
+                        
+                          
+                          <div>
+                            <strong>x-app-id</strong>: g93rhHb9DcDptyPb
+                          </div>
+                          
+                          <div>
+                            <strong>x-version</strong>: 1.0.0
+                          </div>
+                          
+                        
+                      </td>
+                    </tr>
+                  
+                    <tr>
+                      <th>method</th>
+                      <td>
+                        
+                          GET
+                        
+                      </td>
+                    </tr>
+                  
+                </table>
+              </div>
+
+              <h3>Response:</h3>
+              <div style="overflow: auto">
+                <table>
+                    
+                      <tr>
+                        <th>headers</th>
+                        <td>
+                          
+                            
+                          
+                        </td>
+                      </tr>
+                    
+                      <tr>
+                        <th>content_type</th>
+                        <td>
+                          
+                            
+                          
+                        </td>
+                      </tr>
+                    
+                      <tr>
+                        <th>encoding</th>
+                        <td>
+                          
+                            None
+                          
+                        </td>
+                      </tr>
+                    
+                      <tr>
+                        <th>status_code</th>
+                        <td>
+                          
+                            N/A
+                          
+                        </td>
+                      </tr>
+                    
+                  </table>
+              </div>
+              
+
+              <h3>Validators:</h3>
+              <div style="overflow: auto">
+                  <table>
+                    <tr>
+                      <th>check</th>
+                      <th>comparator</th>
+                      <th>expect value</th>
+                      <th>actual value</th>
+                    </tr>
+                    
+                  </table>
+              </div>
+
+              <h3>Statistics:</h3>
+              <div style="overflow: auto">
+                <table>
+                  <tr>
+                      <th>content_size(bytes)</th>
+                      <td>0</td>
+                    </tr>
+                  <tr>
+                    <th>response_time(ms)</th>
+                    <td>1211.76</td>
+                  </tr>
+                  <tr>
+                    <th>elapsed(ms)</th>
+                    <td>0.0</td>
+                  </tr>
+                </table>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        
+
+        
+          <a class="button" href="#popup_attachment_1_1">traceback</a>
+          <div id="popup_attachment_1_1" class="overlay">
+            <div class="popup">
+              <h2>Traceback Message</h2>
+              <a class="close" href="#record_1_1">&times;</a>
+              <div class="content"><pre>Traceback (most recent call last):
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\urllib3\connection.py&#34;, line 159, in _new_conn
+    (self._dns_host, self.port), self.timeout, **extra_kw)
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\urllib3\util\connection.py&#34;, line 80, in create_connection
+    raise err
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\urllib3\util\connection.py&#34;, line 70, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\urllib3\connectionpool.py&#34;, line 600, in urlopen
+    chunked=chunked)
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\urllib3\connectionpool.py&#34;, line 354, in _make_request
+    conn.request(method, url, **httplib_request_kw)
+  File &#34;C:\Python35\lib\http\client.py&#34;, line 1106, in request
+    self._send_request(method, url, body, headers)
+  File &#34;C:\Python35\lib\http\client.py&#34;, line 1151, in _send_request
+    self.endheaders(body)
+  File &#34;C:\Python35\lib\http\client.py&#34;, line 1102, in endheaders
+    self._send_output(message_body)
+  File &#34;C:\Python35\lib\http\client.py&#34;, line 934, in _send_output
+    self.send(msg)
+  File &#34;C:\Python35\lib\http\client.py&#34;, line 877, in send
+    self.connect()
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\urllib3\connection.py&#34;, line 181, in connect
+    conn = self._new_conn()
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\urllib3\connection.py&#34;, line 168, in _new_conn
+    self, &#34;Failed to establish a new connection: %s&#34; % e)
+urllib3.exceptions.NewConnectionError: &lt;urllib3.connection.HTTPConnection object at 0x0000021F51698A58&gt;: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\requests\adapters.py&#34;, line 449, in send
+    timeout=timeout
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\urllib3\connectionpool.py&#34;, line 638, in urlopen
+    _stacktrace=sys.exc_info()[2])
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\urllib3\util\retry.py&#34;, line 398, in increment
+    raise MaxRetryError(_pool, url, error or ResponseError(cause))
+urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host=&#39;192.168.0.109&#39;, port=80): Max retries exceeded with url: /activity/join/228 (Caused by NewConnectionError(&#39;&lt;urllib3.connection.HTTPConnection object at 0x0000021F51698A58&gt;: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。&#39;,))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\httprunner\api.py&#34;, line 54, in test
+    test_runner.run_test(test_dict)
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\httprunner\runner.py&#34;, line 358, in run_test
+    self._run_test(test_dict)
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\httprunner\runner.py&#34;, line 238, in _run_test
+    **parsed_test_request
+  File &#34;D:\project\ApiTestManage\app\util\httprunner_change.py&#34;, line 74, in request
+    for resp_obj in response_list
+  File &#34;D:\project\ApiTestManage\app\util\httprunner_change.py&#34;, line 74, in &lt;listcomp&gt;
+    for resp_obj in response_list
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\httprunner\client.py&#34;, line 103, in get_req_resp_record
+    req_resp_dict[&#34;response&#34;][&#34;ok&#34;] = resp_obj.ok
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\requests\models.py&#34;, line 702, in ok
+    self.raise_for_status()
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\httprunner\client.py&#34;, line 20, in raise_for_status
+    raise self.error
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\httprunner\client.py&#34;, line 236, in _send_request_safe_mode
+    return requests.Session.request(self, method, url, **kwargs)
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\requests\sessions.py&#34;, line 533, in request
+    resp = self.send(prep, **send_kwargs)
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\requests\sessions.py&#34;, line 646, in send
+    r = adapter.send(request, **kwargs)
+  File &#34;D:\project\ApiTestManage\venv\lib\site-packages\requests\adapters.py&#34;, line 516, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPConnectionPool(host=&#39;192.168.0.109&#39;, port=80): Max retries exceeded with url: /activity/join/228 (Caused by NewConnectionError(&#39;&lt;urllib3.connection.HTTPConnection object at 0x0000021F51698A58&gt;: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。&#39;,))
+</pre></div>
+            </div>
+          </div>
+        
+
+      </td>
+    </tr>
+  
+  </table>
+  
+</body>
