@@ -599,8 +599,6 @@ def parse_data(content, variables_mapping=None, functions_mapping=None, raise_if
         try:
             # replace functions with evaluated value
             # Notice: parse_string_functions must be called before parse_string_variables
-            print(content)
-            print(111)
             content = parse_string_functions(
                 content,
                 variables_mapping,

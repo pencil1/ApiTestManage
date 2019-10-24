@@ -25,6 +25,7 @@ def add_api_msg():
     method = data.get('method')
     module_id = data.get('moduleId')
     url = data.get('url').split('?')[0]
+    skip = data.get('skip')
     status_url = data.get('choiceUrl')
     variable = data.get('variable')
     json_variable = data.get('jsonVariable')
@@ -64,6 +65,7 @@ def add_api_msg():
         old_data.variable_type = variable_type
         old_data.method = method
         old_data.url = url
+        old_data.skip = skip
         old_data.header = header
         old_data.variable = variable
         old_data.json_variable = json_variable
@@ -82,6 +84,7 @@ def add_api_msg():
                                up_func=up_func,
                                down_func=down_func,
                                url=url,
+                               skip=skip,
                                desc=desc,
                                param=param,
                                method=method,
@@ -105,7 +108,7 @@ def edit_api_msg():
     data = request.json
     case_id = data.get('apiMsgId')
     _edit = ApiMsg.query.filter_by(id=case_id).first()
-    _data = {'name': _edit.name, 'num': _edit.num, 'desc': _edit.desc, 'url': _edit.url,
+    _data = {'name': _edit.name, 'num': _edit.num, 'desc': _edit.desc, 'url': _edit.url, 'skip': _edit.skip,
              'method': _edit.method, 'status_url': int(_edit.status_url),
              'up_func': _edit.up_func, 'down_func': _edit.down_func,
              'variableType': _edit.variable_type,

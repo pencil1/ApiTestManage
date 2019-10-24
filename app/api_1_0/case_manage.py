@@ -81,6 +81,7 @@ def add_case():
                 old_api_case.status = json.dumps(c['status'])
                 old_api_case.up_func = c['up_func']
                 old_api_case.down_func = c['down_func']
+                old_api_case.skip = c['skip']
                 db.session.commit()
             else:
                 new_api_case = CaseData(num=_num,
@@ -129,7 +130,7 @@ def add_case():
                                         status_param=json.dumps(c['statusCase']['param']),
                                         header=json.dumps(c['header']),
                                         status_header=json.dumps(c['statusCase']['header']),
-                                        status=json.dumps(c['status']),
+                                        status=json.dumps(c['status']),skip=c['skip'],
                                         name=c['case_name'], up_func=c['up_func'], down_func=c['down_func'])
                 db.session.add(new_api_case)
                 db.session.commit()
@@ -217,6 +218,7 @@ def edit_case():
                           'time': case.time,
                           'up_func': case.up_func,
                           'down_func': case.down_func,
+                          'skip': case.skip,
                           'variable': json.loads(case.variable),
                           'json_variable': case.json_variable,
                           'param': json.loads(case.param),

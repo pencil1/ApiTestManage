@@ -70,7 +70,6 @@ class RunCase(object):
             # api_data = case_data
 
         _data = {'name': step_data.name,
-                 'skipIf': "${test1(0)}",
                  'request': {'method': api_data.method,
 
                              'files': {},
@@ -89,6 +88,9 @@ class RunCase(object):
 
         if step_data.down_func:
             _data['teardown_hooks'] = [step_data.down_func]
+
+        if step_data.skip:
+            _data['skipIf'] = step_data.skip
 
         if status:
             _data['times'] = step_data.time

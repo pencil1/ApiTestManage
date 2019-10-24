@@ -189,17 +189,17 @@ class Runner(object):
         """
         # clear meta data first to ensure independence for each test
         self.__clear_test_data()
-
-        # check skip
-        if test_dict.get('skipIf'):
-            test_dict['skipIf'] = self.session_context.eval_content(test_dict['skipIf'])
-
-        self._handle_skip_feature(test_dict)
-
+        # print(test_dict)
         # prepare
-        test_dict = utils.lower_test_dict_keys(test_dict)
+        # test_dict = utils.lower_test_dict_keys(test_dict)
         test_variables = test_dict.get("variables", {})
         self.session_context.init_test_variables(test_variables)
+
+        # check skip
+        # if test_dict.get('skipIf'):
+        #     test_dict['skipIf'] = self.session_context.eval_content(test_dict['skipIf'])
+
+        self._handle_skip_feature(test_dict)
 
         # teststep name
         test_name = test_dict.get("name", "")
@@ -376,7 +376,7 @@ class Runner(object):
         for variable in output_variables_list:
             if variable not in variables_mapping:
                 logger.log_warning(
-                    "variable '{}' can not be found in variables mapping, failed to output!"\
+                    "variable '{}' can not be found in variables mapping, failed to output!" \
                         .format(variable)
                 )
                 continue
