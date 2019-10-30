@@ -184,13 +184,13 @@ class HttpRunner(object):
         if self.save_tests:
             utils.dump_summary(self._summary, tests_mapping["project_mapping"])
 
-        report_path = report.render_html_report(
-            self._summary,
-            self.report_template,
-            self.report_dir
-        )
-
-        return report_path
+        # report_path = report.render_html_report(
+        #     self._summary,
+        #     self.report_template,
+        #     self.report_dir
+        # )
+        #
+        # return report_path
 
     def get_vars_out(self):
         """ get variables and output

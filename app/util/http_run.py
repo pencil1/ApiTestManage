@@ -91,7 +91,6 @@ class RunCase(object):
 
         if step_data.skip:
             _data['skipIf'] = step_data.skip
-
         if status:
             _data['times'] = step_data.time
             if json.loads(step_data.status_param)[0]:

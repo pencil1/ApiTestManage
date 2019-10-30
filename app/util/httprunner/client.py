@@ -45,7 +45,7 @@ class HttpSession(requests.Session):
         self.meta_data = {
             "name": "",
             "data": [
-                {
+                {"extract_msgs":{},
                     "request": {
                         "url": "N/A",
                         "method": "N/A",
@@ -79,7 +79,7 @@ class HttpSession(requests.Session):
             "request": {},
             "response": {}
         }
-
+        # req_resp_dict["extractors"] = resp_obj.extractors
         # record actual request info
         req_resp_dict["request"]["url"] = resp_obj.request.url
         req_resp_dict["request"]["method"] = resp_obj.request.method

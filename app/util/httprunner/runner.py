@@ -198,7 +198,6 @@ class Runner(object):
         # check skip
         # if test_dict.get('skipIf'):
         #     test_dict['skipIf'] = self.session_context.eval_content(test_dict['skipIf'])
-
         self._handle_skip_feature(test_dict)
 
         # teststep name
@@ -240,8 +239,8 @@ class Runner(object):
             name=(group_name or test_name),
             **parsed_test_request
         )
-        resp_obj = response.ResponseObject(resp)
 
+        resp_obj = response.ResponseObject(resp)
         # teardown hooks
         teardown_hooks = test_dict.get("teardown_hooks", [])
         if teardown_hooks:
@@ -249,8 +248,11 @@ class Runner(object):
             self.do_hook_actions(teardown_hooks, "teardown")
 
         # extract
+
         extractors = test_dict.get("extract", {})
         extracted_variables_mapping = resp_obj.extract_response(extractors)
+        self.http_client_session.meta_data['data'][0]['extract_msgs'] = extracted_variables_mapping
+        # setattr(resp_obj, 'extractors',extracted_variables_mapping)
         self.session_context.update_session_variables(extracted_variables_mapping)
 
         # validate
@@ -294,7 +296,6 @@ class Runner(object):
         test_runner = Runner(config, self.functions, self.http_client_session)
 
         tests = testcase_dict.get("teststeps", [])
-
         for index, test_dict in enumerate(tests):
 
             # override current teststep variables with former testcase output variables
