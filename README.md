@@ -3,7 +3,7 @@
 
 前端传送门：https://github.com/pencil1/ApiTestWeb
 
-线上demo地址：http://47.107.147.188/#/login （账号：ceshi 密码：123456）
+线上demo地址：http://122.51.184.120/#/login （账号：ceshi 密码：123456）
 
 ## Environment
 python => 3

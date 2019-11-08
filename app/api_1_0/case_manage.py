@@ -193,7 +193,6 @@ def del_api_case():
     db.session.delete(_data)
     return jsonify({'msg': '删除成功', 'status': 1})
 
-
 @api.route('/case/edit', methods=['POST'])
 @login_required
 def edit_case():
