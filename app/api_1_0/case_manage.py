@@ -130,7 +130,7 @@ def add_case():
                                         status_param=json.dumps(c['statusCase']['param']),
                                         header=json.dumps(c['header']),
                                         status_header=json.dumps(c['statusCase']['header']),
-                                        status=json.dumps(c['status']),skip=c['skip'],
+                                        status=json.dumps(c['status']), skip=c['skip'],
                                         name=c['case_name'], up_func=c['up_func'], down_func=c['down_func'])
                 db.session.add(new_api_case)
                 db.session.commit()

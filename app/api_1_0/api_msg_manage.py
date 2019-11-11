@@ -176,6 +176,7 @@ def find_api_msg():
              'name': c.name,
              'desc': c.desc,
              'url': c.url,
+             'skip': c.skip,
              'apiMsgId': c.id,
              'gather_id': c.module_id,
              'variableType': c.variable_type,
