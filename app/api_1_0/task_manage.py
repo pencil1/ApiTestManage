@@ -66,7 +66,7 @@ def start_task():
     _data = Task.query.filter_by(id=ids).first()
     config_time = change_cron(_data.task_config_time)
     cases_id = get_case_id(_data.project_id, json.loads(_data.set_id), json.loads(_data.case_id))
-    scheduler.add_job(func=aps_test, trigger='cron',
+    scheduler.add_job(func=aps_test, trigger='cron', misfire_grace_time=60, coalesce=False,
                       args=[_data.project_id, cases_id, _data.task_send_email_address, _data.email_password,
                             _data.task_to_email_address, User.query.filter_by(id=current_user.id).first().name],
                       id=str(ids), **config_time)  # 添加任务
@@ -231,7 +231,10 @@ def remove_task():
     data = request.json
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
-    scheduler.remove_job(str(ids))  # 移除任务
     _data.status = '创建'
     db.session.commit()
+    try:
+        scheduler.remove_job(str(ids))  # 移除任务
+    except Exception as e:
+        print(e)
     return jsonify({'msg': '移除成功', 'status': 1})
