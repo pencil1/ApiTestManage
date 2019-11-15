@@ -11,13 +11,12 @@ from flask_login import current_user
 def add_scene_config():
     """ 添加配置 """
     data = request.json
-    project_name = data.get('projectName')
-    project_id = Project.query.filter_by(name=project_name).first().id
+    project_id = data.get('projectId')
     name = data.get('sceneConfigName')
     ids = data.get('id')
     func_address = json.dumps(data.get('funcAddress'))
     variable = data.get('variable')
-    if not project_name:
+    if not project_id:
         return jsonify({'msg': '请选择项目', 'status': 0})
     if re.search('\${(.*?)}', variable, flags=0) and not func_address:
         return jsonify({'msg': '参数引用函数后，必须引用函数文件', 'status': 0})
@@ -27,7 +26,7 @@ def add_scene_config():
     if ids:
         old_data = Config.query.filter_by(id=ids).first()
         old_num = old_data.num
-        list_data = Project.query.filter_by(name=project_name).first().configs.all()
+        list_data = Project.query.filter_by(id=project_id).first().configs.all()
 
         if Config.query.filter_by(name=name, project_id=project_id).first() and name != old_data.name:
             return jsonify({'msg': '配置名字重复', 'status': 0})
@@ -56,21 +55,21 @@ def add_scene_config():
 def find_config():
     """ 查找配置 """
     data = request.json
-    project_name = data.get('projectName')
+    project_id = data.get('projectId')
     config_name = data.get('configName')
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
-    if not project_name:
+    if not project_id:
         return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
 
-    pro_id = Project.query.filter_by(name=project_name).first().id
     if config_name:
-        _config = Config.query.filter_by(project_id=pro_id).filter(Config.name.like('%{}%'.format(config_name))).all()
+        _config = Config.query.filter_by(project_id=project_id).filter(
+            Config.name.like('%{}%'.format(config_name))).all()
         total = len(_config)
         if not _config:
             return jsonify({'msg': '没有该配置', 'status': 0})
     else:
-        _config = Config.query.filter_by(project_id=pro_id)
+        _config = Config.query.filter_by(project_id=project_id)
         pagination = _config.order_by(Config.num.asc()).paginate(page, per_page=per_page, error_out=False)
         _config = pagination.items
         total = pagination.total

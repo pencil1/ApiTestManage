@@ -45,7 +45,7 @@ def get_pro_gather():
             pro_url[p.name] = json.loads(p.host_four)
 
     if my_pros:
-        my_pros = {'pro_name': my_pros.name, 'model_list': pro[my_pros.name]}
+        my_pros = {'pro_name': my_pros.name, 'pro_id': my_pros.id, 'model_list': pro[my_pros.name]}
 
     return jsonify(
         {'data': pro, 'urlData': pro_url, 'status': 1, 'user_pro': my_pros, 'config_name_list': scene_config_lists,

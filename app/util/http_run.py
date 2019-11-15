@@ -83,6 +83,9 @@ class RunCase(object):
         else:
             _data['request']['url'] = api_data.url
 
+        if 'https' in _data['request']['url']:
+            _data['request']['verify'] = False
+
         if step_data.up_func:
             _data['setup_hooks'] = [step_data.up_func]
 
@@ -224,11 +227,12 @@ class RunCase(object):
                         _steps['teststeps'].append(self.assemble_step(None, _step, url_environment, True))
                 self.TEST_DATA['testcases'].append(_steps)
 
-    def build_report(self, jump_res, case_ids,performer):
+    def build_report(self, jump_res, case_ids, performer):
         # if self.run_type and self.make_report:
         new_report = Report(performer=performer,
-            case_names=','.join([Case.query.filter_by(id=scene_id).first().name for scene_id in case_ids]),
-            project_id=self.project_ids, read_status='待阅')
+                            case_names=','.join(
+                                [Case.query.filter_by(id=scene_id).first().name for scene_id in case_ids]),
+                            project_id=self.project_ids, read_status='待阅')
         db.session.add(new_report)
         db.session.commit()
 

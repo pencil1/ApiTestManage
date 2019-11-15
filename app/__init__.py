@@ -41,8 +41,25 @@ def create_app(config_name):
     db.init_app(app)
     db.app = app
     db.create_all()
-
     login_manager.init_app(app)
+
+    # if 'Linux' in platform.system():
+    #     import fcntl
+    #     f = open("scheduler.lock", "wb")
+    #     try:
+    #         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    #         scheduler.init_app(app)
+    #         scheduler.start()
+    #     except:
+    #         pass
+    #
+    #     def unlock():
+    #         fcntl.flock(f, fcntl.LOCK_UN)
+    #         f.close()
+    #
+    #     atexit.register(unlock)
+    #
+    # else:
     scheduler.init_app(app)
     scheduler.start()  # 定时任务启动
 

@@ -10,8 +10,13 @@ from ..util.email.SendEmail import SendEmail
 from ..util.report.report import render_html_report
 from flask_login import current_user
 
+from flask_sqlalchemy import SQLAlchemy
+
 
 def aps_test(project_id, case_ids, send_address=None, send_password=None, task_to_address=None, performer='无'):
+    # global db
+    db.session.remove()
+    # db = SQLAlchemy(scheduler.app)
     d = RunCase(project_id)
     d.get_case_test(case_ids)
     jump_res = d.run_case()

@@ -105,14 +105,20 @@ def find_report():
     """ 查找报告 """
     data = request.json
     project_name = data.get('projectName')
+    case_name = data.get('caseName')
     project_id = Project.query.filter_by(name=project_name).first().id
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
-
-    report_data = Report.query.filter_by(project_id=project_id)
-    pagination = report_data.order_by(Report.create_time.desc()).paginate(page, per_page=per_page, error_out=False)
-    report = pagination.items
-    total = pagination.total
+    if case_name:
+        report = Report.query.filter_by(project_id=project_id).filter(Report.case_names.like('%{}%'.format(case_name))).order_by(Report.create_time.desc()).all()
+        total = len(report)
+        if not report:
+            return jsonify({'msg': '没有该用例报告', 'status': 0})
+    else:
+        report_data = Report.query.filter_by(project_id=project_id)
+        pagination = report_data.order_by(Report.create_time.desc()).paginate(page, per_page=per_page, error_out=False)
+        report = pagination.items
+        total = pagination.total
     report = [{'name': c.case_names, 'project_name': project_name, 'id': c.id, 'read_status': c.read_status,
                'performer': c.performer,
                'create_time': str(c.create_time).split('.')[0]} for c in report]
