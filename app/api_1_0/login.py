@@ -110,23 +110,22 @@ def find_user():
     """ 查找用户 """
     data = request.json
     user_name = data.get('userName')
-    total = 1
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 20
     if user_name:
-        _users = User.query.filter(User.name.like('%{}%'.format(user_name))).all()
-        if not _users:
+        _data = User.query.filter(User.name.like('%{}%'.format(user_name)))
+        if not _data:
             return jsonify({'msg': '没有该用户', 'status': 0})
     else:
-        users = User.query
-        pagination = users.order_by(User.id.asc()).paginate(page, per_page=per_page, error_out=False)
-        _users = pagination.items
-        total = pagination.total
-    users = [{'userName': c.name, 'user_id': c.id, 'status': c.status} for c in _users]
+        _data = User.query
+    pagination = _data.order_by(User.id.asc()).paginate(page, per_page=per_page, error_out=False)
+    items = pagination.items
+    total = pagination.total
+    end_data = [{'userName': c.name, 'user_id': c.id, 'status': c.status} for c in items]
 
     role_data = [{'role_id': r.id, 'role_name': r.name} for r in Role.query.all()]
 
-    return jsonify({'data': users, 'total': total, 'status': 1, 'role_data': role_data})
+    return jsonify({'data': end_data, 'total': total, 'status': 1, 'role_data': role_data})
 
 
 @api.route('/user/edit', methods=['POST'])

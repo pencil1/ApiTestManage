@@ -15,13 +15,13 @@ def run_cases():
     """ 跑接口 """
     data = request.json
     case_ids = data.get('sceneIds')
-    if not data.get('projectName'):
+    project_id = data.get('projectId')
+    if not project_id:
         return jsonify({'msg': '请选择项目', 'status': 0})
     if not case_ids:
         return jsonify({'msg': '请选择用例', 'status': 0})
     # run_case = RunCase(data.get('projectName'), data.get('sceneIds'))
 
-    project_id = Project.query.filter_by(name=data.get('projectName')).first().id
     d = RunCase(project_id)
     d.get_case_test(case_ids)
     jump_res = d.run_case()
@@ -91,7 +91,7 @@ def del_report():
     report_id = data.get('report_id')
     _edit = Report.query.filter_by(id=report_id).first()
     db.session.delete(_edit)
-    address = str(report_id)+'.txt'
+    address = str(report_id) + '.txt'
     if not os.path.exists(REPORT_ADDRESS + address):
         return jsonify({'msg': '删除成功', 'status': 1})
     else:
@@ -104,26 +104,23 @@ def del_report():
 def find_report():
     """ 查找报告 """
     data = request.json
-    project_name = data.get('projectName')
+    project_id = data.get('projectId')
     case_name = data.get('caseName')
-    project_id = Project.query.filter_by(name=project_name).first().id
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
     if case_name:
-        report = Report.query.filter_by(project_id=project_id).filter(Report.case_names.like('%{}%'.format(case_name))).order_by(Report.create_time.desc()).all()
-        total = len(report)
-        if not report:
+        _data = Report.query.filter_by(project_id=project_id).filter(Report.case_names.like('%{}%'.format(case_name)))
+        if not _data:
             return jsonify({'msg': '没有该用例报告', 'status': 0})
     else:
-        report_data = Report.query.filter_by(project_id=project_id)
-        pagination = report_data.order_by(Report.create_time.desc()).paginate(page, per_page=per_page, error_out=False)
-        report = pagination.items
-        total = pagination.total
-    report = [{'name': c.case_names, 'project_name': project_name, 'id': c.id, 'read_status': c.read_status,
-               'performer': c.performer,
-               'create_time': str(c.create_time).split('.')[0]} for c in report]
+        _data = Report.query.filter_by(project_id=project_id)
+    pagination = _data.order_by(Report.create_time.desc()).paginate(page, per_page=per_page, error_out=False)
+    items = pagination.items
+    total = pagination.total
+    end_data = [{'name': c.case_names, 'project_id': project_id, 'id': c.id, 'read_status': c.read_status,
+                 'performer': c.performer,
+                 'create_time': str(c.create_time).split('.')[0]} for c in items]
 
-    return jsonify({'data': report, 'total': total, 'status': 1})
-
+    return jsonify({'data': end_data, 'total': total, 'status': 1})
 
 # END

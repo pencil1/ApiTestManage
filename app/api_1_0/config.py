@@ -63,18 +63,16 @@ def find_config():
         return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
 
     if config_name:
-        _config = Config.query.filter_by(project_id=project_id).filter(
-            Config.name.like('%{}%'.format(config_name))).all()
-        total = len(_config)
-        if not _config:
+        _data = Config.query.filter_by(project_id=project_id).filter(Config.name.like('%{}%'.format(config_name)))
+        if not _data:
             return jsonify({'msg': '没有该配置', 'status': 0})
     else:
-        _config = Config.query.filter_by(project_id=project_id)
-        pagination = _config.order_by(Config.num.asc()).paginate(page, per_page=per_page, error_out=False)
-        _config = pagination.items
-        total = pagination.total
-    _config = [{'name': c.name, 'id': c.id, 'num': c.num, 'func_address': c.func_address} for c in _config]
-    return jsonify({'data': _config, 'total': total, 'status': 1})
+        _data = Config.query.filter_by(project_id=project_id)
+    pagination = _data.order_by(Config.num.asc()).paginate(page, per_page=per_page, error_out=False)
+    items = pagination.items
+    total = pagination.total
+    end_data = [{'name': c.name, 'id': c.id, 'num': c.num, 'func_address': c.func_address} for c in items]
+    return jsonify({'data': end_data, 'total': total, 'status': 1})
 
 
 @api.route('/config/del', methods=['POST'])

@@ -18,9 +18,8 @@ def add_case():
     times = data.get('times')
     case_set_id = data.get('caseSetId')
     func_address = json.dumps(data.get('funcAddress'))
-    project = data.get('project')
-    project_data = Project.query.filter_by(name=project).first()
-    project_id = project_data.id
+    project_id = data.get('projectId')
+    project_data = Project.query.filter_by(id=project_id).first()
     variable = data.get('variable')
     api_cases = data.get('apiCases')
     environment = data.get('environment')
@@ -134,7 +133,7 @@ def add_case():
                                         name=c['case_name'], up_func=c['up_func'], down_func=c['down_func'])
                 db.session.add(new_api_case)
                 db.session.commit()
-            return jsonify({'msg': '新建成功', 'status': 1, 'case_id': case_id})
+            return jsonify({'msg': '新建成功', 'status': 1, 'case_id': case_id, 'num': new_case.num})
 
 
 @api.route('/case/find', methods=['POST'])
@@ -142,27 +141,27 @@ def add_case():
 def find_case():
     """ 查找用例 """
     data = request.json
-    project_name = data.get('projectName')
+    project_id = data.get('projectId')
     case_name = data.get('caseName')
     set_id = data.get('setId')
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
-    if not project_name:
+    if not project_id:
         return jsonify({'msg': '请选择项目', 'status': 0})
     if case_name:
-        cases = Case.query.filter_by(case_set_id=set_id).filter(Case.name.like('%{}%'.format(case_name))).all()
-        total = len(cases)
-        if not cases:
+        _data = Case.query.filter_by(case_set_id=set_id).filter(Case.name.like('%{}%'.format(case_name)))
+        if not _data:
             return jsonify({'msg': '没有该用例', 'status': 0})
     else:
-        cases = Case.query.filter_by(case_set_id=set_id)
-        pagination = cases.order_by(Case.num.asc()).paginate(page, per_page=per_page, error_out=False)
-        cases = pagination.items
-        total = pagination.total
-    cases = [{'num': c.num, 'name': c.name, 'label': c.name, 'leaf': True, 'desc': c.desc, 'sceneId': c.id,
-              }
-             for c in cases]
-    return jsonify({'data': cases, 'total': total, 'status': 1})
+        _data = Case.query.filter_by(case_set_id=set_id)
+
+    pagination = _data.order_by(Case.num.asc()).paginate(page, per_page=per_page, error_out=False)
+    items = pagination.items
+    total = pagination.total
+    end_data = [{'num': c.num, 'name': c.name, 'label': c.name, 'leaf': True, 'desc': c.desc, 'sceneId': c.id,
+                 }
+                for c in items]
+    return jsonify({'data': end_data, 'total': total, 'status': 1})
 
 
 @api.route('/case/del', methods=['POST'])
@@ -192,6 +191,7 @@ def del_api_case():
     _data = CaseData.query.filter_by(id=case_id).first()
     db.session.delete(_data)
     return jsonify({'msg': '删除成功', 'status': 1})
+
 
 @api.route('/case/edit', methods=['POST'])
 @login_required
@@ -232,7 +232,8 @@ def edit_case():
                                          },
                           })
     _data2 = {'num': _data.num, 'name': _data.name, 'desc': _data.desc, 'cases': case_data, 'setId': _data.case_set_id,
-              'func_address': json.loads(_data.func_address), 'times': _data.times, 'environment': _data.environment}
+              'func_address': json.loads(_data.func_address), 'times': _data.times, 'environment': _data.environment
+                , 'project_id': _data.project_id}
     if _data.variable:
         _data2['variable'] = json.loads(_data.variable)
     else:

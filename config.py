@@ -114,7 +114,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     CSRF_ENABLED = True
     UPLOAD_FOLDER = '/upload'
-    DEBUG = True
+    # DEBUG = True
     SCHEDULER_API_ENABLED = True
 
     @staticmethod
@@ -128,17 +128,15 @@ class DevelopmentConfig(Config):
 
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@122.51.184.120:3306/api_test'  # 123456表示密码，test代表数据库名称
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:78929709@122.51.184.120:3306/api_test?charset=utf8mb4'  # 123456表示密码，test代表数据库名称
     # SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@47.107.147.188:3306/api_test'  # 123456表示密码，test代表数据库名称
     # SCHEDULER_JOBSTORES = {'default': SQLAlchemyJobStore(url=SQLALCHEMY_DATABASE_URI,
     #                                                      engine_options={'pool_pre_ping': True})}
 
     SCHEDULER_JOBSTORES = {'default': SQLAlchemyJobStore(url=SQLALCHEMY_DATABASE_URI,
-                                                         engine_options={'pool_pre_ping': True, "pool_recycle": 200})}
-    SQLALCHEMY_TRACK_MODIFICATIONS = True
-    SQLALCHEMY_POOL_RECYCLE = 200
-
-    SQLALCHEMY_POOL_TIMEOUT = 60
+                                                         engine_options={'pool_pre_ping': True})}
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_POOL_RECYCLE = 1800
 
 
 config = {

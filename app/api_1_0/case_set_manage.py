@@ -10,12 +10,13 @@ from ..util.utils import *
 def add_set():
     """ 添加用例集合 """
     data = request.json
-    project_name = data.get('projectName')
+    project_id = data.get('projectId')
     name = data.get('name')
+    if not project_id:
+        return jsonify({'msg': '请先选择首页项目', 'status': 0})
     if not name:
         return jsonify({'msg': '用例集名称不能为空', 'status': 0})
     ids = data.get('id')
-    project_id = Project.query.filter_by(name=project_name).first().id
     num = auto_num(data.get('num'), CaseSet, project_id=project_id)
     if ids:
         old_data = CaseSet.query.filter_by(id=ids).first()
@@ -41,11 +42,11 @@ def stick_set():
     """ 置顶用例集合 """
     data = request.json
     set_id = data.get('id')
-    project_name = data.get('projectName')
+    project_id = data.get('projectId')
 
     old_data = CaseSet.query.filter_by(id=set_id).first()
     old_num = old_data.num
-    list_data = Project.query.filter_by(name=project_name).first().case_sets.all()
+    list_data = Project.query.filter_by(id=project_id).first().case_sets.all()
     num_sort(1, old_num, list_data, old_data)
     db.session.commit()
     return jsonify({'msg': '置顶完成', 'status': 1})
@@ -58,11 +59,11 @@ def find_set():
     data = request.json
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
-    project_name = data.get('projectName')
-    if not project_name:
+    project_id = data.get('projectId')
+    if not project_id:
         return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
 
-    all_sets = Project.query.filter_by(name=project_name).first().case_sets
+    all_sets = Project.query.filter_by(id=project_id).first().case_sets
     pagination = all_sets.paginate(page, per_page=per_page, error_out=False)
     _items = pagination.items
     total = pagination.total

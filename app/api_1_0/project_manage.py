@@ -4,6 +4,7 @@ from app.models import *
 import json
 from ..util.custom_decorator import login_required
 from flask_login import current_user
+from sqlalchemy import text
 
 
 @api.route('/proGather/list')
@@ -11,7 +12,8 @@ from flask_login import current_user
 def get_pro_gather():
     """ 获取基本信息 """
     # if current_user.id == 4:
-    _pros = Project.query.order_by('CASE WHEN user_id={} THEN 0 END DESC'.format(current_user.id)).all()
+    # _pros = Project.query.order_by(case((Project.user_id == current_user.id, 1))).all()
+    _pros = Project.query.order_by(text('CASE WHEN user_id={} THEN 0 END DESC'.format(current_user.id))).all()
     my_pros = Project.query.filter_by(user_id=current_user.id).first()
     pro = {}
     pro_and_id = []
@@ -19,15 +21,22 @@ def get_pro_gather():
     scene_config_lists = {}
     set_list = {}
     scene_list = {}
+
+    user_pros = False
+
     for p in _pros:
         # pro_and_id[p.name] = p.id
+
         pro_and_id.append({'name': p.name, 'id': p.id})
+
         # 获取每个项目下的接口模块
-        pro[p.name] = [{'name': m.name, 'moduleId': m.id} for m in p.modules]
+        pro[p.id] = [{'name': m.name, 'moduleId': m.id} for m in p.modules]
+
         # 获取每个项目下的配置信息
-        scene_config_lists[p.name] = [{'name': c.name, 'configId': c.id} for c in p.configs]
+        scene_config_lists[p.id] = [{'name': c.name, 'configId': c.id} for c in p.configs]
+
         # 获取每个项目下的用例集
-        set_list[p.name] = [{'label': s.name, 'id': s.id} for s in p.case_sets]
+        set_list[p.id] = [{'label': s.name, 'id': s.id} for s in p.case_sets]
 
         # 获取每个用例集的用例
         for s in p.case_sets:
@@ -36,19 +45,20 @@ def get_pro_gather():
 
         # 获取每个项目下的url
         if p.environment_choice == 'first':
-            pro_url[p.name] = json.loads(p.host)
+            pro_url[p.id] = json.loads(p.host)
         elif p.environment_choice == 'second':
-            pro_url[p.name] = json.loads(p.host_two)
+            pro_url[p.id] = json.loads(p.host_two)
         elif p.environment_choice == 'third':
-            pro_url[p.name] = json.loads(p.host_three)
+            pro_url[p.id] = json.loads(p.host_three)
         elif p.environment_choice == 'fourth':
-            pro_url[p.name] = json.loads(p.host_four)
-
+            pro_url[p.id] = json.loads(p.host_four)
     if my_pros:
-        my_pros = {'pro_name': my_pros.name, 'pro_id': my_pros.id, 'model_list': pro[my_pros.name]}
+        # my_pros = {'pro_name': my_pros.name, 'pro_id': my_pros.id, 'model_list': pro[my_pros.name]}
+        user_pros = True
 
     return jsonify(
-        {'data': pro, 'urlData': pro_url, 'status': 1, 'user_pro': my_pros, 'config_name_list': scene_config_lists,
+        {'data': pro, 'urlData': pro_url, 'status': 1, 'config_name_list': scene_config_lists,
+         'user_pros': user_pros,
          'set_list': set_list, 'scene_list': scene_list, 'pro_and_id': pro_and_id})
 
 
@@ -58,29 +68,26 @@ def find_project():
     """ 查找项目 """
     data = request.json
     project_name = data.get('projectName')
-    # a = db.session.execute(r'''
-    # SELECT * FROM "project" WHERE name='测试平台';
-    # ''')
-    # print(a.first())
+
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
     user_data = [{'user_id': u.id, 'user_name': u.name} for u in User.query.all()]
     if project_name:
-        _data = Project.query.filter(Project.name.like('%{}%'.format(project_name))).all()
-        total = len(_data)
+        _data = Project.query.filter(Project.name.like('%{}%'.format(project_name)))
         if not _data:
             return jsonify({'msg': '没有该项目', 'status': 0})
     else:
-        pagination = Project.query.order_by(Project.id.asc()).paginate(page, per_page=per_page, error_out=False)
-        _data = pagination.items
-        total = pagination.total
-    project = [{'id': c.id,
-                'host': c.host,
-                'name': c.name,
-                'choice': c.environment_choice,
-                'principal': User.query.filter_by(id=c.user_id).first().name,
-                'host_two': c.host_two, 'host_three': c.host_three, 'host_four': c.host_four} for c in _data]
-    return jsonify({'data': project, 'total': total, 'status': 1, 'userData': user_data})
+        _data = Project.query.order_by(Project.id.asc())
+    pagination = _data.paginate(page, per_page=per_page, error_out=False)
+    items = pagination.items
+    total = pagination.total
+    end_data = [{'id': c.id,
+                 'host': c.host,
+                 'name': c.name,
+                 'choice': c.environment_choice,
+                 'principal': User.query.filter_by(id=c.user_id).first().name,
+                 'host_two': c.host_two, 'host_three': c.host_three, 'host_four': c.host_four} for c in items]
+    return jsonify({'data': end_data, 'total': total, 'status': 1, 'userData': user_data})
 
 
 @api.route('/project/add', methods=['POST'])

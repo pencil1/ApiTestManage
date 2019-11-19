@@ -12,7 +12,7 @@ from ..util.utils import *
 def add_api_msg():
     """ 接口信息增加、编辑 """
     data = request.json
-    project_name = data.get('projectName')
+    project_id = data.get('projectId')
     api_msg_name = data.get('apiMsgName')
     variable_type = data.get('variableType')
     desc = data.get('desc')
@@ -30,7 +30,7 @@ def add_api_msg():
     variable = data.get('variable')
     json_variable = data.get('jsonVariable')
     param = data.get('param')
-    if not project_name:
+    if not project_id:
         return jsonify({'msg': '项目不能为空', 'status': 0})
     if not module_id:
         return jsonify({'msg': '接口模块不能为空', 'status': 0})
@@ -44,7 +44,6 @@ def add_api_msg():
         if 'http' not in url:
             return jsonify({'msg': '基础url为空时，请补全api地址', 'status': 0})
 
-    project_id = Project.query.filter_by(name=project_name).first().id
     num = auto_num(data.get('num'), ApiMsg, module_id=module_id)
 
     if api_msg_id:
@@ -127,7 +126,7 @@ def run_api_msg():
     """ 跑接口信息 """
     data = request.json
     api_msg_data = data.get('apiMsgData')
-    project_name = data.get('projectName')
+    project_id = data.get('projectId')
     config_id = data.get('configId')
     if not api_msg_data:
         return jsonify({'msg': '请勾选信息后，再进行测试', 'status': 0})
@@ -138,7 +137,6 @@ def run_api_msg():
     # api_data = [ApiMsg.query.filter_by(id=c[1]).first() for c in api_ids]
     api_ids = [c[1] for c in api_ids]
 
-    project_id = Project.query.filter_by(name=project_name).first().id
     d = RunCase(project_id)
     d.get_api_test(api_ids, config_id)
     res = json.loads(d.run_case())
@@ -152,45 +150,45 @@ def find_api_msg():
     """ 查接口信息 """
     data = request.json
     module_id = data.get('moduleId')
-    project_name = data.get('projectName')
+    project_id = data.get('projectId')
     api_name = data.get('apiName')
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 20
-    if not project_name:
+    if not project_id:
         return jsonify({'msg': '请选择项目', 'status': 0})
     if not module_id:
-        return jsonify({'msg': '请先创建{}项目下的模块'.format(project_name), 'status': 0})
+        return jsonify({'msg': '请先在当前项目下创建模块', 'status': 0})
 
     if api_name:
-        api_data = ApiMsg.query.filter_by(module_id=module_id).filter(ApiMsg.name.like('%{}%'.format(api_name)))
+        _data = ApiMsg.query.filter_by(module_id=module_id).filter(ApiMsg.name.like('%{}%'.format(api_name)))
         # total = len(api_data)
-        if not api_data:
+        if not _data:
             return jsonify({'msg': '没有该接口信息', 'status': 0})
     else:
-        api_data = ApiMsg.query.filter_by(module_id=module_id)
+        _data = ApiMsg.query.filter_by(module_id=module_id)
 
-    pagination = api_data.order_by(ApiMsg.num.asc()).paginate(page, per_page=per_page, error_out=False)
-    api_data = pagination.items
+    pagination = _data.order_by(ApiMsg.num.asc()).paginate(page, per_page=per_page, error_out=False)
+    items = pagination.items
     total = pagination.total
-    _api = [{'num': c.num,
-             'name': c.name,
-             'desc': c.desc,
-             'url': c.url,
-             'skip': c.skip,
-             'apiMsgId': c.id,
-             'gather_id': c.module_id,
-             'variableType': c.variable_type,
-             'variable': json.loads(c.variable),
-             'json_variable': c.json_variable,
-             'extract': json.loads(c.extract),
-             'validate': json.loads(c.validate),
-             'param': json.loads(c.param),
-             'header': json.loads(c.header),
-             'statusCase': {'extract': [True, True], 'variable': [True, True],
-                            'validate': [True, True], 'param': [True, True], 'header': [True, True]},
-             'status': True, 'case_name': c.name, 'down_func': c.down_func, 'up_func': c.up_func, 'time': 1}
-            for c in api_data]
-    return jsonify({'data': _api, 'total': total, 'status': 1})
+    end_data = [{'num': c.num,
+                 'name': c.name,
+                 'desc': c.desc,
+                 'url': c.url,
+                 'skip': c.skip,
+                 'apiMsgId': c.id,
+                 'gather_id': c.module_id,
+                 'variableType': c.variable_type,
+                 'variable': json.loads(c.variable),
+                 'json_variable': c.json_variable,
+                 'extract': json.loads(c.extract),
+                 'validate': json.loads(c.validate),
+                 'param': json.loads(c.param),
+                 'header': json.loads(c.header),
+                 'statusCase': {'extract': [True, True], 'variable': [True, True],
+                                'validate': [True, True], 'param': [True, True], 'header': [True, True]},
+                 'status': True, 'case_name': c.name, 'down_func': c.down_func, 'up_func': c.up_func, 'time': 1}
+                for c in items]
+    return jsonify({'data': end_data, 'total': total, 'status': 1})
 
 
 @api.route('/apiMsg/del', methods=['POST'])

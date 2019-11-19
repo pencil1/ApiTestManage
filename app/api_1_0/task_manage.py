@@ -1,7 +1,7 @@
 import json
 from flask import jsonify, request
 from . import api
-from app.models import Project, Task, CaseSet, Case, db, User
+from app.models import Task, CaseSet, Case, db, User
 from ..util.custom_decorator import login_required
 from app import scheduler
 from ..util.http_run import RunCase
@@ -10,13 +10,11 @@ from ..util.email.SendEmail import SendEmail
 from ..util.report.report import render_html_report
 from flask_login import current_user
 
-from flask_sqlalchemy import SQLAlchemy
-
 
 def aps_test(project_id, case_ids, send_address=None, send_password=None, task_to_address=None, performer='无'):
     # global db
-    db.session.remove()
-    # db = SQLAlchemy(scheduler.app)
+    # db.session.remove()
+    # db.create_scoped_session()
     d = RunCase(project_id)
     d.get_case_test(case_ids)
     jump_res = d.run_case()
@@ -28,6 +26,7 @@ def aps_test(project_id, case_ids, send_address=None, send_password=None, task_t
         file = render_html_report(res)
         s = SendEmail(send_address, send_password, task_to_address, file)
         s.send_email()
+    db.session.rollback()  # 把连接放回连接池，不知道为什么定时任务跑完不会自动放回去，导致下次跑的时候，mysql连接超时断开报错
     return d.new_report_id
 
 
@@ -86,10 +85,9 @@ def start_task():
 def add_task():
     """ 任务添加、修改 """
     data = request.json
-    project_name = data.get('projectName')
-    if not project_name:
+    project_id = data.get('projectId')
+    if not project_id:
         return jsonify({'msg': '请选择项目', 'status': 0})
-    project_id = Project.query.filter_by(name=project_name).first().id
     set_ids = data.get('setIds')
     case_ids = data.get('caseIds')
     task_id = data.get('id')
@@ -168,24 +166,22 @@ def edit_task():
 def find_task():
     """ 查找任务信息 """
     data = request.json
-    project_name = data.get('projectName')
-    project_id = Project.query.filter_by(name=project_name).first().id
+    project_id = data.get('projectId')
     task_name = data.get('taskName')
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
     if task_name:
-        _data = Task.query.filter_by(project_id=project_id).filter(Task.task_name.like('%{}%'.format(task_name))).all()
-        total = len(_data)
+        _data = Task.query.filter_by(project_id=project_id).filter(Task.task_name.like('%{}%'.format(task_name)))
         if not _data:
             return jsonify({'msg': '没有该任务', 'status': 0})
     else:
-        tasks = Task.query.filter_by(project_id=project_id)
-        pagination = tasks.order_by(Task.id.asc()).paginate(page, per_page=per_page, error_out=False)
-        _data = pagination.items
-        total = pagination.total
-    task = [{'task_name': c.task_name, 'task_config_time': c.task_config_time,
-             'id': c.id, 'task_type': c.task_type, 'status': c.status} for c in _data]
-    return jsonify({'data': task, 'total': total, 'status': 1})
+        _data = Task.query.filter_by(project_id=project_id)
+    pagination = _data.order_by(Task.id.asc()).paginate(page, per_page=per_page, error_out=False)
+    items = pagination.items
+    total = pagination.total
+    end_data = [{'task_name': c.task_name, 'task_config_time': c.task_config_time,
+                 'id': c.id, 'task_type': c.task_type, 'status': c.status} for c in items]
+    return jsonify({'data': end_data, 'total': total, 'status': 1})
 
 
 @api.route('/task/del', methods=['POST'])

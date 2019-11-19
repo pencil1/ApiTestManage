@@ -12,19 +12,19 @@ def find_model():
     data = request.json
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
-    project_name = data.get('projectName')
-    if not project_name:
+    project_id = data.get('projectId')
+    if not project_id:
         return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
 
-    all_module = Project.query.filter_by(name=project_name).first().modules
+    all_module = Project.query.filter_by(id=project_id).first().modules
     pagination = all_module.paginate(page, per_page=per_page, error_out=False)
-    my_module = pagination.items
+    items = pagination.items
     total = pagination.total
-    my_module = [{'name': c.name, 'moduleId': c.id, 'num': c.num} for c in my_module]
+    end_data = [{'name': c.name, 'moduleId': c.id, 'num': c.num} for c in items]
 
     # 查询出所有的接口模块是为了接口录入的时候可以选所有的模块
     _all_module = [{'name': s.name, 'moduleId': s.id, 'num': s.num} for s in all_module.all()]
-    return jsonify({'data': my_module, 'total': total, 'status': 1, 'all_module': _all_module})
+    return jsonify({'data': end_data, 'total': total, 'status': 1, 'all_module': _all_module})
 
 
 @api.route('/module/add', methods=['POST'])
@@ -32,20 +32,19 @@ def find_model():
 def add_model():
     """ 接口模块增加、编辑 """
     data = request.json
-    project_name = data.get('projectName')
-    if not project_name:
+    project_id = data.get('projectId')
+    if not project_id:
         return jsonify({'msg': '请先创建项目', 'status': 0})
     name = data.get('name')
     if not name:
         return jsonify({'msg': '模块名称不能为空', 'status': 0})
 
     ids = data.get('id')
-    project_id = Project.query.filter_by(name=project_name).first().id
     num = auto_num(data.get('num'), Module, project_id=project_id)
     if ids:
         old_data = Module.query.filter_by(id=ids).first()
         old_num = old_data.num
-        list_data = Project.query.filter_by(name=project_name).first().modules.all()
+        list_data = Project.query.filter_by(id=project_id).first().modules.all()
         if Module.query.filter_by(name=name, project_id=project_id).first() and name != old_data.name:
             return jsonify({'msg': '模块名字重复', 'status': 0})
 
@@ -97,10 +96,10 @@ def stick_module():
     """ 置顶模块 """
     data = request.json
     module_id = data.get('id')
-    project_name = data.get('projectName')
+    project_id = data.get('projectId')
     old_data = Module.query.filter_by(id=module_id).first()
     old_num = old_data.num
-    list_data = Project.query.filter_by(name=project_name).first().modules.all()
+    list_data = Project.query.filter_by(id=project_id).first().modules.all()
     num_sort(1, old_num, list_data, old_data)
     db.session.commit()
     return jsonify({'msg': '置顶完成', 'status': 1})
