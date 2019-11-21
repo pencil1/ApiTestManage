@@ -395,7 +395,7 @@ def get_mapping_function(function_name, functions_mapping):
 
     try:
         # check if HttpRunner builtin functions
-        from httprunner import loader
+        from . import loader
         built_in_functions = loader.load_builtin_functions()
         return built_in_functions[function_name]
     except KeyError:
@@ -443,7 +443,7 @@ def parse_string_functions(content, variables_mapping, functions_mapping):
         if func_name in ["parameterize", "P"]:
             if len(args) != 1 or kwargs:
                 raise exceptions.ParamsError("P() should only pass in one argument!")
-            from httprunner import loader
+            from . import loader
             eval_value = loader.load_csv_file(args[0])
         elif func_name in ["environ", "ENV"]:
             if len(args) != 1 or kwargs:

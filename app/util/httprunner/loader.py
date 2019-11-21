@@ -263,7 +263,7 @@ def load_module_functions(module):
 def load_builtin_functions():
     """ load built_in module functions
     """
-    from httprunner import built_in
+    from . import built_in
     return load_module_functions(built_in)
 
 
