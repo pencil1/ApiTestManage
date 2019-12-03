@@ -2,15 +2,17 @@ from flask import Blueprint, current_app, request
 from ..util.custom_decorator import login_required
 import copy
 import json
+
 api = Blueprint('api', __name__)
 
 from . import api_msg_manage, module_manage, project_manage, report_manage, build_in_manage, case_manage, login, \
-    test_tool, task_manage, file_manage, config, case_set_manage, errors
+    test_tool, task_manage, file_manage, config, case_set_manage, test_case_file_manage, errors
 
 
 @api.before_request
 def before_request():
     current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, request.json))
+    print(request.remote_addr)
 
 
 @api.after_request

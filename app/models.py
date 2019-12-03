@@ -244,6 +244,20 @@ class Task(db.Model):
     update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
+class TestCaseFile(db.Model):
+    __tablename__ = 'test_case_file'
+    id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
+    num = db.Column(db.Integer(), nullable=True, comment='测试用例文件序号')
+    name = db.Column(db.String(128), nullable=True, comment='测试用例文件名称')
+
+    status = db.Column(db.Integer(), comment='0代表文件夹；1代表用例文件')
+    higher_id = db.Column(db.Integer(), comment='上级id，父级为0')
+    user_id = db.Column(db.Integer(), comment='创建人id')
+
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
+    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
