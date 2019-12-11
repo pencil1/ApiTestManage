@@ -132,6 +132,7 @@ def case_change():
         result_address = mindtoExcel(address).replace('/home', '')
     else:
         result_address = mindto_csv(address).replace('/home', '')
+
     return jsonify({'status': 1, 'msg': '优化成功', 'data': result_address})
 
 

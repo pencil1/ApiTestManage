@@ -67,3 +67,10 @@ python => 3
 
     flask db migrate -> 相当于commit 更新到/migrate目录
     flask db upgrade -> 数据库会更新
+	
+
+## 微信打赏及广告
+
+[阿里云双12活动，服务器最低仅限89](https://www.aliyun.com/minisite/goods?userCode=xd46ktom&share_source=aliyun_app)
+
+![image](https://github.com/pencil1/ApiTestWeb/blob/master/public/20191211162211.jpg)
