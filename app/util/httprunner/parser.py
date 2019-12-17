@@ -810,7 +810,7 @@ def __parse_testcase_tests(tests, config, project_mapping):
     """
     config_variables = config.get("variables", {})
     config_base_url = config.pop("base_url", "")
-    config_verify = config.pop("verify", True)
+    config_verify = config.pop("verify", False)
     functions = project_mapping.get("functions", {})
 
     for test_dict in tests:
@@ -1006,6 +1006,9 @@ def __get_parsed_testsuite_testcases(testcases, testsuite_config, project_mappin
             parsed_testcase["config"]["variables"] = parsed_config_variables
 
         # parse parameters
+        # print(11)
+        # print(testcase)
+        # print(testcase["parameters"])
         if "parameters" in testcase and testcase["parameters"]:
             cartesian_product_parameters = parse_parameters(
                 testcase["parameters"],

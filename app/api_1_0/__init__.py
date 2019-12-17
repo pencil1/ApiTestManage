@@ -12,7 +12,7 @@ from . import api_msg_manage, module_manage, project_manage, report_manage, buil
 @api.before_request
 def before_request():
     current_app.logger.info('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, request.json))
-    print(request.remote_addr)
+    # print(request.remote_addr)
 
 
 @api.after_request

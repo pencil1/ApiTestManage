@@ -136,7 +136,7 @@ class ProductionConfig(Config):
     SCHEDULER_JOBSTORES = {'default': SQLAlchemyJobStore(url=SQLALCHEMY_DATABASE_URI,
                                                          engine_options={'pool_pre_ping': True})}
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_POOL_SIZE = 100
+    SQLALCHEMY_POOL_SIZE = 1000
     SQLALCHEMY_POOL_RECYCLE = 1800
 
 
