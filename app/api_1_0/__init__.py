@@ -17,6 +17,8 @@ def before_request():
 
 @api.after_request
 def after_request(r):
+    if 'downloadFile' in request.url:
+        return r
     result = copy.copy(r.response)
     if isinstance(result[0], bytes):
         result[0] = bytes.decode(result[0])

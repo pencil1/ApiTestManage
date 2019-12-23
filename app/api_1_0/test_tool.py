@@ -1,7 +1,7 @@
-import json
+import os
 import types
 
-from flask import jsonify, request
+from flask import jsonify, request, send_from_directory
 from app.models import *
 from . import api
 from ..util.tool_func import *
@@ -18,7 +18,7 @@ def build_identity():
     for c1 in c:
 
         if 'u64cdu4f5cu6210u529f' in c1.validate:
-            c1.validate = c1.validate.replace('u64cdu4f5cu6210u529f','操作成功')
+            c1.validate = c1.validate.replace('u64cdu4f5cu6210u529f', '操作成功')
 
     db.session.commit()
     return jsonify({'msg': '修改完成', 'status': 1})
@@ -117,6 +117,16 @@ def deal_data():
     # d.get_dict_keys_path(test)
     # d.data_tidy(test)
     return jsonify({'status': 1, 'msg': '优化成功'})
+
+
+@api.route("/downloadFile/<filepath>", methods=['GET'])
+def download_file(filepath):
+    if filepath == 'newFile':
+        list_of_files = glob.glob(r'D:\temp_files\*')  # * means all if need specific format then *.csv
+        latest_file = max(list_of_files, key=os.path.getctime).split('\\')[-1]
+        return send_from_directory(r'D:\temp_files', latest_file, as_attachment=True)
+    else:
+        return send_from_directory(r'D:\temp_files', filepath, as_attachment=True)
 
 
 @api.route('/caseChange', methods=['POST'])

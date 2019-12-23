@@ -4,6 +4,7 @@ import importlib
 import json
 import re
 import types
+from .httprunner.parser import variable_regexp, function_regexp, function_regexp_compile
 
 
 def auto_num(num, model, **kwargs):
@@ -19,7 +20,7 @@ def auto_num(num, model, **kwargs):
 def num_sort(new_num, old_num, list_data, old_data):
     """修改排序,自动按新旧序号重新排列"""
     if old_data not in list_data:
-        old_data.num = len(list_data)+1
+        old_data.num = len(list_data) + 1
     else:
         _temp_data = list_data.pop(list_data.index(old_data))
         list_data.insert(new_num - 1, _temp_data)
@@ -34,10 +35,9 @@ def num_sort(new_num, old_num, list_data, old_data):
                 m.num = old_num + n
 
 
-variable_regexp = r"\$([\w_]+)"
-function_regexp = r"\$\{([\w_]+\([\$\w\.\-_ =,]*\))\}"
-# function_regexp = r"\$\{([\w_]+\([\$\w\W\.\-_ =,]*\))\}"
-function_regexp_compile = re.compile(r"^([\w_]+)\(([\$\w\.\-/_ =,]*)\)$")
+# variable_regexp = r"\$([\w_]+)"
+# function_regexp = r"\$\{([\w_]+\([\$\w\.\-_ =,]*\))\}"
+# function_regexp_compile = re.compile(r"^([\w_]+)\(([\$\w\.\-/_ =,]*)\)$")
 # function_regexp_compile = re.compile(r"^([\w_]+)\(([\$\w\W\.\-/_ =,]*)\)$")
 
 
