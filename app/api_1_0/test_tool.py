@@ -1,3 +1,4 @@
+import glob
 import os
 import types
 
@@ -127,6 +128,20 @@ def download_file(filepath):
         return send_from_directory(r'D:\temp_files', latest_file, as_attachment=True)
     else:
         return send_from_directory(r'D:\temp_files', filepath, as_attachment=True)
+
+# 上传文件
+@api.route('/upload1', methods=['POST'], strict_slashes=False)
+def api_upload1():
+    """ 文件上传 """
+    data = request.files
+    # try:
+    file = data['file']
+    skip = request.form.get('skip')
+    # print(request.form)
+    from PIL import Image
+    a = Image.open(file)
+    a.show()
+    return jsonify({"msg": "上传成功", "status": 1})
 
 
 @api.route('/caseChange', methods=['POST'])

@@ -90,16 +90,16 @@ def is_testcases(data_structure):
     if not isinstance(data_structure, dict):
         return False
 
-    if "testcases" not in data_structure:
-        return False
+    # if "testcases" not in data_structure:
+    #     return False
 
-    testcases = data_structure["testcases"]
-    if not isinstance(testcases, list):
-        return False
+    # testcases = data_structure["testcases"]
+    # if not isinstance(testcases, list):
+    #     return False
 
-    for item in testcases:
-        if not is_testcase(item):
-            return False
+    # for item in testcases:
+    #     if not is_testcase(item):
+    #         return False
 
     return True
 

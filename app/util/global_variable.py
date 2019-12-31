@@ -2,6 +2,7 @@ import os
 
 CONTENT_TYPE = {
     '.load': 'text/html',
+    '.srv': 'srv',
     '.123': 'application/vnd.lotus-1-2-3',
     '.3ds': 'image/x-3ds',
     '.3g2': 'video/3gpp',
