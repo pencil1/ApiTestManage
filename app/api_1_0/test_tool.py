@@ -129,6 +129,7 @@ def download_file(filepath):
     else:
         return send_from_directory(r'D:\temp_files', filepath, as_attachment=True)
 
+
 # 上传文件
 @api.route('/upload1', methods=['POST'], strict_slashes=False)
 def api_upload1():
@@ -211,6 +212,15 @@ def test_list():
     d = {'status': 1, 'data': {'phone': 15813311111, 'id': 158}}
 
     return jsonify({'status': 1, 'msg': '优化成功', 'data': d})
+
+
+@api.route('/test/list1', methods=['POST'])
+def test_list1():
+    data = request.json
+    _id = data.get('d')
+    print(_id)
+
+    return jsonify({'status': 1, 'msg': '优化成功'})
 
 
 @api.route('/test/id', methods=['POST'])

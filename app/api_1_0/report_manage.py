@@ -118,7 +118,7 @@ def find_report():
     items = pagination.items
     total = pagination.total
     end_data = [{'name': c.case_names, 'project_id': project_id, 'id': c.id, 'read_status': c.read_status,
-                 'performer': c.performer,
+                 'performer': c.performer, 'project_name': Project.query.filter_by(id=project_id).first().name,
                  'create_time': str(c.create_time).split('.')[0]} for c in items]
 
     return jsonify({'data': end_data, 'total': total, 'status': 1})
