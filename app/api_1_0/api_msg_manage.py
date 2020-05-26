@@ -184,6 +184,7 @@ def find_api_msg():
                  'validate': json.loads(c.validate),
                  'param': json.loads(c.param),
                  'header': json.loads(c.header),
+                 # 'check': False,
                  'statusCase': {'extract': [True, True], 'variable': [True, True],
                                 'validate': [True, True], 'param': [True, True], 'header': [True, True]},
                  'status': True, 'case_name': c.name, 'down_func': c.down_func, 'up_func': c.up_func, 'time': 1}

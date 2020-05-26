@@ -22,7 +22,6 @@ def aps_test(project_id, case_ids, send_address=None, send_password=None, task_t
     res = json.loads(jump_res)
 
     if send_address:
-        print(111111111)
         task_to_address = task_to_address.split(',')
         file = render_html_report(res)
         s = SendEmail(send_address, send_password, task_to_address, file)

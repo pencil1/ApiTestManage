@@ -1,11 +1,14 @@
 import glob
+import importlib
 import os
 import types
 
+import requests
 from flask import jsonify, request, send_from_directory
 from app.models import *
 from . import api
 from ..util.tool_func import *
+from func_list.asdf import r_data
 
 
 @api.route('/buildIdentity')
@@ -178,6 +181,61 @@ def show1():
 
     # print(type(student.configs.order_by(Config.num.asc())))
     return jsonify({'status': 1, 'msg': '优化成功', 'data': '1'})
+
+
+@api.route('/test_json', methods=['get'])
+def test_json():
+    func_list = importlib.reload(importlib.import_module('func_list.{}'.format('asdf')))
+    module_functions_dict = {name: item for name, item in vars(func_list).items()
+                             if isinstance(item, types.FunctionType)}
+    # print(module_functions_dict['r_data']())
+    data = module_functions_dict['r_data']()
+    # print(type(student.configs.order_by(Config.num.asc())))
+    return jsonify(data)
+
+
+@api.route('/issues', methods=['get'])
+def issues_data():
+    issues_id = request.args.get("issues_id")
+    headers1 = {'PRIVATE-TOKEN': '1EwTWvwzzDyUm3UzNrVu'}
+    # r1 = requests.get('http://120.76.207.186/api/v4/projects', headers=headers1)
+
+    r1 = requests.get('http://120.76.207.186/api/v4/projects/848/issues?iids[]={}'.format(issues_id), headers=headers1)
+    r2 = r1.json()[0]
+    label = '/label' + ''.join([' ~' + '"' + l + '"' for l in r2['labels']])
+    assignees = '/assign ' + ''.join([' @' + n['username'] for n in r2['assignees']])
+    milestone = '/milestone %' + '"' + r2['milestone']['title'] + '"'
+
+    link = '/relate'
+    r3 = requests.get('http://120.76.207.186/api/v4/projects/848/issues/{}/links'.format(issues_id), headers=headers1)
+    r4 = r3.json()
+    for a1 in r4:
+        # print(a1)
+        link = link + ' ' + a1['references']['relative']
+    # print(label)
+    # print(assignees)
+    # print(milestone)
+    # print(link)
+    _data = label + '\n' + assignees + '\n' + milestone + '\n' + link
+    # func_list = importlib.reload(importlib.import_module('func_list.{}'.format('asdf')))
+    # module_functions_dict = {name: item for name, item in vars(func_list).items()
+    #                          if isinstance(item, types.FunctionType)}
+    # # print(module_functions_dict['r_data']())
+    # data = module_functions_dict['r_data']()
+    # print(type(student.configs.order_by(Config.num.asc())))
+    return _data
+    # return jsonify({'data':_data})
+
+
+@api.route('/test1_json', methods=['get'])
+def test1_json():
+    func_list = importlib.reload(importlib.import_module('func_list.{}'.format('asdf1')))
+    module_functions_dict = {name: item for name, item in vars(func_list).items()
+                             if isinstance(item, types.FunctionType)}
+    # print(module_functions_dict['r_data']())
+    data = module_functions_dict['r_data']()
+    # print(type(student.configs.order_by(Config.num.asc())))
+    return jsonify(data)
 
 
 @api.route('/findSqlList')

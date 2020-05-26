@@ -695,6 +695,7 @@ LOG_ADDRESS = os.path.abspath('..') + r'/logs/'
 TEMP_REPORT = os.path.abspath('.') + r'/app/util/report'
 FUNC_ADDRESS = os.path.abspath('.') + r'/func_list'
 FILE_ADDRESS = os.path.abspath('..') + r'/files/'
+NOTES_ADDRESS = os.path.abspath('..') + r'/notes/'
 TEST_FILE_ADDRESS = os.path.abspath('..') + r'/test_files/'
 
 

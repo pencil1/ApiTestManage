@@ -249,9 +249,7 @@ class RunCase(object):
         # self.TEST_DATA['config'] = {}
         # self.TEST_DATA['config']['parameters'] = {'password': [123456, 12345, 1234]}
         # self.TEST_DATA = {'testsuites': [self.TEST_DATA], 'parameters': [123456, 12345, 1234]}
-        # self.TEST_DATA = {'project_mapping': {'env': {'USERNAME': 'leolee', 'PASSWORD': '123456'}, 'test_path': 'D:\\project\\qwe\\demo\\er\\do\\testsuites\\demo_testsuite.yml', 'PWD': 'D:\\project\\qwe\\demo\\er\\do'}, 'testsuites': [{'testcases': {'call demo_testcase with data 1': {'testcase': 'testcases/demo_testcase.yml', 'name': 'call demo_testcase with data 1', 'testcase_def': {'config': {'variables': {'device_sn': 'XYZ', 'passwords': 123456789}, 'name': 'demo testcase', 'base_url': 'http://122.51.184.120', 'parameters': {'passwords': [123456789, 1213456789, 1223456789]}}, 'teststeps': [{'variables': {'user_agent': 'iOS/10.3'}, 'api': 'api/api1.yml', 'name': 'demo step 1', 'api_def': {'variables': {'var2': 'value2', 'var1': 'value1'}, 'name': 'demo api', 'validate': [{'eq': ['status_code', 200]}], 'request': {'url': '/api/login', 'method': 'POST', 'data': {'account': 'admin', 'password': '$passwords'}}}, 'validate': [{'eq': ['status_code', 200]}]}]}, 'parameters': {'passwords': [123456789, 1213456789, 1223456789]}}}, 'config': {'variables': {'device_sn': 'XYZ', 'passwords': 123456789}, 'name': 'demo testsuite', 'base_url': 'http://122.51.184.120'}, 'path': 'D:\\project\\qwe\\demo\\er\\do\\testsuites\\demo_testsuite.yml', 'type': 'testsuite'}]}
 
-        print(self.TEST_DATA)
         runner.run(self.TEST_DATA)
         jump_res = json.dumps(runner._summary, ensure_ascii=False, default=encode_object, cls=JSONEncoder)
         # scheduler.app.logger.info('返回数据：{}'.format(jump_res))
