@@ -28,7 +28,7 @@ def api_upload_pic():
     """ 文件上传 """
     data = request.files
     file = data['file']
-    name = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime()) + str(random.randint(1, 9))
+    name = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime()) + str(random.randint(100, 999))
     file.save(os.path.join(NOTES_ADDRESS, name+'.png'))
 
     path = '![image]'+'(http://www.heiman.website/notes/{}.png)'.format(name)
