@@ -8,7 +8,7 @@ from flask import jsonify, request, send_from_directory
 from app.models import *
 from . import api
 from ..util.tool_func import *
-from func_list.asdf import r_data
+# from func_list.asdf import r_data
 
 
 @api.route('/buildIdentity')
