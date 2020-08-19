@@ -45,7 +45,7 @@ pycparser==2.17
 python-dateutil==2.7.5
 python-editor==1.0.3
 pytz==2018.7
-PyYAML==3.12
+PyYAML==5.1
 pyzmq==17.1.2
 redis==3.0.1
 requests==2.20.1
