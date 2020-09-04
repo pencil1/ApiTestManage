@@ -52,7 +52,7 @@ def get_report():
     report_data = Report.query.filter_by(id=report_id).first()
     report_data.read_status = '已读'
     db.session.commit()
-    with open(_address, 'r') as f:
+    with open(_address, 'r', encoding='UTF-8') as f:
         d = json.loads(f.read())
 
     if state == 'success':

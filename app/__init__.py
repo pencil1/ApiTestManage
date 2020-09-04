@@ -8,7 +8,7 @@ from config import config_log
 from .util import global_variable  # 初始化文件地址
 from sqlalchemy import MetaData
 from flask_apscheduler import APScheduler
-
+from flask_compress import Compress
 login_manager = LoginManager()
 # login_manager.session_protection = 'None'
 # login_manager.login_view = '.login'
@@ -32,7 +32,10 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 def create_app(config_name):
     app = Flask(__name__)
+    Compress(app)
+
     app.config.from_object(config[config_name])
+    app.config['COMPRESS_MIN_SIZE'] = 1024
     app.logger.addHandler(config_log())  # 初始化日志
     config[config_name].init_app(app)
 
