@@ -33,11 +33,11 @@ def add_case():
     if _temp_check:
         return jsonify({'msg': '参数引用${}在业务变量和项目公用变量均没找到'.format(',$'.join(_temp_check)), 'status': 0})
 
-    cases_check = check_case(api_cases, func_address)
+    # cases_check = check_case(api_cases, func_address)
     # if cases_check:
     #     return jsonify({'msg': cases_check, 'status': 0})
 
-    variable_check = check_case(variable, func_address)
+    # variable_check = check_case(variable, func_address)
     # if variable_check:
     #     return jsonify({'msg': variable_check, 'status': 0})
 

@@ -14,6 +14,7 @@ class SessionContext(object):
         >>> context.update_session_variables(variables)
 
     """
+
     def __init__(self, functions, variables=None):
         self.session_variables_mapping = utils.ensure_mapping_format(variables or {})
         self.FUNCTIONS_MAPPING = functions
@@ -97,8 +98,8 @@ class SessionContext(object):
         # 5, regex string, e.g. "LB[\d]*(.*)RB[\d]*"
 
         if isinstance(check_item, (dict, list)) \
-            or parser.extract_variables(check_item) \
-            or parser.extract_functions(check_item):
+                or parser.extract_variables(check_item) \
+                or parser.extract_functions(check_item):
             # format 1/2/3
             check_value = self.eval_content(check_item)
         else:
@@ -137,7 +138,7 @@ class SessionContext(object):
         expect_value = validator_dict["expect"]
 
         if (check_value is None or expect_value is None) \
-            and comparator not in ["is", "eq", "equals", "=="]:
+                and comparator not in ["is", "eq", "equals", "=="]:
             raise exceptions.ParamsError("Null value can only be compared with comparator: eq/equals/==")
 
         validate_msg = "validate: {} {} {}({})".format(

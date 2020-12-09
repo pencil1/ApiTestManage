@@ -8,7 +8,7 @@ from . import (exceptions, loader, logger, parser, report, runner, utils, valida
 class HttpRunner(object):
 
     def __init__(self, failfast=False, save_tests=False, report_template=None, report_dir=None,
-        log_level="INFO", log_file=None):
+                 log_level="INFO", log_file=None):
         """ initialize HttpRunner.
 
         Args:
@@ -44,9 +44,11 @@ class HttpRunner(object):
             unittest.TestSuite()
 
         """
+
         def _add_test(test_runner, test_dict):
             """ add test to testcase.
             """
+
             def test(self):
                 try:
                     test_runner.run_test(test_dict)
@@ -69,7 +71,12 @@ class HttpRunner(object):
 
         for testcase in tests_mapping["testcases"]:
             config = testcase.get("config", {})
+
+            # 合并共有函数和测试用例里的私有函数
+            functions = {**functions, **config.get('functions', {})}
+
             test_runner = runner.Runner(config, functions)
+
             TestSequense = type('TestSequense', (unittest.TestCase,), {})
 
             tests = testcase.get("teststeps", [])

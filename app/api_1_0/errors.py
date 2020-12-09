@@ -5,7 +5,7 @@ import traceback
 
 @api.app_errorhandler(404)
 def page_not_found(e):
-    current_app.logger.exception('404错误url:{}'.format(request.url))
+    current_app.logger.exception('后台不存在此请求url:{}'.format(request.url))
     return jsonify({'msg': '后台不存在此请求'})
 
 

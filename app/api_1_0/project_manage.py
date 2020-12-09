@@ -11,6 +11,7 @@ from sqlalchemy import text
 @login_required
 def get_pro_gather():
     """ 获取基本信息 """
+
     # if current_user.id == 4:
     # _pros = Project.query.order_by(case((Project.user_id == current_user.id, 1))).all()
     _pros = Project.query.order_by(text('CASE WHEN user_id={} THEN 0 END DESC'.format(current_user.id))).all()
@@ -110,7 +111,7 @@ def add_project():
     ids = data.get('id')
     header = data.get('header')
     variable = data.get('variable')
-    func_file = data.get('funcFile')
+    func_file = json.dumps(data.get('funcFile'))
     if ids:
         old_project_data = Project.query.filter_by(id=ids).first()
         if Project.query.filter_by(name=project_name).first() and project_name != old_project_data.name:
@@ -173,7 +174,7 @@ def edit_project():
     _data = {'pro_name': _edit.name,
              'user_id': _edit.user_id,
              'principal': _edit.principal,
-             'func_file': _edit.func_file,
+             'func_file': json.loads(_edit.func_file),
              'host': json.loads(_edit.host),
              'host_two': json.loads(_edit.host_two),
              'host_three': json.loads(_edit.host_three),

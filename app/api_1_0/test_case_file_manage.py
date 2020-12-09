@@ -4,7 +4,6 @@ from app.models import *
 from flask_login import current_user
 from ..util.utils import *
 from ..util.global_variable import *
-import json
 
 
 @api.route('/testCaseFile/add', methods=['POST'])
@@ -18,7 +17,7 @@ def add_test_case_file():
     ids = data.get('id')
     if not name:
         return jsonify({'msg': '名称不能为空', 'status': 0})
-    num = auto_num(data.get('num'), CaseSet)
+    num = auto_num(data.get('num'), TestCaseFile)
     if ids:
         old_data = TestCaseFile.query.filter_by(id=ids).first()
         old_data.name = name

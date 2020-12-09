@@ -205,6 +205,7 @@ class Runner(object):
 
         # parse test request
         raw_request = test_dict.get('request', {})
+        # self.session_context.update_functions(test_dict)
         parsed_test_request = self.session_context.eval_content(raw_request)
         self.session_context.update_test_variables("request", parsed_test_request)
 

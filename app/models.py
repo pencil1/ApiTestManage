@@ -71,7 +71,7 @@ class User(UserMixin, db.Model):
             db.session.add(user)
             db.session.commit()
             print('Administrator account created successfully')
-            print('--'*30)
+            print('--' * 30)
 
     @property
     def password(self):
@@ -106,7 +106,7 @@ class Project(db.Model):
     principal = db.Column(db.String(16), nullable=True)
     variables = db.Column(db.String(2048), comment='项目的公共变量')
     headers = db.Column(db.String(1024), comment='项目的公共头部信息')
-    func_file = db.Column(db.String(64), nullable=True, unique=True, comment='函数文件')
+    func_file = db.Column(db.String(128), comment='函数地址')
     modules = db.relationship('Module', order_by='Module.num.asc()', lazy='dynamic')
     configs = db.relationship('Config', order_by='Config.num.asc()', lazy='dynamic')
     case_sets = db.relationship('CaseSet', order_by='CaseSet.num.asc()', lazy='dynamic')
@@ -130,7 +130,7 @@ class Config(db.Model):
     id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
     num = db.Column(db.Integer(), nullable=True, comment='配置序号')
     name = db.Column(db.String(128), comment='配置名称')
-    variables = db.Column(db.String(21000), comment='配置参数')
+    variables = db.Column(db.Text(), comment='配置参数')
     func_address = db.Column(db.String(128), comment='配置函数')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
     created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
@@ -250,6 +250,19 @@ class TestCaseFile(db.Model):
     num = db.Column(db.Integer(), nullable=True, comment='测试用例文件序号')
     name = db.Column(db.String(128), nullable=True, comment='测试用例文件名称')
 
+    status = db.Column(db.Integer(), comment='0代表文件夹；1代表用例文件')
+    higher_id = db.Column(db.Integer(), comment='上级id，父级为0')
+    user_id = db.Column(db.Integer(), comment='创建人id')
+
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
+    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
+
+
+class FuncFile(db.Model):
+    __tablename__ = 'func_file'
+    id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
+    name = db.Column(db.String(128), nullable=True, comment='内置函数文件名称')
+    num = db.Column(db.Integer(), nullable=True, comment='内置函数文件序号')
     status = db.Column(db.Integer(), comment='0代表文件夹；1代表用例文件')
     higher_id = db.Column(db.Integer(), comment='上级id，父级为0')
     user_id = db.Column(db.Integer(), comment='创建人id')

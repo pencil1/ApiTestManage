@@ -44,7 +44,7 @@ class RunCase(object):
         self.TEST_DATA['project_mapping']['variables'] = {h['key']: h['value'] for h in
                                                           json.loads(project_data.variables) if h.get('key')}
         if project_data.func_file:
-            self.extract_func([project_data.func_file.replace('.py', '')])
+            self.extract_func(['{}'.format(f[-1].replace('.py', '')) for f in json.loads(project_data.func_file)])
 
     def extract_func(self, func_list):
         for f in func_list:
@@ -198,7 +198,7 @@ class RunCase(object):
             config_data = Config.query.filter_by(id=config_id).first()
             _config = json.loads(config_data.variables) if config_id else []
             _steps['config']['variables'].update({v['key']: v['value'] for v in _config if v['key']})
-            self.extract_func(['{}'.format(f.replace('.py', '')) for f in json.loads(config_data.func_address)])
+            self.extract_func(['{}'.format(f[-1].replace('.py', '')) for f in json.loads(config_data.func_address)])
 
         _steps['teststeps'] = [self.assemble_step(api_id, None, self.pro_environment, False) for api_id in api_ids]
         self.TEST_DATA['testcases'].append(_steps)
@@ -220,8 +220,15 @@ class RunCase(object):
                 _config = json.loads(case_data.variable) if case_data.variable else []
                 _steps['config']['variables'].update({v['key']: v['value'] for v in _config if v['key']})
 
+                module_functions_dict = {}
+                for f in ['{}'.format(f[-1].replace('.py', '')) for f in json.loads(case_data.func_address)]:
+                    func_list = importlib.reload(importlib.import_module('func_list.{}'.format(f)))
+                    module_functions_dict = {name: item for name, item in vars(func_list).items()
+                                             if isinstance(item, types.FunctionType)}
+
+                _steps['config']['functions'] = module_functions_dict
                 # # 获取需要导入的函数
-                self.extract_func(['{}'.format(f.replace('.py', '')) for f in json.loads(case_data.func_address)])
+                # self.extract_func(['{}'.format(f[-1].replace('.py', '')) for f in json.loads(case_data.func_address)])
 
                 for _step in CaseData.query.filter_by(case_id=case_id).order_by(CaseData.num.asc()).all():
                     if _step.status == 'true':  # 判断用例状态，是否执行
@@ -244,13 +251,9 @@ class RunCase(object):
     def run_case(self):
         scheduler.app.logger.info('测试数据：{}'.format(self.TEST_DATA))
         # res = main_ate(self.TEST_DATA)
+        print(self.TEST_DATA)
         runner = HttpRunner()
-        # self.TEST_DATA['testcases'][0]['config']['parameters'] = {'passwords': [123456, 12345, 1234]}
-        # self.TEST_DATA['config'] = {}
-        # self.TEST_DATA['config']['parameters'] = {'password': [123456, 12345, 1234]}
-        # self.TEST_DATA = {'testsuites': [self.TEST_DATA], 'parameters': [123456, 12345, 1234]}
 
         runner.run(self.TEST_DATA)
         jump_res = json.dumps(runner._summary, ensure_ascii=False, default=encode_object, cls=JSONEncoder)
-        # scheduler.app.logger.info('返回数据：{}'.format(jump_res))
         return jump_res
