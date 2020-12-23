@@ -111,7 +111,9 @@ def add_project():
     ids = data.get('id')
     header = data.get('header')
     variable = data.get('variable')
-    func_file = json.dumps(data.get('funcFile'))
+    func_file = json.dumps(data.get('funcFile')) if data.get('funcFile') else json.dumps([])
+    # func_file='123'
+    # print(func_file)
     if ids:
         old_project_data = Project.query.filter_by(id=ids).first()
         if Project.query.filter_by(name=project_name).first() and project_name != old_project_data.name:

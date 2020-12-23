@@ -223,6 +223,7 @@ class RunCase(object):
                 module_functions_dict = {}
                 for f in ['{}'.format(f[-1].replace('.py', '')) for f in json.loads(case_data.func_address)]:
                     func_list = importlib.reload(importlib.import_module('func_list.{}'.format(f)))
+                    # func_list = importlib.reload(importlib.import_module('debugtalk'))
                     module_functions_dict = {name: item for name, item in vars(func_list).items()
                                              if isinstance(item, types.FunctionType)}
 
