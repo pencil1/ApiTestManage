@@ -85,6 +85,7 @@ def del_config():
     if current_user.id != Project.query.filter_by(id=_edit.project_id).first().user_id:
         return jsonify({'msg': '不能删除别人项目下的配置', 'status': 0})
     db.session.delete(_edit)
+    db.session.commit()
     return jsonify({'msg': '删除成功', 'status': 1})
 
 

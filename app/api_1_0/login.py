@@ -149,6 +149,7 @@ def del_user():
     ids = data.get('id')
     _edit = User.query.filter_by(id=ids).first()
     db.session.delete(_edit)
+    db.session.commit()
     return jsonify({'msg': '删除成功', 'status': 1})
 
 

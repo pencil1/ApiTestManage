@@ -163,6 +163,7 @@ def del_project():
     if pro_data.configs.all():
         return jsonify({'msg': '请先删除项目下的业务配置', 'status': 0})
     db.session.delete(pro_data)
+    db.session.commit()
     return jsonify({'msg': '删除成功', 'status': 1})
 
 

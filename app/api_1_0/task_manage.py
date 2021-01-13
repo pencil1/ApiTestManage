@@ -195,6 +195,7 @@ def del_task():
         return jsonify({'msg': '请先移除任务', 'status': 0})
 
     db.session.delete(_edit)
+    db.session.commit()
     return jsonify({'msg': '删除成功', 'status': 1})
 
 

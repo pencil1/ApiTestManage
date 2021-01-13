@@ -108,13 +108,11 @@ def del_test_case_file():
     ids = data.get('id')
     _edit = TestCaseFile.query.filter_by(id=ids).first()
     case = TestCaseFile.query.filter_by(higher_id=ids).first()
-    print(current_user.id)
-    print(_edit.user_id)
     if current_user.id != _edit.user_id:
-        print(2234)
         return jsonify({'msg': '不能删除别人创建的', 'status': 0})
     if case:
         return jsonify({'msg': '请先删除该文件的下级内容', 'status': 0})
 
     db.session.delete(_edit)
+    db.session.commit()
     return jsonify({'msg': '删除成功', 'status': 1})

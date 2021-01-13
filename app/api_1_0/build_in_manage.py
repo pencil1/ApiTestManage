@@ -117,7 +117,7 @@ def del_func_file():
     if _edit.status == 1:
         os.remove('{}/{}'.format(FUNC_ADDRESS, _edit.name))
     db.session.delete(_edit)
-
+    db.session.commit()
     return jsonify({'msg': '删除成功', 'status': 1})
 
 

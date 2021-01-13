@@ -87,6 +87,7 @@ def del_model():
     if _edit.api_msg.all():
         return jsonify({'msg': '请先删除模块下的接口用例', 'status': 0})
     db.session.delete(_edit)
+    db.session.commit()
     return jsonify({'msg': '删除成功', 'status': 1})
 
 

@@ -179,6 +179,7 @@ def del_case():
         for d in _del_data:
             db.session.delete(d)
     db.session.delete(wait_del_case_data)
+    db.session.commit()
     return jsonify({'msg': '删除成功', 'status': 1})
 
 
@@ -190,6 +191,7 @@ def del_api_case():
     case_id = data.get('id')
     _data = CaseData.query.filter_by(id=case_id).first()
     db.session.delete(_data)
+    db.session.commit()
     return jsonify({'msg': '删除成功', 'status': 1})
 
 

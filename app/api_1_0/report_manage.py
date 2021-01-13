@@ -91,6 +91,7 @@ def del_report():
     report_id = data.get('report_id')
     _edit = Report.query.filter_by(id=report_id).first()
     db.session.delete(_edit)
+    db.session.commit()
     address = str(report_id) + '.txt'
     if not os.path.exists(REPORT_ADDRESS + address):
         return jsonify({'msg': '删除成功', 'status': 1})

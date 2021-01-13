@@ -209,7 +209,7 @@ def del_api_msg():
         db.session.delete(d)
 
     db.session.delete(_data)
-
+    db.session.commit()
     return jsonify({'msg': '删除成功', 'status': 1})
 
 
