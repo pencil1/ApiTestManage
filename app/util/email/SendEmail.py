@@ -6,7 +6,11 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
 from email.mime.application import MIMEApplication
+from email import encoders
 from .mail_config import EMAIL_PORT, EMAIL_SERVICE
+
+# EMAIL_SERVICE = 'smtp.qq.com'
+# EMAIL_PORT = 25
 
 
 class SendEmail(object):
@@ -30,22 +34,41 @@ class SendEmail(object):
         message['Subject'] = Header(subject, 'utf-8')
 
         # 添加附件
-        att1 = MIMEApplication(self.file)
-        att1.add_header('Content-Disposition', 'attachment', filename=('gbk', '', '接口测试报告.html'))
+        # att1 = MIMEApplication(self.file)
+
+        att1 = MIMEText(self.file, 'base64', 'utf-8')
+        # att1["Content-Type"] = 'application/octet-stream'
+        # 这里的filename可以任意写，写什么名字，邮件中显示什么名字
+        # att1["Content-Disposition"] = 'attachment; filename="test.txt"'
+        # message.attach(att1)
+
+        att1.add_header('Content-Disposition', 'attachment', filename=('utf-8', '', '接口测试报告.html'))
         message.attach(att1)
 
-        try:
-            service = smtplib.SMTP()
-            service.connect(self.Email_service, 25)  # 25 为 SMTP 端口号
-            service.starttls()
-            service.login(self.username, self.password)
-            service.sendmail(self.username, self.to_list, message.as_string())
-            print('邮件发送成功')
-            service.close()
-        except Exception as e:
-            print(e)
-            print('报错，邮件发送失败')
+        # try:
+        service = smtplib.SMTP_SSL(host=self.Email_service)
+        service.connect(host=self.Email_service, port=self.Email_port)
+        # service.connect(self.Email_service, 25)  # 25 为 SMTP 端口号
+        # service.ehlo()
+        # service.starttls()
+        service.login(self.username, self.password)
+        service.sendmail(self.username, self.to_list, message.as_string(unixfrom=True))
+        print('邮件发送成功')
+        service.close()
+        # except Exception as e:
+        #     print(e)
+        #     print('报错，邮件发送失败')
+        #
 
 
 if __name__ == '__main__':
-    pass
+    a = SendEmail('362508572@qq.com', 'dnydstvgibqsbhaj', ['362508572@qq.com', ], """
+ 
+    As you may have already noticed, WebStorm has lots of integrated tools to help you run, debug and test your apps. Let’s have a closer look.
+    
+    Debug your app
+    
+    You can debug client-side code with Chrome right from the IDE: put the breakpoints right in the source code and start the debug session. Learn how to get started by watching this video or reading the docs.
+    
+    You can also run and debug Node.js, Electron and React Native applications in WebStorm.""")
+    a.send_email()
