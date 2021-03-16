@@ -1,7 +1,7 @@
 from flask import Blueprint, current_app, request
 from flask_login import current_user
 
-from ..models import Logs,db
+from ..models import Logs, db
 from ..util.custom_decorator import login_required
 import copy
 import json
@@ -16,7 +16,8 @@ from . import api_msg_manage, module_manage, project_manage, report_manage, buil
 def before_request():
     try:
         # print('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, request.json))
-        current_app.logger.info('ip:{}, url:{} ,method:{},请求参数:{}'.format(request.remote_addr, request.url, request.method, request.json))
+        current_app.logger.info(
+            'ip:{}, url:{} ,method:{},请求参数:{}'.format(request.remote_addr, request.url, request.method, request.json))
     except Exception as e:
         print(e)
     # print(request.remote_addr)
@@ -24,9 +25,10 @@ def before_request():
 
 @api.after_request
 def after_request(r):
+    uid = current_user.id if getattr(current_user, 'id', None) else None
     new_project = Logs(ip=request.remote_addr,
-                       uid=current_user.id,
-                       url=request.url,)
+                       uid=uid,
+                       url=request.url, )
     db.session.add(new_project)
     db.session.commit()
     if 'downloadFile' in request.url:
