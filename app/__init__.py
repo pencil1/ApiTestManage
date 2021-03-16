@@ -1,4 +1,5 @@
 # encoding: utf-8
+import logging
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -37,6 +38,7 @@ def create_app(config_name):
     app.config.from_object(config[config_name])
     app.config['COMPRESS_MIN_SIZE'] = 1024
     app.logger.addHandler(config_log())  # 初始化日志
+    app.logger.root.setLevel(logging.INFO)
     config[config_name].init_app(app)
 
     # https://blog.csdn.net/yannanxiu/article/details/53426359 关于定时任务访问数据库时报错

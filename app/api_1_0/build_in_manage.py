@@ -85,6 +85,8 @@ def get_func_file():
     func_name = FuncFile.query.filter_by(id=ids).first().name
     with open('{}/{}'.format(FUNC_ADDRESS, func_name), 'r', encoding='utf8') as f:
         d = f.read()
+    print(d)
+    print('{}/{}'.format(FUNC_ADDRESS, func_name))
     return jsonify({'msg': '获取成功', 'func_data': d, 'status': 1})
 
 
@@ -98,6 +100,7 @@ def save_func_file():
     func_name = FuncFile.query.filter_by(id=ids).first().name
     with open('{}/{}'.format(FUNC_ADDRESS, func_name), 'w', encoding='utf8') as f:
         f.write(func_data)
+
     return jsonify({'msg': '保存成功', 'status': 1})
 
 

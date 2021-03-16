@@ -154,7 +154,9 @@ def del_project():
     data = request.json
     ids = data.get('id')
     pro_data = Project.query.filter_by(id=ids).first()
-    if current_user.id != pro_data.user_id:
+    print(current_user.id != 1)
+    if current_user.id != 1 and current_user.id != pro_data.user_id:
+        print(current_user.id)
         return jsonify({'msg': '不能删除别人创建的项目', 'status': 0})
     if pro_data.modules.all():
         return jsonify({'msg': '请先删除项目下的接口模块', 'status': 0})

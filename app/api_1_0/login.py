@@ -4,6 +4,8 @@ from app.models import *
 import json
 from flask_login import login_user, logout_user
 from ..util.custom_decorator import *
+from datetime import datetime, timedelta
+from sqlalchemy import and_
 
 
 @api.route('/register', methods=['POST'])
@@ -108,6 +110,7 @@ def login():
 @login_required
 def find_user():
     """ 查找用户 """
+
     data = request.json
     user_name = data.get('userName')
     page = data.get('page') if data.get('page') else 1
@@ -169,3 +172,27 @@ def change_status_user():
         _edit.status = 1
         db.session.commit()
         return jsonify({'msg': '恢复成功', 'status': 1})
+
+
+@api.route('/msg', methods=['GET'])
+@login_required
+def msg_user():
+    """ 改变用户状态 """
+    now = datetime.now()
+    _d = {'other_data': {'project_num': Project.query.count(),
+                         'case_num': Case.query.count(),
+                         'api_num': ApiMsg.query.count(),
+                         'task_num': Task.query.count(),
+                         'report_num': Report.query.count(),
+                         'config_num': Config.query.count(), },
+          'time_data': []}
+
+    for num in range(7):
+        _q = Logs.query.filter(
+            and_(now - timedelta(days=num) > Logs.created_time, Logs.created_time >= now - timedelta(days=num + 1)))
+        a = _q.with_entities(Logs.ip).distinct().all()
+        a2 = _q.with_entities(Logs.url).distinct().all()
+        t = now - timedelta(days=num)
+        _d['time_data'].insert(0, {'日期': t.strftime('%Y-%m-%d'), '访问人数': len(a2), '阅读次数': len(a)})
+    print(Project.query.count())
+    return jsonify({'msg': '恢复成功', 'status': 1, 'data': _d})

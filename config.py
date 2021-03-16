@@ -96,11 +96,11 @@ def config_log():
     """
     handler = SafeLog(filename=os.path.abspath('..') + r'/logs/' + 'logger', interval=1, backupCount=50, when="D",
                       encoding='UTF-8')
-    handler.setLevel(logging.INFO)
+
     handler.suffix = "%Y-%m-%d.log"
     logging_format = logging.Formatter('%(asctime)s - %(levelname)s - %(lineno)s - %(message)s')
     handler.setFormatter(logging_format)
-    # handler.setFormatter('%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(lineno)s - %(message)s')
+    # handler.setLevel(logging.INFO)
     return handler
 
 

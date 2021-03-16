@@ -271,6 +271,17 @@ class FuncFile(db.Model):
     update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
+class Logs(db.Model):
+    __tablename__ = 'logs'
+    id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
+    ip = db.Column(db.String(128),  comment='ip')
+    uid = db.Column(db.String(128),  comment='uid')
+    url = db.Column(db.String(128), comment='url')
+
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
+    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))

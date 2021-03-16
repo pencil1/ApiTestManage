@@ -8,9 +8,9 @@ from email.header import Header
 from email.mime.application import MIMEApplication
 from email import encoders
 from .mail_config import EMAIL_PORT, EMAIL_SERVICE
-
+#
 # EMAIL_SERVICE = 'smtp.qq.com'
-# EMAIL_PORT = 25
+# EMAIL_PORT = 465
 
 
 class SendEmail(object):
@@ -62,7 +62,7 @@ class SendEmail(object):
 
 
 if __name__ == '__main__':
-    a = SendEmail('362508572@qq.com', 'dnydstvgibqsbhaj', ['362508572@qq.com', ], """
+    a = SendEmail('362508572@qq.com', 'hjxjvgnikafncaci', ['531461379@qq.com', ], """
  
     As you may have already noticed, WebStorm has lots of integrated tools to help you run, debug and test your apps. Let’s have a closer look.
     
