@@ -193,6 +193,6 @@ def msg_user():
         a = _q.with_entities(Logs.ip).distinct().all()
         a2 = _q.with_entities(Logs.url).distinct().all()
         t = now - timedelta(days=num)
-        _d['time_data'].insert(0, {'日期': t.strftime('%Y-%m-%d'), '访问人数': len(a2), '阅读次数': len(a)})
+        _d['time_data'].insert(0, {'日期': t.strftime('%Y-%m-%d'), '访问人数': len(a), '阅读次数': len(a2)})
     print(Project.query.count())
     return jsonify({'msg': '恢复成功', 'status': 1, 'data': _d})
