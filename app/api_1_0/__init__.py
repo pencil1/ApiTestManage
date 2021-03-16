@@ -17,7 +17,7 @@ def before_request():
     try:
         # print('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, request.json))
         current_app.logger.info(
-            'ip:{}, url:{} ,method:{},请求参数:{}'.format(request.remote_addr, request.url, request.method, request.json))
+            'ip:{}, url:{} ,method:{},请求参数:{}'.format(request.headers['X-Forwarded-For'], request.url, request.method, request.json))
     except Exception as e:
         print(e)
     # print(request.remote_addr)
@@ -26,7 +26,7 @@ def before_request():
 @api.after_request
 def after_request(r):
     uid = current_user.id if getattr(current_user, 'id', None) else None
-    new_project = Logs(ip=request.remote_addr,
+    new_project = Logs(ip=request.headers['X-Forwarded-For'],
                        uid=uid,
                        url=request.url, )
     db.session.add(new_project)
