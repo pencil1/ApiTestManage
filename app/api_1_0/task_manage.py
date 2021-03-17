@@ -11,7 +11,8 @@ from ..util.report.report import render_html_report
 from flask_login import current_user
 
 
-def aps_test(project_id, case_ids, send_address=None, send_password=None, task_to_address=None, performer='无'):
+def aps_test(project_id, case_ids, send_address=None, send_password=None, task_to_address=None, performer='无',
+             send_email_status='1'):
     # global db
     # db.session.remove()
     # db.create_scoped_session()
@@ -21,11 +22,12 @@ def aps_test(project_id, case_ids, send_address=None, send_password=None, task_t
     d.build_report(jump_res, case_ids, performer)
     res = json.loads(jump_res)
 
-    if send_address:
+    if send_email_status == '1' or (send_email_status == '2' and not res['success']):
         task_to_address = task_to_address.split(',')
         file = render_html_report(res)
         s = SendEmail(send_address, send_password, task_to_address, file)
         s.send_email()
+
     db.session.rollback()  # 把连接放回连接池，不知道为什么定时任务跑完不会自动放回去，导致下次跑的时候，mysql连接超时断开报错
     return d.new_report_id
 
@@ -55,8 +57,9 @@ def run_task():
     ids = data.get('id')
     _data = Task.query.filter_by(id=ids).first()
     cases_id = get_case_id(_data.project_id, json.loads(_data.set_id), json.loads(_data.case_id))
-    new_report_id = aps_test(_data.project_id, cases_id,
-                             performer=User.query.filter_by(id=current_user.id).first().name)
+    new_report_id = aps_test(_data.project_id, cases_id, _data.task_send_email_address, _data.email_password,
+                             _data.task_to_email_address, User.query.filter_by(id=current_user.id).first().name,
+                             _data.send_email_status)
 
     return jsonify({'msg': '测试成功', 'status': 1, 'data': {'report_id': new_report_id}})
 
@@ -72,7 +75,8 @@ def start_task():
     cases_id = get_case_id(_data.project_id, json.loads(_data.set_id), json.loads(_data.case_id))
     scheduler.add_job(func=aps_test, trigger='cron', misfire_grace_time=60, coalesce=False,
                       args=[_data.project_id, cases_id, _data.task_send_email_address, _data.email_password,
-                            _data.task_to_email_address, User.query.filter_by(id=current_user.id).first().name],
+                            _data.task_to_email_address, User.query.filter_by(id=current_user.id).first().name,
+                            _data.send_email_status],
                       id=str(ids), **config_time)  # 添加任务
     _data.status = '启动'
     db.session.commit()
@@ -97,6 +101,7 @@ def add_task():
     to_email = data.get('toEmail')
     send_email = data.get('sendEmail')
     password = data.get('password')
+    send_email_status = data.get('sendEmailStatus')
     # 0 0 1 * * *
     if not (not to_email and not send_email and not password) and not (to_email and send_email and password):
         return jsonify({'msg': '发件人、收件人、密码3个必须都为空，或者都必须有值', 'status': 0})
@@ -119,6 +124,7 @@ def add_task():
             old_task_data.task_send_email_address = send_email
             old_task_data.email_password = password
             old_task_data.num = num
+            old_task_data.send_email_status = send_email_status
             if old_task_data.status != '创建' and old_task_data.task_config_time != time_config:
                 scheduler.reschedule_job(str(task_id), trigger='cron', **change_cron(time_config))  # 修改任务
                 old_task_data.status = '启动'
@@ -140,6 +146,7 @@ def add_task():
                             task_to_email_address=to_email,
                             task_send_email_address=send_email,
                             task_config_time=time_config,
+                            send_email_status=send_email_status,
                             num=num)
             db.session.add(new_task)
             db.session.commit()

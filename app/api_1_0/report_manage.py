@@ -20,7 +20,6 @@ def run_cases():
         return jsonify({'msg': '请选择项目', 'status': 0})
     if not case_ids:
         return jsonify({'msg': '请选择用例', 'status': 0})
-    # run_case = RunCase(data.get('projectName'), data.get('sceneIds'))
 
     d = RunCase(project_id)
     d.get_case_test(case_ids)
@@ -118,9 +117,10 @@ def find_report():
     pagination = _data.order_by(Report.create_time.desc()).paginate(page, per_page=per_page, error_out=False)
     items = pagination.items
     total = pagination.total
-    end_data = [{'name': c.case_names, 'project_id': project_id, 'id': c.id, 'read_status': c.read_status,
-                 'performer': c.performer, 'project_name': Project.query.filter_by(id=project_id).first().name,
-                 'create_time': str(c.create_time).split('.')[0]} for c in items]
+    end_data = [
+        {'name': c.case_names, 'project_id': project_id, 'id': c.id, 'read_status': c.read_status, 'result': c.result,
+         'performer': c.performer, 'project_name': Project.query.filter_by(id=project_id).first().name,
+         'create_time': str(c.create_time).split('.')[0]} for c in items]
 
     return jsonify({'data': end_data, 'total': total, 'status': 1})
 

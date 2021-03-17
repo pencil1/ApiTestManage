@@ -189,10 +189,12 @@ def msg_user():
 
     for num in range(7):
         _q = Logs.query.filter(
-            and_(now - timedelta(days=num) > Logs.created_time, Logs.created_time >= now - timedelta(days=num + 1)))
+            and_(now - timedelta(days=num - 1, seconds=now.second, microseconds=now.microsecond, milliseconds=0,
+                                 minutes=now.minute, hours=now.hour, weeks=0) > Logs.created_time,
+                 Logs.created_time >= now - timedelta(days=num, seconds=now.second, microseconds=now.microsecond,
+                                                      milliseconds=0, minutes=now.minute, hours=now.hour, weeks=0)))
         a = _q.with_entities(Logs.ip).distinct().all()
         a2 = _q.with_entities(Logs.url).distinct().all()
         t = now - timedelta(days=num)
         _d['time_data'].insert(0, {'日期': t.strftime('%Y-%m-%d'), '访问人数': len(a), '阅读次数': len(a2)})
-    print(Project.query.count())
     return jsonify({'msg': '恢复成功', 'status': 1, 'data': _d})

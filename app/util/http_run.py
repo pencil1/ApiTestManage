@@ -241,7 +241,8 @@ class RunCase(object):
         new_report = Report(performer=performer,
                             case_names=','.join(
                                 [Case.query.filter_by(id=scene_id).first().name for scene_id in case_ids]),
-                            project_id=self.project_ids, read_status='待阅')
+                            project_id=self.project_ids, read_status='待阅',
+                            result='通过' if json.loads(jump_res)['success'] else '失败')
         db.session.add(new_report)
         db.session.commit()
 
