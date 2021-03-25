@@ -62,13 +62,6 @@ class SendEmail(object):
 
 
 if __name__ == '__main__':
-    a = SendEmail('362508572@qq.com', 'hjxjvgnikafncaci', ['531461379@qq.com', ], """
- 
-    As you may have already noticed, WebStorm has lots of integrated tools to help you run, debug and test your apps. Let’s have a closer look.
-    
-    Debug your app
-    
-    You can debug client-side code with Chrome right from the IDE: put the breakpoints right in the source code and start the debug session. Learn how to get started by watching this video or reading the docs.
-    
-    You can also run and debug Node.js, Electron and React Native applications in WebStorm.""")
+    # a = SendEmail('xiaofeifei0010@163.com', 'SGZDULWAYVWCAJNV', [ 'xiaofeifei0010@163.com', '15813316716@163.com'], """dfsdfs.""")
+    a = SendEmail('362508572@qq.com', 'hjxjvgnikafncaci', ['xiaofeifei0010@163.com', ], """dfsdfs.""")
     a.send_email()

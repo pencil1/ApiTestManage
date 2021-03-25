@@ -15,7 +15,8 @@ def get_pro_gather():
     # if current_user.id == 4:
     # _pros = Project.query.order_by(case((Project.user_id == current_user.id, 1))).all()
     _pros = Project.query.order_by(text('CASE WHEN user_id={} THEN 0 END DESC'.format(current_user.id))).all()
-    my_pros = Project.query.filter_by(user_id=current_user.id).first()
+    my_pros = Project.get_first(user_id=current_user.id)
+    # my_pros = Project.query.filter_by(user_id=current_user.id).first()
     pro = {}
     pro_and_id = []
     pro_url = {}
@@ -42,7 +43,7 @@ def get_pro_gather():
         # 获取每个用例集的用例
         for s in p.case_sets:
             scene_list["{}".format(s.id)] = [{'label': scene.name, 'id': scene.id} for scene in
-                                             Case.query.filter_by(case_set_id=s.id).all()]
+                                             Case.get_all(case_set_id=s.id)]
 
         # 获取每个项目下的url
         if p.environment_choice == 'first':
@@ -115,8 +116,8 @@ def add_project():
     # func_file='123'
     # print(func_file)
     if ids:
-        old_project_data = Project.query.filter_by(id=ids).first()
-        if Project.query.filter_by(name=project_name).first() and project_name != old_project_data.name:
+        old_project_data = Project.get_first(id=ids)
+        if Project.get_first(name=project_name) and project_name != old_project_data.name:
             return jsonify({'msg': '项目名字重复', 'status': 0})
         else:
             old_project_data.name = project_name
@@ -132,7 +133,7 @@ def add_project():
             db.session.commit()
             return jsonify({'msg': '修改成功', 'status': 1})
     else:
-        if Project.query.filter_by(name=project_name).first():
+        if Project.get_first(name=project_name):
             return jsonify({'msg': '项目名字重复', 'status': 0})
         else:
             new_project = Project(name=project_name,
@@ -153,8 +154,7 @@ def del_project():
     """ 删除项目 """
     data = request.json
     ids = data.get('id')
-    pro_data = Project.query.filter_by(id=ids).first()
-    print(current_user.id != 1)
+    pro_data = Project.get_first(id=ids)
     if current_user.id != 1 and current_user.id != pro_data.user_id:
         print(current_user.id)
         return jsonify({'msg': '不能删除别人创建的项目', 'status': 0})
@@ -175,7 +175,7 @@ def edit_project():
     """ 返回待编辑项目信息 """
     data = request.json
     pro_id = data.get('id')
-    _edit = Project.query.filter_by(id=pro_id).first()
+    _edit = Project.get_first(id=pro_id)
     _data = {'pro_name': _edit.name,
              'user_id': _edit.user_id,
              'principal': _edit.principal,

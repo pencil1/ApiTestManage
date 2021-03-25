@@ -12,6 +12,69 @@ roles_permissions = db.Table('roles_permissions',
                              db.Column('permission_id', db.Integer, db.ForeignKey('permission.id')))
 
 
+class BaseModel(db.Model):
+    """ 基类模型 """
+    __abstract__ = True
+
+    # is_delete = db.Column(db.SmallInteger, default=0, comment='通过更改状态来判断记录是否被删除, 0数据有效, 1数据已删除')
+    id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
+    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
+    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now, comment='修改时间')
+
+    def save(self, attrs_dict):
+        """ 插入数据 """
+        for key, value in attrs_dict.items():
+            if hasattr(self, key) and key != 'id':
+                setattr(self, key, value)
+
+    # def delete(self):
+    #     """ 软删除 """
+    #     self.is_delete = 1
+
+    @classmethod
+    def get_first(cls, **kwargs):
+        """ 获取第一条数据 """
+        return cls.query.filter_by(**kwargs).first()
+
+    @classmethod
+    def get_all(cls, **kwargs):
+        """ 获取全部数据 """
+        return cls.query.filter_by(**kwargs).all()
+
+    @classmethod
+    def get_filter_by(cls, **kwargs):
+        """ 获取filter_by对象 """
+        return cls.query.filter_by(**kwargs)
+
+    @classmethod
+    def get_filter(cls, **kwargs):
+        """ 获取filter对象 """
+        return cls.query.filter(**kwargs)
+
+    @classmethod
+    def get_new_num(cls, num, **kwargs):
+        """
+        自动返回 model表中**kwargs筛选条件下的已存在编号num的最大值+1，用于插入数据时排序
+        如：用例集表中，某project_id对应的用例集编号
+        num     数据名     project_id
+        1       name        6
+        2       name        2
+        2       name        6
+        返回3
+        """
+        if not num:
+            if not cls.get_all(**kwargs):
+                return 1
+            else:
+                return cls.get_filter_by(**kwargs).order_by(cls.num.desc()).first().num + 1
+        return num
+
+    def to_dict(self):
+        """ 自定义序列化器，把模型的每个字段转为字典，方便返回给前端 """
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name not in [
+            'created_time', 'update_time']}
+
+
 class Role(db.Model):
     __tablename__ = 'role'
     id = db.Column(db.Integer, primary_key=True, comment='主键，自增')
@@ -93,9 +156,8 @@ class User(UserMixin, db.Model):
         return permission is not None and self.role is not None and permission in self.role.permission
 
 
-class Project(db.Model):
+class Project(BaseModel):
     __tablename__ = 'project'
-    id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
     user_id = db.Column(db.Integer(), nullable=True, comment='所属的用户id')
     name = db.Column(db.String(64), nullable=True, unique=True, comment='项目名称')
     host = db.Column(db.String(1024), nullable=True, comment='测试环境')
@@ -110,8 +172,6 @@ class Project(db.Model):
     modules = db.relationship('Module', order_by='Module.num.asc()', lazy='dynamic')
     configs = db.relationship('Config', order_by='Config.num.asc()', lazy='dynamic')
     case_sets = db.relationship('CaseSet', order_by='CaseSet.num.asc()', lazy='dynamic')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
-    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
 class Module(db.Model):
@@ -148,9 +208,8 @@ class CaseSet(db.Model):
     update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
-class Case(db.Model):
+class Case(BaseModel):
     __tablename__ = 'case'
-    id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
     num = db.Column(db.Integer(), nullable=True, comment='用例序号')
     name = db.Column(db.String(128), nullable=True, comment='用例名称')
     desc = db.Column(db.String(256), comment='用例描述')
@@ -160,8 +219,6 @@ class Case(db.Model):
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
     case_set_id = db.Column(db.Integer, db.ForeignKey('case_set.id'), comment='所属的用例集id')
     environment = db.Column(db.Integer(), comment='环境类型')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
-    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
 class ApiMsg(db.Model):
@@ -276,8 +333,8 @@ class FuncFile(db.Model):
 class Logs(db.Model):
     __tablename__ = 'logs'
     id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
-    ip = db.Column(db.String(128),  comment='ip')
-    uid = db.Column(db.String(128),  comment='uid')
+    ip = db.Column(db.String(128), comment='ip')
+    uid = db.Column(db.String(128), comment='uid')
     url = db.Column(db.String(128), comment='url')
 
     created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')

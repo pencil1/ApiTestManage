@@ -17,9 +17,9 @@ def before_request():
     try:
         # print('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, request.json))
         current_app.logger.info(
-            'ip:{}, url:{} ,method:{},请求参数:{}'.format(request.headers['X-Forwarded-For'], request.url, request.method, request.json))
+            'ip:{}, url:{} ,method:{},请求参数:{}'.format(request.headers.get('X-Forwarded-For'), request.url, request.method, request.json))
     except Exception as e:
-        print(e)
+        pass
     # print(request.remote_addr)
 
 
