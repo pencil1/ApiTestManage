@@ -26,7 +26,7 @@ def before_request():
 @api.after_request
 def after_request(r):
     uid = current_user.id if getattr(current_user, 'id', None) else None
-    new_project = Logs(ip=request.headers['X-Forwarded-For'],
+    new_project = Logs(ip=request.headers.get('X-Forwarded-For'),
                        uid=uid,
                        url=request.url, )
     db.session.add(new_project)
