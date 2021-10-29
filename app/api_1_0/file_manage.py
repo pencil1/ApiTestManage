@@ -22,6 +22,7 @@ def api_upload():
         file.save(os.path.join(FILE_ADDRESS, file.filename))
         return jsonify({'data': os.path.join(FILE_ADDRESS, file.filename), "msg": "上传成功", "status": 1})
 
+
 # 上传文件
 @api.route('/upload/pic', methods=['POST'], strict_slashes=False)
 def api_upload_pic():
@@ -29,9 +30,9 @@ def api_upload_pic():
     data = request.files
     file = data['file']
     name = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime()) + str(random.randint(100, 999))
-    file.save(os.path.join(NOTES_ADDRESS, name+'.png'))
+    file.save(os.path.join(NOTES_ADDRESS, name + '.png'))
 
-    path = '![image]'+'(http://www.heiman.website/notes/{}.png)'.format(name)
+    path = '![image]' + '(http://www.heiman.website/notes/{}.png)'.format(name)
     return jsonify({'data': path, "msg": "上传成功", "status": 1})
 
 

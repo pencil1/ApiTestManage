@@ -247,6 +247,22 @@ class RunCase(object):
         db.session.commit()
 
         self.new_report_id = new_report.id
+
+        def dict_c(d):
+            if isinstance(d, dict):
+                for d1 in d:
+                    if d1 == 'content':
+                        if len(d[d1]) > 10000:
+                            d[d1] = d[d1][:100]
+                    dict_c(d[d1])
+            else:
+                if isinstance(d, list):
+                    for d2 in d:
+                        dict_c(d2)
+            return d
+
+        jump_res = dict_c(jump_res)
+
         with open('{}{}.txt'.format(REPORT_ADDRESS, self.new_report_id), 'w') as f:
             f.write(jump_res)
 

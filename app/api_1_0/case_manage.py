@@ -49,7 +49,8 @@ def add_case():
                                 case_set_id=case_set_id).first() and name != old_data.name:
             return jsonify({'msg': '用例名字重复', 'status': 0})
         else:
-            list_data = CaseSet.query.filter_by(id=case_set_id).first().cases.all()
+            list_data = Case.query.filter_by(case_set_id=case_set_id).all()
+            # list_data = CaseSet.query.filter_by(id=case_set_id).first().cases.all()
             num_sort(num, old_num, list_data, old_data)
             old_data.name = name
             old_data.times = times

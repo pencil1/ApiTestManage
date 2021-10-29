@@ -8,6 +8,8 @@ from flask import jsonify, request, send_from_directory
 from app.models import *
 from . import api
 from ..util.tool_func import *
+
+
 # from func_list.asdf import r_data
 
 
@@ -227,14 +229,28 @@ def issues_data():
     # return jsonify({'data':_data})
 
 
+@api.route('/mon', methods=['get'])
+def mon():
+    from func_list.mon import a
+    b = ','.join(a)
+
+    result1 = requests.get('http://hq.sinajs.cn/rn=1550199258154&list={}'.format(b))
+    _d = result1.text.split(';')[:-1]
+    l = []
+    for g in _d:
+        r = g.split(',')
+        name = r[0].split('"')[-1]
+        value = str(round((float(r[3]) - float(r[2])) / float(r[2]) * 100, 2))
+        l.append(name + ':' + value)
+    return jsonify(l)
+
+
 @api.route('/test1_json', methods=['get'])
 def test1_json():
     func_list = importlib.reload(importlib.import_module('func_list.{}'.format('asdf1')))
     module_functions_dict = {name: item for name, item in vars(func_list).items()
                              if isinstance(item, types.FunctionType)}
-    # print(module_functions_dict['r_data']())
     data = module_functions_dict['r_data']()
-    # print(type(student.configs.order_by(Config.num.asc())))
     return jsonify(data)
 
 

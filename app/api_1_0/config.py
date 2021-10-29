@@ -26,7 +26,7 @@ def add_scene_config():
     if ids:
         old_data = Config.query.filter_by(id=ids).first()
         old_num = old_data.num
-        list_data = Project.query.filter_by(id=project_id).first().configs.all()
+        list_data = Config.query.filter_by(project_id=project_id).all()
 
         if Config.query.filter_by(name=name, project_id=project_id).first() and name != old_data.name:
             return jsonify({'msg': '配置名字重复', 'status': 0})

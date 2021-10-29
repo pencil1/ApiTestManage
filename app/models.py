@@ -169,43 +169,37 @@ class Project(BaseModel):
     variables = db.Column(db.String(2048), comment='项目的公共变量')
     headers = db.Column(db.String(1024), comment='项目的公共头部信息')
     func_file = db.Column(db.String(128), comment='函数地址')
-    modules = db.relationship('Module', order_by='Module.num.asc()', lazy='dynamic')
-    configs = db.relationship('Config', order_by='Config.num.asc()', lazy='dynamic')
-    case_sets = db.relationship('CaseSet', order_by='CaseSet.num.asc()', lazy='dynamic')
+    modules = db.relationship('Module', order_by='Module.num.asc()', lazy='joined')
+    configs = db.relationship('Config', order_by='Config.num.asc()', lazy='joined')
+    case_sets = db.relationship('CaseSet', order_by='CaseSet.num.asc()', lazy='joined')
 
 
-class Module(db.Model):
+class Module(BaseModel):
     __tablename__ = 'module'
-    id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
     name = db.Column(db.String(64), nullable=True, comment='接口模块')
     num = db.Column(db.Integer(), nullable=True, comment='模块序号')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
     api_msg = db.relationship('ApiMsg', order_by='ApiMsg.num.asc()', lazy='dynamic')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
-    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
+    __mapper_args__ = {"order_by": num.asc()}
 
 
-class Config(db.Model):
+class Config(BaseModel):
     __tablename__ = 'config'
-    id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
     num = db.Column(db.Integer(), nullable=True, comment='配置序号')
     name = db.Column(db.String(128), comment='配置名称')
     variables = db.Column(db.Text(), comment='配置参数')
     func_address = db.Column(db.String(128), comment='配置函数')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
-    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
+    __mapper_args__ = {"order_by": num.asc()}
 
 
-class CaseSet(db.Model):
+class CaseSet(BaseModel):
     __tablename__ = 'case_set'
-    id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
     num = db.Column(db.Integer(), nullable=True, comment='用例集合序号')
     name = db.Column(db.String(256), nullable=True, comment='用例集名称')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
-    cases = db.relationship('Case', order_by='Case.num.asc()', lazy='dynamic')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
-    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
+    cases = db.relationship('Case', order_by='Case.num.asc()', lazy='joined')
+    __mapper_args__ = {"order_by": num.asc()}
 
 
 class Case(BaseModel):
@@ -219,11 +213,11 @@ class Case(BaseModel):
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
     case_set_id = db.Column(db.Integer, db.ForeignKey('case_set.id'), comment='所属的用例集id')
     environment = db.Column(db.Integer(), comment='环境类型')
+    __mapper_args__ = {"order_by": num.asc()}
 
 
-class ApiMsg(db.Model):
+class ApiMsg(BaseModel):
     __tablename__ = 'api_msg'
-    id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
     num = db.Column(db.Integer(), nullable=True, comment='接口序号')
     name = db.Column(db.String(128), nullable=True, comment='接口名称')
     desc = db.Column(db.String(256), nullable=True, comment='接口描述')
@@ -242,13 +236,11 @@ class ApiMsg(db.Model):
     header = db.Column(db.String(2048), comment='头部信息')
     module_id = db.Column(db.Integer, db.ForeignKey('module.id'), comment='所属的接口模块id')
     project_id = db.Column(db.Integer, nullable=True, comment='所属的项目id')
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now)
-    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
+    __mapper_args__ = {"order_by": num.asc()}
 
 
-class CaseData(db.Model):
+class CaseData(BaseModel):
     __tablename__ = 'case_data'
-    id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
     num = db.Column(db.Integer(), nullable=True, comment='步骤序号，执行顺序按序号来')
     status = db.Column(db.String(16), comment='状态，true表示执行，false表示不执行')
     name = db.Column(db.String(128), comment='步骤名称')
@@ -269,8 +261,7 @@ class CaseData(db.Model):
     status_header = db.Column(db.String(64))
     case_id = db.Column(db.Integer, db.ForeignKey('case.id'))
     api_msg_id = db.Column(db.Integer, db.ForeignKey('api_msg.id'))
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now)
-    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
+    __mapper_args__ = {"order_by": num.asc()}
 
 
 class Report(db.Model):
@@ -282,11 +273,11 @@ class Report(db.Model):
     project_id = db.Column(db.String(16), nullable=True)
     result = db.Column(db.String(16), comment='结果')
     create_time = db.Column(db.DateTime(), index=True, default=datetime.now)
+    # create_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
 
 
-class Task(db.Model):
+class Task(BaseModel):
     __tablename__ = 'tasks'
-    id = db.Column(db.Integer, primary_key=True, comment='主键，自增')
     num = db.Column(db.Integer(), comment='任务序号')
     task_name = db.Column(db.String(64), comment='任务名称')
     task_config_time = db.Column(db.String(256), nullable=True, comment='cron表达式')
@@ -299,46 +290,34 @@ class Task(db.Model):
     status = db.Column(db.String(16), default=u'创建', comment='任务的运行状态，默认是创建')
     project_id = db.Column(db.String(16), nullable=True)
     send_email_status = db.Column(db.String(16))
-    created_time = db.Column(db.DateTime(), default=datetime.now, comment='任务的创建时间')
-    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
+    __mapper_args__ = {"order_by": num.asc()}
 
 
-class TestCaseFile(db.Model):
+class TestCaseFile(BaseModel):
     __tablename__ = 'test_case_file'
-    id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
     num = db.Column(db.Integer(), nullable=True, comment='测试用例文件序号')
     name = db.Column(db.String(128), nullable=True, comment='测试用例文件名称')
-
     status = db.Column(db.Integer(), comment='0代表文件夹；1代表用例文件')
     higher_id = db.Column(db.Integer(), comment='上级id，父级为0')
     user_id = db.Column(db.Integer(), comment='创建人id')
-
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
-    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
+    __mapper_args__ = {"order_by": num.asc()}
 
 
-class FuncFile(db.Model):
+class FuncFile(BaseModel):
     __tablename__ = 'func_file'
-    id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
     name = db.Column(db.String(128), nullable=True, comment='内置函数文件名称')
     num = db.Column(db.Integer(), nullable=True, comment='内置函数文件序号')
     status = db.Column(db.Integer(), comment='0代表文件夹；1代表用例文件')
     higher_id = db.Column(db.Integer(), comment='上级id，父级为0')
     user_id = db.Column(db.Integer(), comment='创建人id')
-
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
-    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
+    __mapper_args__ = {"order_by": num.asc()}
 
 
-class Logs(db.Model):
+class Logs(BaseModel):
     __tablename__ = 'logs'
-    id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
     ip = db.Column(db.String(128), comment='ip')
     uid = db.Column(db.String(128), comment='uid')
     url = db.Column(db.String(128), comment='url')
-
-    created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
-    update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now)
 
 
 @login_manager.user_loader

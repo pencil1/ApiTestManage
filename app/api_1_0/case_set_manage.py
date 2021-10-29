@@ -46,7 +46,8 @@ def stick_set():
 
     old_data = CaseSet.query.filter_by(id=set_id).first()
     old_num = old_data.num
-    list_data = Project.query.filter_by(id=project_id).first().case_sets.all()
+    list_data = CaseSet.query.filter_by(project_id=project_id).order_by().all()
+    # list_data = Project.query.filter_by(id=project_id).first().case_sets.all()
     num_sort(1, old_num, list_data, old_data)
     db.session.commit()
     return jsonify({'msg': '置顶完成', 'status': 1})
@@ -63,7 +64,8 @@ def find_set():
     if not project_id:
         return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
 
-    all_sets = Project.query.filter_by(id=project_id).first().case_sets
+    # all_sets = Project.query.filter_by(id=project_id).first().case_sets
+    all_sets = CaseSet.query.filter_by(project_id=project_id)
     pagination = all_sets.paginate(page, per_page=per_page, error_out=False)
     _items = pagination.items
     total = pagination.total

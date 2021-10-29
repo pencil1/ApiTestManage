@@ -1,3 +1,5 @@
+import time
+
 from flask import jsonify, request
 from . import api
 from app.models import *
@@ -11,57 +13,106 @@ from sqlalchemy import text
 @login_required
 def get_pro_gather():
     """ 获取基本信息 """
-
+    # data = request.query_string
+    # print(dir(request))
+    # print(data)
     # if current_user.id == 4:
-    # _pros = Project.query.order_by(case((Project.user_id == current_user.id, 1))).all()
-    _pros = Project.query.order_by(text('CASE WHEN user_id={} THEN 0 END DESC'.format(current_user.id))).all()
-    my_pros = Project.get_first(user_id=current_user.id)
-    # my_pros = Project.query.filter_by(user_id=current_user.id).first()
-    pro = {}
-    pro_and_id = []
-    pro_url = {}
-    scene_config_lists = {}
-    set_list = {}
-    scene_list = {}
+    # _pros = P"""
+    #     select project.id, config.id as config_id, config.name as config_name from project
+    #     left join config
+    #     on project.id = config.project_id
+    #     """roject.query.order_by(case((Project.user_id == current_user.id, 1))).all()
+    _d = []
+    project_data = Project.query.order_by(text('CASE WHEN user_id={} THEN 0 END DESC'.format(current_user.id)),
+                                          Project.id.desc()).all()
 
-    user_pros = False
+    sql = """
+    select project.id, config.id as config_id, config.name as config_name from project 
+    left join config
+    on project.id = config.project_id
+    """
+    config_d = list(db.session.execute(sql))
 
-    for p in _pros:
-        # pro_and_id[p.name] = p.id
+    sql = """
+        select project.id, module.id as module_id, module.name as module_name from project 
+        left join module
+        on project.id = module.project_id
+        """
+    module_d = list(db.session.execute(sql))
 
-        pro_and_id.append({'name': p.name, 'id': p.id})
+    sql = """
+        select project.id, case_set.id as case_set_id, case_set.name as case_set_name from project 
+        left join case_set
+        on project.id = case_set.project_id
+        """
+    case_set_d = list(db.session.execute(sql))
 
-        # 获取每个项目下的接口模块
-        pro[p.id] = [{'name': m.name, 'moduleId': m.id} for m in p.modules]
-
-        # 获取每个项目下的配置信息
-        scene_config_lists[p.id] = [{'name': c.name, 'configId': c.id} for c in p.configs]
-
-        # 获取每个项目下的用例集
-        set_list[p.id] = [{'label': s.name, 'id': s.id} for s in p.case_sets]
-
-        # 获取每个用例集的用例
-        for s in p.case_sets:
-            scene_list["{}".format(s.id)] = [{'label': scene.name, 'id': scene.id} for scene in
-                                             Case.get_all(case_set_id=s.id)]
-
+    for p in project_data:
+        # print(p.id)
         # 获取每个项目下的url
         if p.environment_choice == 'first':
-            pro_url[p.id] = json.loads(p.host)
+            url = json.loads(p.host)
         elif p.environment_choice == 'second':
-            pro_url[p.id] = json.loads(p.host_two)
+            url = json.loads(p.host_two)
         elif p.environment_choice == 'third':
-            pro_url[p.id] = json.loads(p.host_three)
-        elif p.environment_choice == 'fourth':
-            pro_url[p.id] = json.loads(p.host_four)
+            url = json.loads(p.host_three)
+        else:
+            url = json.loads(p.host_four)
+
+        _d.append({'name': p.name,
+                   'id': p.id,
+                   'url': url,
+                   'config_data': [{'id': d[1], 'name': d[2]} for d in config_d if d[0] == p.id and d[1]],
+                   'module_data': [{'id': d[1], 'name': d[2]} for d in module_d if d[0] == p.id and d[1]],
+                   'set_data': [{'id': d[1], 'name': d[2]} for d in case_set_d if d[0] == p.id and d[1]], })
+
+    my_pros = Project.get_first(user_id=current_user.id)
+    user_pros = False
+
+    # for p in _pros:
+    #     # pro_and_id[p.name] = p.id
+    #
+    #     pro_and_id.append({'name': p.name, 'id': p.id})
+    #
+    #     if b'case' in request.query_string:
+    #         # 获取每个项目下的配置信息
+    #         scene_config_lists[p.id] = [{'name': c.name, 'configId': c.id} for c in p.configs]
+    #
+    #         # 获取每个项目下的接口模块
+    #         pro[p.id] = [{'name': m.name, 'moduleId': m.id} for m in p.modules]
+    #     #
+    #     if b'task' in request.query_string:
+    #         # 获取每个项目下的用例集
+    #         set_list[p.id] = [{'label': s.name, 'id': s.id} for s in p.case_sets]
+    #
+    #         # 获取每个用例集的用例
+    #         for s in p.case_sets:
+    #             scene_list["{}".format(s.id)] = [{'label': case.name, 'id': case.id} for case in
+    #                                              s.cases]
+    #             # scene_list["{}".format(s.id)] = [{'label': scene.name, 'id': scene.id} for scene in
+    #             #                                  Case.get_all(case_set_id=s.id)]
+    #
+    #     # 获取每个项目下的url
+    #     if p.environment_choice == 'first':
+    #         pro_url[p.id] = json.loads(p.host)
+    #     elif p.environment_choice == 'second':
+    #         pro_url[p.id] = json.loads(p.host_two)
+    #     elif p.environment_choice == 'third':
+    #         pro_url[p.id] = json.loads(p.host_three)
+    #     elif p.environment_choice == 'fourth':
+    #         pro_url[p.id] = json.loads(p.host_four)
+
     if my_pros:
         # my_pros = {'pro_name': my_pros.name, 'pro_id': my_pros.id, 'model_list': pro[my_pros.name]}
         user_pros = True
-
     return jsonify(
-        {'data': pro, 'urlData': pro_url, 'status': 1, 'config_name_list': scene_config_lists,
-         'user_pros': user_pros,
-         'set_list': set_list, 'scene_list': scene_list, 'pro_and_id': pro_and_id})
+        {'data': _d, 'user_pros': user_pros, })
+
+
+# return jsonify(
+#     {'data': pro, 'urlData': pro_url, 'status': 1, 'config_name_list': scene_config_lists,
+#      'user_pros': user_pros,
+#      'set_list': set_list, 'scene_list': scene_list, 'pro_and_id': pro_and_id})
 
 
 @api.route('/project/find', methods=['POST'])
@@ -155,14 +206,15 @@ def del_project():
     data = request.json
     ids = data.get('id')
     pro_data = Project.get_first(id=ids)
+
     if current_user.id != 1 and current_user.id != pro_data.user_id:
         print(current_user.id)
         return jsonify({'msg': '不能删除别人创建的项目', 'status': 0})
-    if pro_data.modules.all():
+    if pro_data.modules:
         return jsonify({'msg': '请先删除项目下的接口模块', 'status': 0})
-    if pro_data.case_sets.all():
+    if pro_data.case_sets:
         return jsonify({'msg': '请先删除项目下的业务集', 'status': 0})
-    if pro_data.configs.all():
+    if pro_data.configs:
         return jsonify({'msg': '请先删除项目下的业务配置', 'status': 0})
     db.session.delete(pro_data)
     db.session.commit()

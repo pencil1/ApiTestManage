@@ -177,6 +177,17 @@ def find_task():
     task_name = data.get('taskName')
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
+
+    # CaseSet.get_all(project_id=project_id)
+    # set_list = []
+    # # 获取每个项目下的用例集
+    # set_list[p.id] = [{'label': s.name, 'id': s.id} for s in p.case_sets]
+    # scene_list= []
+    # # 获取每个用例集的用例
+    # for s in p.case_sets:
+    #     scene_list["{}".format(s.id)] = [{'label': scene.name, 'id': scene.id} for scene in
+    #                                      Case.get_all(case_set_id=s.id)]
+
     if task_name:
         _data = Task.query.filter_by(project_id=project_id).filter(Task.task_name.like('%{}%'.format(task_name)))
         if not _data:
