@@ -23,9 +23,11 @@ def get_pro_gather():
     #     on project.id = config.project_id
     #     """roject.query.order_by(case((Project.user_id == current_user.id, 1))).all()
     _d = []
-    project_data = Project.query.order_by(text('CASE WHEN user_id={} THEN 0 END DESC'.format(current_user.id)),
-                                          Project.id.desc()).all()
-
+    sql = f"""
+        SELECT * FROM `project`
+        ORDER BY CASE when user_id={current_user.id} then 0 end DESC, id DESC
+        """
+    project_data = list(db.session.execute(sql))
     sql = """
     select project.id, config.id as config_id, config.name as config_name from project 
     left join config
@@ -46,29 +48,27 @@ def get_pro_gather():
         on project.id = case_set.project_id
         """
     case_set_d = list(db.session.execute(sql))
-
     for p in project_data:
         # print(p.id)
         # 获取每个项目下的url
-        if p.environment_choice == 'first':
-            url = json.loads(p.host)
-        elif p.environment_choice == 'second':
-            url = json.loads(p.host_two)
-        elif p.environment_choice == 'third':
-            url = json.loads(p.host_three)
+        if p[6] == 'first':
+            url = json.loads(p[2])
+        elif p[6] == 'second':
+            url = json.loads(p[3])
+        elif p[6] == 'third':
+            url = json.loads(p[4])
         else:
-            url = json.loads(p.host_four)
+            url = json.loads(p[5])
 
         _d.append({'name': p.name,
                    'id': p.id,
                    'url': url,
-                   'config_data': [{'id': d[1], 'name': d[2]} for d in config_d if d[0] == p.id and d[1]],
-                   'module_data': [{'id': d[1], 'name': d[2]} for d in module_d if d[0] == p.id and d[1]],
-                   'set_data': [{'id': d[1], 'name': d[2]} for d in case_set_d if d[0] == p.id and d[1]], })
+                   'config_data': [{'id': d[1], 'name': d[2]} for d in config_d if d[0] == p[0] and d[1]],
+                   'module_data': [{'id': d[1], 'name': d[2]} for d in module_d if d[0] == p[0] and d[1]],
+                   'set_data': [{'id': d[1], 'name': d[2]} for d in case_set_d if d[0] == p[0] and d[1]], })
 
     my_pros = Project.get_first(user_id=current_user.id)
     user_pros = False
-
     # for p in _pros:
     #     # pro_and_id[p.name] = p.id
     #
@@ -105,6 +105,8 @@ def get_pro_gather():
     if my_pros:
         # my_pros = {'pro_name': my_pros.name, 'pro_id': my_pros.id, 'model_list': pro[my_pros.name]}
         user_pros = True
+    # return jsonify(
+    #     {'data': True, 'user_pros': True, })
     return jsonify(
         {'data': _d, 'user_pros': user_pros, })
 
