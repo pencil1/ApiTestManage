@@ -23,10 +23,10 @@ def get_pro_gather():
     #     on project.id = config.project_id
     #     """roject.query.order_by(case((Project.user_id == current_user.id, 1))).all()
     _d = []
-    sql = f"""
+    sql = """
         SELECT * FROM `project`
-        ORDER BY CASE when user_id={current_user.id} then 0 end DESC, id DESC
-        """
+        ORDER BY CASE when user_id={} then 0 end DESC, id DESC
+        """.format(current_user.id)
     project_data = list(db.session.execute(sql))
     sql = """
     select project.id, config.id as config_id, config.name as config_name from project 
@@ -48,7 +48,11 @@ def get_pro_gather():
         on project.id = case_set.project_id
         """
     case_set_d = list(db.session.execute(sql))
+    user_pros = False
+
     for p in project_data:
+        if p[0] == current_user.id:
+            user_pros = True
         # print(p.id)
         # 获取每个项目下的url
         if p[6] == 'first':
@@ -66,9 +70,12 @@ def get_pro_gather():
                    'config_data': [{'id': d[1], 'name': d[2]} for d in config_d if d[0] == p[0] and d[1]],
                    'module_data': [{'id': d[1], 'name': d[2]} for d in module_d if d[0] == p[0] and d[1]],
                    'set_data': [{'id': d[1], 'name': d[2]} for d in case_set_d if d[0] == p[0] and d[1]], })
+    # s = time.time()
+    #
+    # my_pros = Project.query.filter_by(user_id=current_user.id).first()
+    # e1 = time.time()
+    # print(e1-s)
 
-    my_pros = Project.get_first(user_id=current_user.id)
-    user_pros = False
     # for p in _pros:
     #     # pro_and_id[p.name] = p.id
     #
@@ -101,10 +108,10 @@ def get_pro_gather():
     #         pro_url[p.id] = json.loads(p.host_three)
     #     elif p.environment_choice == 'fourth':
     #         pro_url[p.id] = json.loads(p.host_four)
-
-    if my_pros:
-        # my_pros = {'pro_name': my_pros.name, 'pro_id': my_pros.id, 'model_list': pro[my_pros.name]}
-        user_pros = True
+    #
+    # if my_pros:
+    #     # my_pros = {'pro_name': my_pros.name, 'pro_id': my_pros.id, 'model_list': pro[my_pros.name]}
+    #     user_pros = True
     # return jsonify(
     #     {'data': True, 'user_pros': True, })
     return jsonify(
