@@ -33,12 +33,14 @@ def aps_test(project_id, case_ids, send_address=None, send_password=None, task_t
 
 
 def get_case_id(pro_id, set_id, case_id):
-    case_ids = []
+
     if len(case_id) != 0:
-        case_ids += [i['id'] for i in case_id]
+        return case_id
+        # case_ids += [i['id'] for i in case_id]
     else:
+        case_ids = []
         if len(case_id) == 0 and len(set_id) != 0:
-            _set_ids = [i['id'] for i in set_id]
+            _set_ids = set_id
         else:
             _set_ids = [_set.id for _set in
                         CaseSet.query.filter_by(project_id=pro_id).order_by(CaseSet.num.asc()).all()]
@@ -46,7 +48,7 @@ def get_case_id(pro_id, set_id, case_id):
         for set_id in _set_ids:
             for case_data in Case.query.filter_by(case_set_id=set_id).order_by(Case.num.asc()).all():
                 case_ids.append(case_data.id)
-    return case_ids
+        return case_ids
 
 
 @api.route('/task/run', methods=['POST'])
