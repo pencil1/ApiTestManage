@@ -8,7 +8,7 @@ import json
 
 api = Blueprint('api', __name__)
 
-from . import api_msg_manage, module_manage, project_manage, report_manage, build_in_manage, case_manage, login, \
+from . import api_msg_manage, api_set_manage, project_manage, report_manage, build_in_manage, case_manage, login, \
     test_tool, task_manage, file_manage, config, case_set_manage, test_case_file_manage, errors
 
 

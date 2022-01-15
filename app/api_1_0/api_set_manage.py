@@ -5,9 +5,9 @@ from flask_login import current_user
 from ..util.utils import *
 
 
-@api.route('/module/find', methods=['POST'])
+@api.route('/apiSet/find', methods=['POST'])
 @login_required
-def find_model():
+def find_api_set():
     """ 查找接口模块 """
     data = request.json
     page = data.get('page') if data.get('page') else 1
@@ -28,9 +28,9 @@ def find_model():
     return jsonify({'data': end_data, 'total': total, 'status': 1, 'all_module': _all_module})
 
 
-@api.route('/module/add', methods=['POST'])
+@api.route('/apiSet/add', methods=['POST'])
 @login_required
-def add_model():
+def add_api_set():
     """ 接口模块增加、编辑 """
     data = request.json
     project_id = data.get('projectId')
@@ -43,13 +43,13 @@ def add_model():
     ids = data.get('id')
     num = auto_num(data.get('num'), Module, project_id=project_id)
     if ids:
-        old_data = Module.get_first(id=ids)
-        old_num = old_data.num
-        list_data = Module.get_first(project_id=project_id).all()
+        old_data = Module.query.filter_by(id=ids).first()
+        # old_num = old_data.num
+        # list_data = Module.get_first(project_id=project_id).all()
         if Module.get_first(name=name, project_id=project_id) and name != old_data.name:
             return jsonify({'msg': '模块名字重复', 'status': 0})
 
-        num_sort(num, old_num, list_data, old_data)
+        # num_sort(num, old_num, list_data, old_data)
         old_data.name = name
         old_data.project_id = project_id
         db.session.commit()
@@ -64,9 +64,9 @@ def add_model():
             return jsonify({'msg': '新建成功', 'status': 1})
 
 
-@api.route('/module/edit', methods=['POST'])
+@api.route('/apiSet/edit', methods=['POST'])
 @login_required
-def edit_model():
+def edit_api_set():
     """ 返回待编辑模块信息 """
     data = request.json
     ids = data.get('id')
@@ -76,9 +76,9 @@ def edit_model():
     return jsonify({'data': _data, 'status': 1})
 
 
-@api.route('/module/del', methods=['POST'])
+@api.route('/apiSet/del', methods=['POST'])
 @login_required
-def del_model():
+def del_api_set():
     """ 删除模块 """
     data = request.json
     ids = data.get('id')
@@ -92,9 +92,9 @@ def del_model():
     return jsonify({'msg': '删除成功', 'status': 1})
 
 
-@api.route('/module/stick', methods=['POST'])
+@api.route('/apiSet/stick', methods=['POST'])
 @login_required
-def stick_module():
+def stick_api_set():
     """ 置顶模块 """
     data = request.json
     module_id = data.get('id')
