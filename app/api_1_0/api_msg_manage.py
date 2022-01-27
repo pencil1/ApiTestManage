@@ -108,6 +108,7 @@ def edit_api_msg():
     case_id = data.get('apiMsgId')
     _edit = ApiMsg.query.filter_by(id=case_id).first()
     _data = {'name': _edit.name, 'num': _edit.num, 'desc': _edit.desc, 'url': _edit.url, 'skip': _edit.skip,
+             'api_set_id': _edit.module_id,
              'method': _edit.method, 'status_url': int(_edit.status_url),
              'up_func': _edit.up_func, 'down_func': _edit.down_func,
              'variableType': _edit.variable_type,

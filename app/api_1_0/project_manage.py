@@ -55,14 +55,14 @@ def get_pro_gather():
             user_pros = True
         # print(p.id)
         # 获取每个项目下的url
-        if p[6] == 'first':
-            url = json.loads(p[2])
-        elif p[6] == 'second':
+        if p[7] == 'first':
             url = json.loads(p[3])
-        elif p[6] == 'third':
+        elif p[7] == 'second':
             url = json.loads(p[4])
-        else:
+        elif p[7] == 'third':
             url = json.loads(p[5])
+        else:
+            url = json.loads(p[6])
 
         _d.append({'name': p.name,
                    'id': p.id,
