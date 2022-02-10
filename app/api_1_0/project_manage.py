@@ -13,15 +13,6 @@ from sqlalchemy import text
 @login_required
 def get_pro_gather():
     """ 获取基本信息 """
-    # data = request.query_string
-    # print(dir(request))
-    # print(data)
-    # if current_user.id == 4:
-    # _pros = P"""
-    #     select project.id, config.id as config_id, config.name as config_name from project
-    #     left join config
-    #     on project.id = config.project_id
-    #     """roject.query.order_by(case((Project.user_id == current_user.id, 1))).all()
     _d = []
     sql = """
         SELECT * FROM `project`
@@ -57,6 +48,7 @@ def get_pro_gather():
         # 获取每个项目下的url
         if p[7] == 'first':
             url = json.loads(p[3])
+
         elif p[7] == 'second':
             url = json.loads(p[4])
         elif p[7] == 'third':
@@ -70,58 +62,8 @@ def get_pro_gather():
                    'config_data': [{'id': d[1], 'name': d[2]} for d in config_d if d[0] == p[0] and d[1]],
                    'module_data': [{'id': d[1], 'name': d[2]} for d in module_d if d[0] == p[0] and d[1]],
                    'set_data': [{'id': d[1], 'name': d[2]} for d in case_set_d if d[0] == p[0] and d[1]], })
-    # s = time.time()
-    #
-    # my_pros = Project.query.filter_by(user_id=current_user.id).first()
-    # e1 = time.time()
-    # print(e1-s)
-
-    # for p in _pros:
-    #     # pro_and_id[p.name] = p.id
-    #
-    #     pro_and_id.append({'name': p.name, 'id': p.id})
-    #
-    #     if b'case' in request.query_string:
-    #         # 获取每个项目下的配置信息
-    #         scene_config_lists[p.id] = [{'name': c.name, 'configId': c.id} for c in p.configs]
-    #
-    #         # 获取每个项目下的接口模块
-    #         pro[p.id] = [{'name': m.name, 'moduleId': m.id} for m in p.modules]
-    #     #
-    #     if b'task' in request.query_string:
-    #         # 获取每个项目下的用例集
-    #         set_list[p.id] = [{'label': s.name, 'id': s.id} for s in p.case_sets]
-    #
-    #         # 获取每个用例集的用例
-    #         for s in p.case_sets:
-    #             scene_list["{}".format(s.id)] = [{'label': case.name, 'id': case.id} for case in
-    #                                              s.cases]
-    #             # scene_list["{}".format(s.id)] = [{'label': scene.name, 'id': scene.id} for scene in
-    #             #                                  Case.get_all(case_set_id=s.id)]
-    #
-    #     # 获取每个项目下的url
-    #     if p.environment_choice == 'first':
-    #         pro_url[p.id] = json.loads(p.host)
-    #     elif p.environment_choice == 'second':
-    #         pro_url[p.id] = json.loads(p.host_two)
-    #     elif p.environment_choice == 'third':
-    #         pro_url[p.id] = json.loads(p.host_three)
-    #     elif p.environment_choice == 'fourth':
-    #         pro_url[p.id] = json.loads(p.host_four)
-    #
-    # if my_pros:
-    #     # my_pros = {'pro_name': my_pros.name, 'pro_id': my_pros.id, 'model_list': pro[my_pros.name]}
-    #     user_pros = True
-    # return jsonify(
-    #     {'data': True, 'user_pros': True, })
     return jsonify(
         {'data': _d, 'user_pros': user_pros, })
-
-
-# return jsonify(
-#     {'data': pro, 'urlData': pro_url, 'status': 1, 'config_name_list': scene_config_lists,
-#      'user_pros': user_pros,
-#      'set_list': set_list, 'scene_list': scene_list, 'pro_and_id': pro_and_id})
 
 
 @api.route('/project/find', methods=['POST'])

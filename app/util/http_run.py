@@ -208,7 +208,7 @@ class RunCase(object):
         for case_id in case_ids:
             case_data = Case.query.filter_by(id=case_id).first()
             case_times = case_data.times if case_data.times else 1
-            if case_data.environment == -1 or case_data.environment == None:
+            if case_data.environment == -1 or not case_data.environment:
                 url_environment = self.pro_environment
             else:
                 url_environment = self.pro_base_url[case_data.environment]

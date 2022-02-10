@@ -211,14 +211,16 @@ def edit_case():
             case_id = ''
         else:
             case_id = case.id
-        case_data.append({'num': case.num, 'name': ApiMsg.query.filter_by(id=case.api_msg_id).first().name,
+        _api_data = ApiMsg.query.filter_by(id=case.api_msg_id).first()
+        case_data.append({'num': case.num, 'name': _api_data.name,
                           'desc': ApiMsg.query.filter_by(id=case.api_msg_id).first().desc, 'apiMsgId': case.api_msg_id,
                           'id': case_id,
                           'status': json.loads(case.status),
-                          'variableType': ApiMsg.query.filter_by(id=case.api_msg_id).first().variable_type,
+                          'variableType': _api_data.variable_type,
                           'case_name': case.name,
                           'time': case.time,
                           'up_func': case.up_func,
+                          'method': _api_data.method,
                           'down_func': case.down_func,
                           'skip': case.skip,
                           'variable': json.loads(case.variable),
