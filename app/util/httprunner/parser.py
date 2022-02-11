@@ -753,13 +753,14 @@ def __parse_config(config, project_mapping):
     raw_config_variables_mapping = utils.ensure_mapping_format(raw_config_variables)
     override_variables = utils.deepcopy_dict(project_mapping.get("variables", {}))
     functions = project_mapping.get("functions", {})
+    functions.update(config.pop("functions", {}))
 
     # override config variables with passed in variables
     raw_config_variables_mapping.update(override_variables)
-
+    # print(222)
+    # print(raw_config_variables_mapping)
     # parse config variables
     parsed_config_variables = {}
-
     for key in raw_config_variables_mapping:
         parsed_value = parse_data(
             raw_config_variables_mapping[key],
@@ -1115,7 +1116,6 @@ def parse_tests(tests_mapping):
         "project_mapping": project_mapping,
         "testcases": []
     }
-
     for test_type in tests_mapping:
 
         if test_type == "testsuites":
