@@ -102,10 +102,11 @@ def add_project():
     project_name = data.get('projectName')
     if not project_name:
         return jsonify({'msg': '项目名称不能为空', 'status': 0})
-    user_id = data.get('userId')
-    if not user_id:
+    principal = json.dumps(data.get('principal'))
+    if not principal:
         return jsonify({'msg': '请选择负责人', 'status': 0})
     # principal = data.get('principal')
+    user_id = data.get('userId')
     environment_choice = data.get('environmentChoice')
     host = json.dumps(data.get('host'))
     host_two = json.dumps(data.get('hostTwo'))
@@ -132,6 +133,7 @@ def add_project():
             old_project_data.headers = header
             old_project_data.variables = variable
             old_project_data.func_file = func_file
+            old_project_data.principal = principal
             db.session.commit()
             return jsonify({'msg': '修改成功', 'status': 1})
     else:
@@ -142,9 +144,13 @@ def add_project():
                                   host=host,
                                   host_two=host_two,
                                   user_id=user_id,
+                                  principal=principal,
                                   func_file=func_file,
                                   environment_choice=environment_choice,
-                                  host_three=host_three, host_four=host_four, headers=header, variables=variable)
+                                  host_three=host_three,
+                                  host_four=host_four,
+                                  headers=header,
+                                  variables=variable)
             db.session.add(new_project)
             db.session.commit()
             return jsonify({'msg': '新建成功', 'status': 1})
@@ -181,7 +187,7 @@ def edit_project():
     _edit = Project.get_first(id=pro_id)
     _data = {'pro_name': _edit.name,
              'user_id': _edit.user_id,
-             'principal': _edit.principal,
+             'principal': json.loads(_edit.principal),
              'func_file': json.loads(_edit.func_file),
              'host': json.loads(_edit.host),
              'host_two': json.loads(_edit.host_two),
@@ -189,5 +195,6 @@ def edit_project():
              'host_four': json.loads(_edit.host_four),
              'headers': json.loads(_edit.headers),
              'environment_choice': _edit.environment_choice,
-             'variables': json.loads(_edit.variables)}
+             'variables': json.loads(_edit.variables),
+         }
     return jsonify({'data': _data, 'status': 1})

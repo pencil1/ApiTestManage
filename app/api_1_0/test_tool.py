@@ -2,7 +2,7 @@ import glob
 import importlib
 import os
 import types
-
+import random
 import requests
 from flask import jsonify, request, send_from_directory
 from app.models import *
@@ -283,9 +283,9 @@ def find_sql_list():
 
 @api.route('/test/list', methods=['get'])
 def test_list():
-    d = {'status': 1, 'data': {'phone': 15813311111, 'id': 158}}
+    d = ['沙雕胜是个逗比', '沙雕胜吃s拉', '红牛沙雕胜', '。。。沙雕胜', '百日红沙雕胜']
 
-    return jsonify({'status': 1, 'msg': '优化成功', 'data': d})
+    return jsonify({'msg': d[random.randint(0, 4)]})
 
 
 @api.route('/test/list1', methods=['POST'])
