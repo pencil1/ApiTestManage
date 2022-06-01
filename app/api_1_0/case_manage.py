@@ -69,7 +69,14 @@ def add_case():
                 old_api_case.validate = json.dumps(c['validate'])
                 old_api_case.variable = json.dumps(c['variable'])
                 old_api_case.header = json.dumps(c['header'])
+                # print(11)
+                # print(c['parameters'])
+                old_api_case.parameters = c['parameters']
+                print(type(c['statusCase']['parameters']))
+                print(c['statusCase']['parameters'])
+                old_api_case.status_parameters = c['statusCase']['parameters']
                 old_api_case.json_variable = c['json_variable']
+
                 old_api_case.param = json.dumps(c['param'])
                 old_api_case.time = c['time']
                 old_api_case.status_variables = json.dumps(c['statusCase']['variable'])
@@ -100,6 +107,9 @@ def add_case():
                                         header=json.dumps(c['header']),
                                         status_header=json.dumps(c['statusCase']['header']),
                                         status=json.dumps(c['status']),
+                                        parameters=json.dumps(c['parameters']),
+                                        status_parameters=c['statusCase']['parameters'],
+                                        skip=c['skip'],
                                         name=c['case_name'], up_func=c['up_func'], down_func=c['down_func'])
                 db.session.add(new_api_case)
                 db.session.commit()
@@ -130,7 +140,10 @@ def add_case():
                                         status_param=json.dumps(c['statusCase']['param']),
                                         header=json.dumps(c['header']),
                                         status_header=json.dumps(c['statusCase']['header']),
-                                        status=json.dumps(c['status']), skip=c['skip'],
+                                        parameters=json.dumps(c['parameters']) if c.get('parameters') else '[]',
+                                        status_parameters=c['statusCase']['parameters'],
+                                        status=json.dumps(c['status']),
+                                        skip=c['skip'],
                                         name=c['case_name'], up_func=c['up_func'], down_func=c['down_func'])
                 db.session.add(new_api_case)
                 db.session.commit()
@@ -229,11 +242,13 @@ def edit_case():
                           'extract': json.loads(case.extract),
                           'validate': json.loads(case.validate),
                           'header': json.loads(case.header),
+                          'parameters': case.parameters,
                           'statusCase': {'variable': json.loads(case.status_variables),
                                          'extract': json.loads(case.status_extract),
                                          'validate': json.loads(case.status_validate),
                                          'param': json.loads(case.status_param),
                                          'header': json.loads(case.status_header),
+                                         'parameters': case.status_parameters,
                                          },
                           })
     _data2 = {'num': _data.num, 'name': _data.name, 'desc': _data.desc, 'cases': case_data, 'setId': _data.case_set_id,

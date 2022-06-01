@@ -1,10 +1,11 @@
 import ast
+import copy
 import json
 import types
 from app.models import *
 from .httprunner.api import HttpRunner
 from ..util.global_variable import *
-from ..util.utils import encode_object
+from ..util.utils import encode_object,try_switch_data
 import importlib
 from app import scheduler
 from flask.json import JSONEncoder
@@ -21,17 +22,17 @@ class RunCase(object):
 
     def init_project_data(self):
         pro_data = Project.query.filter_by(id=self.project_ids).first()
-        self.pro_base_url = [json.loads(pro_data.host), json.loads(pro_data.host_two), json.loads(pro_data.host_three),
-                             json.loads(pro_data.host_four)]
+        self.pro_base_url = json.loads(pro_data.environment_list)
         # for pro_data in Project.query.all():
-        if pro_data.environment_choice == 'first':
-            self.pro_environment = json.loads(pro_data.host)
-        elif pro_data.environment_choice == 'second':
-            self.pro_environment = json.loads(pro_data.host_two)
-        if pro_data.environment_choice == 'third':
-            self.pro_environment = json.loads(pro_data.host_three)
-        if pro_data.environment_choice == 'fourth':
-            self.pro_environment = json.loads(pro_data.host_four)
+        self.pro_environment = json.loads(pro_data.environment_list)[int(pro_data.environment_choice)-1]['urls']
+        # if pro_data.environment_choice == 'first':
+        #     self.pro_environment = json.loads(pro_data.host)
+        # elif pro_data.environment_choice == 'second':
+        #     self.pro_environment = json.loads(pro_data.host_two)
+        # if pro_data.environment_choice == 'third':
+        #     self.pro_environment = json.loads(pro_data.host_three)
+        # if pro_data.environment_choice == 'fourth':
+        #     self.pro_environment = json.loads(pro_data.host_four)
         # self.pro_base_url = pro_base_url
         self.pro_config(Project.query.filter_by(id=self.project_ids).first())
 
@@ -62,10 +63,10 @@ class RunCase(object):
         :return:
         """
         if status:
-            # 为true，获取api基础信息；case只包含可改变部分所以还需要api基础信息组合成全新的用例
+            # 为true，获取api基础信息；step_data只包含可改变部分所以还需要api基础信息组合成全新的用例
             api_data = ApiMsg.query.filter_by(id=step_data.api_msg_id).first()
         else:
-            # 为false，基础信息和参数信息都在api里面，所以api_case = case_data，直接赋值覆盖
+            # 为false，基础信息和参数信息都在api里面，所以api_case = step_data，直接赋值覆盖
             api_data = ApiMsg.query.filter_by(id=api_id).first()
             step_data = api_data
             # api_data = case_data
@@ -78,9 +79,11 @@ class RunCase(object):
 
         # _data['request']['headers'] = {h['key']: h['value'] for h in json.loads(api_data.header)
         #                                if h['key']} if json.loads(api_data.header) else {}
-
+        # print(pro_base_url)
+        # print(pro_base_url[int(api_data.status_url)])
+        # print(api_data.url.split('?')[0])
         if api_data.status_url != '-1':
-            _data['request']['url'] = pro_base_url[int(api_data.status_url)] + api_data.url.split('?')[0]
+            _data['request']['url'] = pro_base_url[int(api_data.status_url)]['value'] + api_data.url.split('?')[0]
         else:
             _data['request']['url'] = api_data.url
 
@@ -157,28 +160,32 @@ class RunCase(object):
         _data['extract'] = [{ext['key']: ext['value']} for ext in json.loads(_extract) if
                             ext.get('key')] if _extract else []
 
-        _data['validate'] = [{val['comparator']: [val['key'], ast.literal_eval(val['value'])]} for val in
+        # for val in json.loads(_validate):
+        #     if val.get('key'):
+        #         print(val)
+        #         ast.literal_eval(val['value'])
+        _data['validate'] = [{val['comparator']: [val['key'], try_switch_data(val['value'])]} for val in
                              json.loads(_validate) if val.get('key')] if _validate else []
 
         if api_data.method == 'GET':
-
             pass
-        # elif _variables:
-        #     print(_variables)
-        #     print(111)
-        elif api_data.variable_type == 'text' and _variables:
-            for variable in _variables:
-                if variable['param_type'] == 'string' and variable.get('key'):
-                    _data['request']['files'].update({variable['key']: (None, variable['value'])})
-                elif variable['param_type'] == 'file' and variable.get('key'):
-                    _data['request']['files'].update({variable['key']: (
-                        variable['value'].split('/')[-1], open(variable['value'], 'rb'),
-                        CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
+        elif status and step_data.status_parameters:
+            _list_data = []
 
-        elif api_data.variable_type == 'data' and _variables:
+            for p in json.loads(step_data.parameters):
+                _copy_data = copy.deepcopy(_data)
+                _copy_data['request'][api_data.variable_type] = p
+                _list_data.append(_copy_data)
+            # print(_list_data)
+            return _list_data
+
+        elif (api_data.variable_type == 'text' or api_data.variable_type == 'data') and _variables:
             for variable in _variables:
                 if variable['param_type'] == 'string' and variable.get('key'):
-                    _data['request']['data'].update({variable['key']: variable['value']})
+                    if api_data.variable_type == 'text':
+                        _data['request']['files'].update({variable['key']: (None, variable['value'])})
+                    else:
+                        _data['request']['data'].update({variable['key']: variable['value']})
                 elif variable['param_type'] == 'file' and variable.get('key'):
                     _data['request']['files'].update({variable['key']: (
                         variable['value'].split('/')[-1], open(variable['value'], 'rb'),
@@ -193,7 +200,6 @@ class RunCase(object):
     def get_api_test(self, api_ids, config_id):
         scheduler.app.logger.info('本次测试的接口id：{}'.format(api_ids))
         _steps = {'teststeps': [], 'config': {'variables': {}}}
-
         if config_id:
             config_data = Config.query.filter_by(id=config_id).first()
             _config = json.loads(config_data.variables) if config_id else []
@@ -233,7 +239,12 @@ class RunCase(object):
 
                 for _step in CaseData.query.filter_by(case_id=case_id).order_by(CaseData.num.asc()).all():
                     if _step.status == 'true':  # 判断用例状态，是否执行
-                        _steps['teststeps'].append(self.assemble_step(None, _step, url_environment, True))
+                        _steps_data = self.assemble_step(None, _step, url_environment, True)
+                        if isinstance(_steps_data, list):
+                            _steps['teststeps'] += _steps_data
+                        else:
+                            _steps['teststeps'].append(_steps_data)
+                        # _steps['teststeps'].append(self.assemble_step(None, _step, url_environment, True))
                 self.TEST_DATA['testcases'].append(_steps)
 
     def build_report(self, jump_res, case_ids, performer):

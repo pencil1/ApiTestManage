@@ -64,6 +64,7 @@ class SessionContext(object):
         """ evaluate content recursively, take effect on each variable and function in content.
             content may be in any data structure, include dict, list, tuple, number, string, etc.
         """
+        print(self.test_variables_mapping)
         return parser.parse_data(
             content,
             self.test_variables_mapping,

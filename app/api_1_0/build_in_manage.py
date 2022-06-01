@@ -35,7 +35,7 @@ def add_func_file():
         db.session.add(_new)
         db.session.commit()
         if status == 1:
-            with open('{}/{}'.format(FUNC_ADDRESS, name ), 'w', encoding='utf8') as f:
+            with open('{}/{}'.format(FUNC_ADDRESS, name), 'w', encoding='utf8') as f:
                 pass
 
         return jsonify({'msg': '新建成功', 'status': 1, 'id': _new.id, 'higher_id': _new.higher_id, })
@@ -73,7 +73,7 @@ def find_func_file():
 
     end_data = get_data(FuncFile.query.filter_by(**kwargs).order_by(FuncFile.num.asc()).all())
 
-    return jsonify({'status': 1, 'data': end_data, 'msg': 1})
+    return jsonify({'status': 1, 'data': end_data, 'msg': '查询成功'})
 
 
 @api.route('/FuncFile/get', methods=['POST'])

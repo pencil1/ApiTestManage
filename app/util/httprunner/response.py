@@ -2,7 +2,8 @@
 
 import json
 import re
-
+from jmespath import parser
+import jmespath
 from . import exceptions, logger, utils
 from .compat import OrderedDict, basestring, is_py2
 from requests.models import PreparedRequest
@@ -23,20 +24,23 @@ class ResponseObject(object):
         self.resp_obj = resp_obj
 
     def __getattr__(self, key):
-        try:
-            if key == "json":
+        if key in ["json", "content", "body"]:
+            try:
                 value = self.resp_obj.json()
-            elif key == "cookies":
-                value =  self.resp_obj.cookies.get_dict()
-            else:
-                value =  getattr(self.resp_obj, key)
+            except ValueError:
+                value = self.resp_obj.content
+        elif key == "cookies":
+            value = self.resp_obj.cookies.get_dict()
+        else:
+            try:
+                value = getattr(self.resp_obj, key)
+            except AttributeError:
+                err_msg = "ResponseObject does not have attribute: {}".format(key)
+                # logger.error(err_msg)
+                raise exceptions.ParamsError(err_msg)
 
-            self.__dict__[key] = value
-            return value
-        except AttributeError:
-            err_msg = "ResponseObject does not have attribute: {}".format(key)
-            logger.log_error(err_msg)
-            raise exceptions.ParamsError(err_msg)
+        self.__dict__[key] = value
+        return value
 
     def _extract_field_with_regex(self, field):
         """ extract field from response content with regex.
@@ -66,6 +70,30 @@ class ResponseObject(object):
             raise exceptions.ExtractFailure(err_msg)
 
         return matched.group(1)
+
+    def _extract_field_with_jmespath(self, field):
+        resp_obj_meta = {
+            "status_code": self.status_code,
+            "headers": self.headers,
+            "cookies": self.cookies,
+            "body": self.body,
+        }
+        # if "$" in field:
+        #     # field contains variable or function
+        #     field = self.parser.parse_data(field, variables_mapping)
+        # print(22)
+        # print(resp_obj_meta)
+        # print(field)
+        # print(11)
+        result = jmespath.search(field, resp_obj_meta)
+        # print()
+        if result:
+            if isinstance(result, list) and len(result) == 1:
+                return result[0]
+            else:
+                return result
+        else:
+            raise exceptions.ExtractFailure("\tjmespath {} get nothing\n".format(field))
 
     def _extract_field_with_delimiter(self, field):
         """ response content could be json or html text.
@@ -214,10 +242,10 @@ class ResponseObject(object):
         if text_extractor_regexp_compile.match(field):
             value = self._extract_field_with_regex(field)
         else:
-            value = self._extract_field_with_delimiter(field)
-
-        if is_py2 and isinstance(value, unicode):
-            value = value.encode("utf-8")
+            # value = self._extract_field_with_delimiter(field)
+            value = self._extract_field_with_jmespath(field)
+        # if is_py2 and isinstance(value, unicode):
+        #     value = value.encode("utf-8")
 
         msg += "\t=> {}".format(value)
         logger.log_debug(msg)

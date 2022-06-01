@@ -167,6 +167,22 @@ def case_change():
     return jsonify({'status': 1, 'msg': '优化成功', 'data': result_address})
 
 
+@api.route('/listG', methods=['POST'])
+def list_g():
+    data = request.json
+    # print(request.json)
+    code = data.get('list')
+    code2 = ','.join([c.split('.')[1].lower() + c.split('.')[0] for c in code])
+    header = {'Referer': 'https://finance.sina.com.cn/'}
+    result1 = requests.get('https://hq.sinajs.cn/rn=1644460788303&list={}'.format(code2), headers=header)
+    _d = result1.text.split(';')[:-1]
+    temp = []
+    for n, g in enumerate(_d):
+        r = g.split(',')
+        temp.append("%+.2f" % (round((float(r[3]) - float(r[2])) / float(r[2]) * 100, 2)))
+    return jsonify({'status': 1, 'msg': '成功', 'data': temp})
+
+
 @api.route('/show1', methods=['POST'])
 def show1():
     a = Role.query.filter_by(id=1).first()
@@ -283,7 +299,7 @@ def find_sql_list():
 
 @api.route('/test/list', methods=['get'])
 def test_list():
-    d = ['沙雕胜是个逗比', '沙雕胜吃s拉', '红牛沙雕胜', '。。。沙雕胜', '百日红沙雕胜']
+    d = [1, 2, 3, 4]
 
     return jsonify({'msg': d[random.randint(0, 4)]})
 

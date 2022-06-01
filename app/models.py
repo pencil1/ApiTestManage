@@ -159,27 +159,32 @@ class User(UserMixin, db.Model):
 class Project(BaseModel):
     __tablename__ = 'project'
     user_id = db.Column(db.Integer(), nullable=True, comment='所属的用户id')
+    num = db.Column(db.Integer(), comment='编号')
     name = db.Column(db.String(64), nullable=True, unique=True, comment='项目名称')
     host = db.Column(db.String(1024), nullable=True, comment='测试环境')
     host_two = db.Column(db.String(1024), comment='开发环境')
     host_three = db.Column(db.String(1024), comment='线上环境')
     host_four = db.Column(db.String(1024), comment='备用环境')
     environment_choice = db.Column(db.String(16), comment='环境选择，first为测试，以此类推')
+    environment_list = db.Column(db.String(1024), comment='环境列表')
+    environment = db.Column(db.String(1024), comment='环境')
+    environment_status = db.Column(db.Integer(), comment='环境选择')
     principal = db.Column(db.String(16), nullable=True)
     variables = db.Column(db.String(2048), comment='项目的公共变量')
     headers = db.Column(db.String(1024), comment='项目的公共头部信息')
     func_file = db.Column(db.String(128), comment='函数地址')
-    modules = db.relationship('Module', order_by='Module.num.asc()', lazy='joined')
-    configs = db.relationship('Config', order_by='Config.num.asc()', lazy='joined')
-    case_sets = db.relationship('CaseSet', order_by='CaseSet.num.asc()', lazy='joined')
+    api_sets = db.relationship('ApiSet', order_by='ApiSet.num.asc()', lazy='dynamic')
+    configs = db.relationship('Config', order_by='Config.num.asc()', lazy='dynamic')
+    case_sets = db.relationship('CaseSet', order_by='CaseSet.num.asc()', lazy='dynamic')
 
 
-class Module(BaseModel):
-    __tablename__ = 'module'
+class ApiSet(BaseModel):
+    __tablename__ = 'api_set'
     name = db.Column(db.String(64), nullable=True, comment='接口模块')
     num = db.Column(db.Integer(), nullable=True, comment='模块序号')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
     api_msg = db.relationship('ApiMsg', order_by='ApiMsg.num.asc()', lazy='dynamic')
+    higher_id = db.Column(db.Integer(), comment='上级id，父级为0')
     __mapper_args__ = {"order_by": num.asc()}
 
 
@@ -199,6 +204,7 @@ class CaseSet(BaseModel):
     name = db.Column(db.String(256), nullable=True, comment='用例集名称')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
     cases = db.relationship('Case', order_by='Case.num.asc()', lazy='joined')
+    higher_id = db.Column(db.Integer(), comment='上级id，父级为0')
     __mapper_args__ = {"order_by": num.asc()}
 
 
@@ -234,7 +240,7 @@ class ApiMsg(BaseModel):
     extract = db.Column(db.String(2048), comment='提取信息')
     validate = db.Column(db.String(2048), comment='断言信息')
     header = db.Column(db.String(2048), comment='头部信息')
-    module_id = db.Column(db.Integer, db.ForeignKey('module.id'), comment='所属的接口模块id')
+    api_set_id = db.Column(db.Integer, db.ForeignKey('api_set.id'), comment='所属的接口模块id')
     project_id = db.Column(db.Integer, nullable=True, comment='所属的项目id')
     __mapper_args__ = {"order_by": num.asc()}
 
@@ -259,6 +265,8 @@ class CaseData(BaseModel):
     status_validate = db.Column(db.String(64))
     header = db.Column(db.String(2048))
     status_header = db.Column(db.String(64))
+    parameters = db.Column(db.String(2048))
+    status_parameters = db.Column(db.Boolean)
     case_id = db.Column(db.Integer, db.ForeignKey('case.id'))
     api_msg_id = db.Column(db.Integer, db.ForeignKey('api_msg.id'))
     __mapper_args__ = {"order_by": num.asc()}

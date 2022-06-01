@@ -12,16 +12,20 @@ def add_set():
     data = request.json
     project_id = data.get('projectId')
     name = data.get('name')
+    higher_id = data.get('higherId')
     if not project_id:
         return jsonify({'msg': '请先选择首页项目', 'status': 0})
     if not name:
         return jsonify({'msg': '用例集名称不能为空', 'status': 0})
     ids = data.get('id')
-    num = auto_num(data.get('num'), CaseSet, project_id=project_id)
+    num = auto_num(data.get('num'), CaseSet, project_id=project_id, higher_id=higher_id)
     if ids:
         old_data = CaseSet.query.filter_by(id=ids).first()
+        old_num = old_data.num
         if CaseSet.query.filter_by(name=name, project_id=project_id).first() and name != old_data.name:
             return jsonify({'msg': '用例集名字重复', 'status': 0})
+        list_data = CaseSet.query.filter_by(project_id=project_id, higher_id=higher_id).all()
+        num_sort(num, old_num, list_data, old_data)
         old_data.name = name
         old_data.project_id = project_id
         db.session.commit()
@@ -30,7 +34,7 @@ def add_set():
         if CaseSet.query.filter_by(name=name, project_id=project_id).first():
             return jsonify({'msg': '用例集名字重复', 'status': 0})
         else:
-            new_set = CaseSet(name=name, project_id=project_id, num=num)
+            new_set = CaseSet(name=name, higher_id=higher_id, project_id=project_id, num=num)
             db.session.add(new_set)
             db.session.commit()
             return jsonify({'msg': '新建成功', 'status': 1})
@@ -58,20 +62,33 @@ def stick_set():
 def find_set():
     """ 查找用例集合 """
     data = request.json
-    page = data.get('page') if data.get('page') else 1
-    per_page = data.get('sizePage') if data.get('sizePage') else 10
+    # page = data.get('page') if data.get('page') else 1
+    # per_page = data.get('sizePage') if data.get('sizePage') else 10
     project_id = data.get('projectId')
     if not project_id:
         return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
 
-    # all_sets = Project.query.filter_by(id=project_id).first().case_sets
-    all_sets = CaseSet.query.filter_by(project_id=project_id)
-    pagination = all_sets.paginate(page, per_page=per_page, error_out=False)
-    _items = pagination.items
-    total = pagination.total
-    current_set = [{'label': s.name, 'id': s.id} for s in _items]
-    all_set = [{'label': s.name, 'id': s.id} for s in all_sets.all()]
-    return jsonify({'status': 1, 'total': total, 'data': current_set, 'all_set': all_set})
+    def get_data(all_data):
+        if not all_data:
+            return
+        if isinstance(all_data, list):
+            if all_data:
+                _t = []
+                for d in all_data:
+                    _t.append(get_data(d))
+                return _t
+            else:
+                return []
+        else:
+            _d = {'id': all_data.id, 'num': all_data.num, 'name': all_data.name, 'project_id': all_data.project_id,
+                  'higherId': all_data.higher_id,
+                  'children': get_data(CaseSet.query.filter_by(higher_id=all_data.id, project_id=project_id).order_by(
+                      CaseSet.num.asc()).all())}
+            return _d
+
+    end_data = get_data(CaseSet.query.filter_by(higher_id=0, project_id=project_id).order_by(CaseSet.num.asc()).all())
+
+    return jsonify({'status': 1, 'data': end_data})
 
 
 @api.route('/caseSet/edit', methods=['POST'])

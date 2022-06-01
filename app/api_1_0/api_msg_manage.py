@@ -23,7 +23,7 @@ def add_api_msg():
     up_func = data.get('upFunc')
     down_func = data.get('downFunc')
     method = data.get('method')
-    module_id = data.get('moduleId')
+    api_set_id = data.get('apiSetId')
     url = data.get('url').split('?')[0]
     skip = data.get('skip')
     status_url = data.get('choiceUrl')
@@ -32,8 +32,8 @@ def add_api_msg():
     param = data.get('param')
     if not project_id:
         return jsonify({'msg': '项目不能为空', 'status': 0})
-    if not module_id:
-        return jsonify({'msg': '接口模块不能为空', 'status': 0})
+    if not api_set_id:
+        return jsonify({'msg': '接口集合不能为空', 'status': 0})
     if not api_msg_name:
         return jsonify({'msg': '接口名称不能为空', 'status': 0})
     if method == -1:
@@ -44,15 +44,15 @@ def add_api_msg():
         if 'http' not in url:
             return jsonify({'msg': '基础url为空时，请补全api地址', 'status': 0})
 
-    num = auto_num(data.get('num'), ApiMsg, module_id=module_id)
+    num = auto_num(data.get('num'), ApiMsg, api_set_id=api_set_id)
 
     if api_msg_id:
         old_data = ApiMsg.query.filter_by(id=api_msg_id).first()
         old_num = old_data.num
-        if ApiMsg.query.filter_by(name=api_msg_name, module_id=module_id).first() and api_msg_name != old_data.name:
+        if ApiMsg.query.filter_by(name=api_msg_name, api_set_id=api_set_id).first() and api_msg_name != old_data.name:
             return jsonify({'msg': '接口名字重复', 'status': 0})
 
-        list_data = Module.query.filter_by(id=module_id).first().api_msg.all()
+        list_data = ApiSet.query.filter_by(id=api_set_id).first().api_msg.all()
         num_sort(num, old_num, list_data, old_data)
         old_data.project_id = project_id
         old_data.name = api_msg_name
@@ -70,11 +70,11 @@ def add_api_msg():
         old_data.json_variable = json_variable
         old_data.param = param
         old_data.extract = extract
-        old_data.module_id = module_id
+        old_data.api_set_id = api_set_id
         db.session.commit()
         return jsonify({'msg': '修改成功', 'status': 1, 'api_msg_id': api_msg_id, 'num': num})
     else:
-        if ApiMsg.query.filter_by(name=api_msg_name, module_id=module_id).first():
+        if ApiMsg.query.filter_by(name=api_msg_name, api_set_id=api_set_id).first():
             return jsonify({'msg': '接口名字重复', 'status': 0})
         else:
             new_cases = ApiMsg(name=api_msg_name,
@@ -90,7 +90,7 @@ def add_api_msg():
                                variable=variable,
                                validate=validate,
                                project_id=project_id,
-                               module_id=module_id,
+                               api_set_id=api_set_id,
                                status_url=status_url,
                                variable_type=variable_type,
                                json_variable=json_variable,
@@ -108,7 +108,7 @@ def edit_api_msg():
     case_id = data.get('apiMsgId')
     _edit = ApiMsg.query.filter_by(id=case_id).first()
     _data = {'name': _edit.name, 'num': _edit.num, 'desc': _edit.desc, 'url': _edit.url, 'skip': _edit.skip,
-             'api_set_id': _edit.module_id,
+             'api_set_id': _edit.api_set_id,
              'method': _edit.method, 'status_url': int(_edit.status_url),
              'up_func': _edit.up_func, 'down_func': _edit.down_func,
              'variableType': _edit.variable_type,
@@ -150,23 +150,23 @@ def run_api_msg():
 def find_api_msg():
     """ 查接口信息 """
     data = request.json
-    module_id = data.get('moduleId')
+    api_set_id = data.get('apiSetId')
     project_id = data.get('projectId')
     api_name = data.get('apiName')
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 20
     if not project_id:
         return jsonify({'msg': '请选择项目', 'status': 0})
-    if not module_id:
-        return jsonify({'msg': '请先在当前项目下创建模块', 'status': 0})
+    if not api_set_id:
+        return jsonify({'msg': '请先在当前项目下创建集合', 'status': 0})
 
     if api_name:
-        _data = ApiMsg.query.filter_by(module_id=module_id).filter(ApiMsg.name.like('%{}%'.format(api_name)))
+        _data = ApiMsg.query.filter_by(api_set_id=api_set_id).filter(ApiMsg.name.like('%{}%'.format(api_name)))
         # total = len(api_data)
         if not _data:
             return jsonify({'msg': '没有该接口信息', 'status': 0})
     else:
-        _data = ApiMsg.query.filter_by(module_id=module_id)
+        _data = ApiMsg.query.filter_by(api_set_id=api_set_id)
 
     pagination = _data.order_by(ApiMsg.num.asc()).paginate(page, per_page=per_page, error_out=False)
     items = pagination.items
@@ -177,7 +177,7 @@ def find_api_msg():
                  'url': c.url,
                  'skip': c.skip,
                  'apiMsgId': c.id,
-                 'gather_id': c.module_id,
+                 'gather_id': c.api_set_id,
                  'variableType': c.variable_type,
                  'variable': json.loads(c.variable),
                  'json_variable': c.json_variable,
@@ -185,9 +185,11 @@ def find_api_msg():
                  'validate': json.loads(c.validate),
                  'param': json.loads(c.param),
                  'header': json.loads(c.header),
+                 'parameters': '[]',
                  # 'check': False,
                  'statusCase': {'extract': [True, True], 'variable': [True, True],
-                                'validate': [True, True], 'param': [True, True], 'header': [True, True]},
+                                'validate': [True, True], 'param': [True, True],
+                                'header': [True, True],'parameters':False},
                  'status': True, 'case_name': c.name, 'down_func': c.down_func, 'up_func': c.up_func, 'time': 1}
                 for c in items]
     return jsonify({'data': end_data, 'total': total, 'status': 1})
@@ -201,7 +203,7 @@ def del_api_msg():
     api_msg_id = data.get('apiMsgId')
     _data = ApiMsg.query.filter_by(id=api_msg_id).first()
 
-    project_id = Module.query.filter_by(id=_data.module_id).first().project_id
+    project_id = ApiSet.query.filter_by(id=_data.api_set_id).first().project_id
     if current_user.id != Project.query.filter_by(id=project_id).first().user_id:
         return jsonify({'msg': '不能删除别人项目下的接口', 'status': 0})
 
@@ -221,8 +223,8 @@ def file_change():
     # 导入功能太过简单，所以前端屏蔽了111
     data = request.json
     project_name = data.get('projectName')
-    module_id = data.get('moduleId')
-    if not module_id and not project_name:
+    api_set_id = data.get('api_set_id')
+    if not api_set_id and not project_name:
         return jsonify({'msg': '项目和模块不能为空', 'status': 0})
     import_format = data.get('importFormat')
     if not import_format:
@@ -236,7 +238,7 @@ def file_change():
     if not import_api_address:
         return jsonify({'msg': '请上传文件', 'status': 0})
     har_parser = HarParser(import_api_address, import_format)
-    case_num = auto_num(data.get('caseNum'), ApiMsg, module_id=module_id)
+    case_num = auto_num(data.get('caseNum'), ApiMsg, api_set_id=api_set_id)
     for msg in har_parser.testset:
         # status_url = msg['test']['url'].replace(msg['test']['name'], '')
         # msg['test']['url'] = msg['test']['name']
@@ -247,7 +249,7 @@ def file_change():
                 break
         else:
             msg['status_url'] = '0'
-        new_case = ApiMsg(project_id=project_data.id, module_id=module_id, num=case_num, **msg)
+        new_case = ApiMsg(project_id=project_data.id, api_set_id=api_set_id, num=case_num, **msg)
         db.session.add(new_case)
         db.session.commit()
         case_num += 1

@@ -39,6 +39,27 @@ def num_sort(new_num, old_num, list_data, old_data):
 # function_regexp = r"\$\{([\w_]+\([\$\w\.\-_ =,]*\))\}"
 # function_regexp_compile = re.compile(r"^([\w_]+)\(([\$\w\.\-/_ =,]*)\)$")
 # function_regexp_compile = re.compile(r"^([\w_]+)\(([\$\w\W\.\-/_ =,]*)\)$")
+def tree_change(change_data):
+    """递归遍历change_data，返回树状结构数据"""
+    result = []
+    for _data in change_data:
+        if _data['higher_id'] == 0:
+            result.append(_data)
+        else:
+            def traverse_children(children_data):
+                for _c in children_data:
+
+                    if _c['id'] == _data['higher_id'] and _c['project_id'] == _data['project_id']:
+                        if not _c.get('children'):
+                            _c['children'] = []
+                        _c['children'].append(_data)
+                        break
+                    else:
+                        if _c.get('children'):
+                            traverse_children(_c['children'])
+
+            traverse_children(result)
+    return result
 
 
 def extract_variables(content):
@@ -222,6 +243,13 @@ def parse_function(content):
             function_meta["args"].append(parse_string_value(arg))
 
     return function_meta
+
+
+def try_switch_data(d):
+    try:
+        return ast.literal_eval(d)
+    except:
+        return d
 
 
 def encode_object(obj):
