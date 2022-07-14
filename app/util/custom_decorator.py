@@ -11,6 +11,7 @@ def login_required(func):
         elif not current_user.is_authenticated:
             return jsonify({'msg': '登录超时,请重新登录', 'status': 0})
         return func(*args, **kwargs)
+
     return decorated_view
 
 

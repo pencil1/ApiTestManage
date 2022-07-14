@@ -3,18 +3,15 @@ from . import api, login_required
 from app.models import *
 from flask_login import current_user
 from ..util.utils import *
+from ..util.validators import parameter_validator
 
 
 @api.route('/apiSet/find', methods=['POST'])
 @login_required
 def find_api_set():
-    """ 查找接口模块 """
+    """ 查找接口集合 """
     data = request.json
-    # page = data.get('page') if data.get('page') else 1
-    # per_page = data.get('sizePage') if data.get('sizePage') else 10
-    project_id = data.get('projectId')
-    if not project_id:
-        return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
+    project_id = parameter_validator(data.get('projectId'), msg='请先创建属于自己的项目', status=0)
 
     def get_data(all_data):
         if not all_data:
@@ -43,14 +40,9 @@ def find_api_set():
 def add_api_set():
     """ 接口模块增加、编辑 """
     data = request.json
-    project_id = data.get('projectId')
-    higher_id = data.get('higherId')
-    if not project_id:
-        return jsonify({'msg': '请先创建项目', 'status': 0})
-    name = data.get('name')
-    if not name:
-        return jsonify({'msg': '集合名称不能为空', 'status': 0})
-
+    project_id = parameter_validator(data.get('projectId'), msg='请先选择项目', status=0)
+    higher_id = parameter_validator(data.get('higherId'), msg='上级id不能为空', status=0)
+    name = parameter_validator(data.get('name'), msg='集合名称不能为空', status=0)
     ids = data.get('id')
     num = auto_num(data.get('num'), ApiSet, project_id=project_id, higher_id=higher_id)
     if ids:

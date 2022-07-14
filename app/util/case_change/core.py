@@ -56,7 +56,7 @@ class HarParser(object):
         ":path"
     ]
 
-    def __init__(self, file_path, file_type='har'):
+    def __init__(self, file_path, file_type='swagger'):
         self.log_entries = load_api_log_entries(file_path, file_type)
         self.user_agent = None
         self.file_type = file_type
@@ -186,9 +186,10 @@ class HarParser(object):
         """ extract info from HAR log entries list and make testcase list
         """
         testcases = []
-        for entry_json in self.log_entries:
-            testcases.append(self.make_testcase(entry_json))
-        return testcases
+        print(self.log_entries)
+        # for entry_json in self.log_entries:
+        #     testcases.append(self.make_testcase(entry_json))
+        # return testcases
 
     def make_testset(self):
         """ Extract info from HAR file and prepare for testcase
@@ -201,5 +202,5 @@ class HarParser(object):
 
 
 if __name__ == '__main__':
-    har_parser = HarParser('test.har')
+    har_parser = HarParser('/Users/zw/Documents/auto/files/建站管理服务_OpenAPI.json')
     print(har_parser.testset)

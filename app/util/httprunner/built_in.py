@@ -154,6 +154,22 @@ def endswith(check_value, expect_value):
     assert builtin_str(check_value).endswith(builtin_str(expect_value))
 
 
+def list_equals(check_value, expect_value):
+    if isinstance(check_value, list):
+        assert check_value == [expect_value] * len(check_value)
+    else:
+        assert check_value == expect_value
+
+
+def in_list_equals(check_value, expect_value):
+    if isinstance(check_value, list):
+        for c in check_value:
+            assert expect_value in c
+    else:
+        assert check_value == expect_value
+    # assert check_value == [expect_value] * len(check_value)
+
+
 """ built-in hooks
 """
 

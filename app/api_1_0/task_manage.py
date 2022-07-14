@@ -6,9 +6,10 @@ from ..util.custom_decorator import login_required
 from app import scheduler
 from ..util.http_run import RunCase
 from ..util.utils import change_cron, auto_num
-from ..util.email.SendEmail import SendEmail
+from ..util.emails.SendEmail import SendEmail
 from ..util.report.report import render_html_report
 from flask_login import current_user
+from ..util.validators import parameter_validator
 
 
 def aps_test(project_id, case_ids, send_address=None, send_password=None, task_to_address=None, performer='无',
@@ -91,9 +92,7 @@ def start_task():
 def add_task():
     """ 任务添加、修改 """
     data = request.json
-    project_id = data.get('projectId')
-    if not project_id:
-        return jsonify({'msg': '请选择项目', 'status': 0})
+    project_id = parameter_validator(data.get('projectId'), msg='请先选择项目', status=0)
     set_ids = data.get('setIds')
     case_ids = data.get('caseIds')
     task_id = data.get('id')

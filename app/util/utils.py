@@ -4,7 +4,40 @@ import importlib
 import json
 import re
 import types
+from copy import deepcopy
 from .httprunner.parser import variable_regexp, function_regexp, function_regexp_compile
+
+
+# 全角转成半角
+def full_to_half(s):
+    if s is None:
+        return s
+    n = ''
+    for char in s:
+        num = ord(char)
+        if num == 0x3000:  # 将全角空格转成半角空格
+            num = 32
+        elif 0xFF01 <= num <= 0xFF5E:  # 将其余全角字符转成半角字符
+            num -= 0xFEE0
+        num = chr(num)
+        n += num
+    return n
+
+
+# 半角转成全角
+def half_to_full(s):
+    if s is None:
+        return s
+    n = ''
+    for char in s:
+        num = ord(char)
+        if (num == 32):  # 半角空格转成全角
+            num = 0x3000
+        elif 33 <= num <= 126:
+            num += 65248  # 16进制为0xFEE0
+        num = chr(num)
+        n += num
+    return n
 
 
 def auto_num(num, model, **kwargs):
@@ -262,17 +295,136 @@ def encode_object(obj):
     else:
         return str(obj)
 
-    # raise TypeError("{} is not JSON serializable".format(obj))
+
+def swagger_change(file_path):
+    with open(file_path, "r+", encoding="utf-8-sig") as f:
+        # print(f.read())
+        # print(f.read().replace('null', '""'))
+        content_json = json.loads(f.read().replace('null', '""'))
+    api_list = []
+    for k, v in content_json['paths'].items():
+        _temp_data = {
+            'name': '',
+            'desc': '',
+            'url': '',
+            'status_url': '0',
+            'skip': '',
+            # 'apiMsgId': '',
+            # 'gather_id': '',
+            'variable_type': '',
+            'variable': [],
+            'json_variable': '',
+            'swagger_json_variable': '',
+            'extract': [],
+            'validate': [],
+            'param': [],
+            'method': 'POST',
+            'header': [],
+        }
+
+        def get_param(schema, request_type, swagger=False):
+            """
+            Args:
+                schema:
+                request_type:
+                swagger: 是否生成swagger格式备注数据流
+            Returns:
+
+            """
+            if request_type == 'json':
+                if schema.get('type') == 'array':
+                    _list_d = [{}]
+
+                    if not schema['items'].get('$ref'):
+                        return []
+                    # print(schema)
+                    # print(1111)
+                    # print(schema['items'])
+                    for _k2, _v1 in content_json['definitions'][schema['items']['$ref'].split('/')[-1]][
+                        'properties'].items():
+                        if _v1.get('$ref'):
+                            _list_d[0][_k2] = get_param(_v1, request_type, swagger)
+                        elif _v1.get('type') == 'array':
+                            _list_d[0][_k2] = get_param(_v1, request_type, swagger)
+                        else:
+                            if swagger:
+                                if _v1.get('description'):
+                                    _v1['remark'] = _v1.pop('description')
+                                _list_d[0][_k2] = _v1
+                            else:
+                                _list_d[0][_k2] = ''
+                    return _list_d
+                else:
+                    _dict = {}
+                    if not schema.get('$ref'):
+                        return {}
+
+                    for _k, _v in content_json['definitions'][schema['$ref'].split('/')[-1]]['properties'].items():
+                        if _v.get('$ref'):
+                            _dict[_k] = get_param(_v, request_type, swagger)
+                        elif _v.get('type') == 'array':
+                            _dict[_k] = get_param(_v, request_type, swagger)
+                        else:
+                            if swagger:
+                                if _v.get('description'):
+                                    _v['remark'] = _v.pop('description')
+                                _dict[_k] = _v
+                            else:
+                                _dict[_k] = ''
+                    return _dict
+            else:
+                _list = []
+                if schema.get('type') == 'array':
+                    _list_d = []
+                    r = content_json['definitions'][schema['items']['$ref'].split('/')[-1]]['properties'].items()
+                else:
+                    ref = schema['$ref'].split('/')[-1]
+                    for _key, _value in content_json['definitions'][ref]['properties'].items():
+                        _d = {'value': '', 'param_type': 'string', 'remark': _value['description'], 'key': _key}
+                        _d.update(_value)
+                        _list.append(_d)
+                        # if k.get('$ref'):
+                        #     pass
+        if 'assetLeaseSign/getCurNode' not in k:
+            continue
+        _temp_data['url'] = content_json.get('basePath') + k if content_json.get('basePath') else k
+        for k1, v1 in v.items():
+            _temp_data['method'] = k1.upper()
+            _temp_data['name'] = v1.get('summary')
+            # print(k1)
+            # if k1 != 'get':
+            if 'application/json' in json.dumps(v1.get('consumes')):
+                _temp_data['variable_type'] = 'json'
+            else:
+                _temp_data['variable_type'] = 'data'
+            if v1.get('parameters'):
+                for v3 in v1.get('parameters'):
+                    if v3.get('in') == 'query':
+                        _temp_data['variable'].append(
+                            {'key': v3.get('name'), 'value': '', 'remark': v3.get('description'),'param_type':'string'})
+                    if v3.get('in') == 'body':
+                        if _temp_data['variable_type'] == 'json':
+                            _temp_data['json_variable'] = get_param(v3['schema'], _temp_data['variable_type'])
+                            _temp_data['swagger_json_variable'] = get_param(v3['schema'], _temp_data['variable_type'],
+                                                                            swagger=True)
+                            # print(_temp_data['swagger_json_variable'])
+                            # print(11111)
+                        else:
+                            _temp_data['variable'].append(get_param(v3['schema'], _temp_data['variable_type']))
+        api_list.append(deepcopy(_temp_data))
+    return api_list
 
 
 if __name__ == '__main__':
+    swagger_change('/Users/zw/Documents/auto/files/建站管理服务_OpenAPI.json')
+
     # func_list = importlib.reload(importlib.import_module(r"func_list.abuild_in_fun.py"))
     # module_functions_dict = {name: item for name, item in vars(func_list).items() if
     #                          isinstance(item, types.FunctionType)}
     # print(module_functions_dict)
-    a = '${func({"birthday": "199-02-02"; "expire_age": "65周岁"; "sex": "2"},123,3245)}'
-    b = '${func([123],123)}'
-    print(extract_functions(a))
+    # a = '${func({"birthday": "199-02-02"; "expire_age": "65周岁"; "sex": "2"},123,3245)}'
+    # b = '${func([123],123)}'
+    # print(extract_functions(a))
     # matched = parse_function(extract_functions(b)[0])
     #
     # print(matched)

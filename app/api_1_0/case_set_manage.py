@@ -3,6 +3,7 @@ from . import api, login_required
 from app.models import *
 from flask_login import current_user
 from ..util.utils import *
+from ..util.validators import parameter_validator
 
 
 @api.route('/caseSet/add', methods=['POST'])
@@ -10,13 +11,9 @@ from ..util.utils import *
 def add_set():
     """ 添加用例集合 """
     data = request.json
-    project_id = data.get('projectId')
-    name = data.get('name')
     higher_id = data.get('higherId')
-    if not project_id:
-        return jsonify({'msg': '请先选择首页项目', 'status': 0})
-    if not name:
-        return jsonify({'msg': '用例集名称不能为空', 'status': 0})
+    project_id = parameter_validator(data.get('projectId'), msg='请先选择项目', status=0)
+    name = parameter_validator(data.get('name'), msg='用例集名称不能为空', status=0)
     ids = data.get('id')
     num = auto_num(data.get('num'), CaseSet, project_id=project_id, higher_id=higher_id)
     if ids:
@@ -64,9 +61,7 @@ def find_set():
     data = request.json
     # page = data.get('page') if data.get('page') else 1
     # per_page = data.get('sizePage') if data.get('sizePage') else 10
-    project_id = data.get('projectId')
-    if not project_id:
-        return jsonify({'msg': '请先创建属于自己的项目', 'status': 0})
+    project_id = parameter_validator(data.get('projectId'), msg='请先选择项目', status=0)
 
     def get_data(all_data):
         if not all_data:

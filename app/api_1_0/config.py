@@ -4,6 +4,7 @@ from app.models import *
 from ..util.custom_decorator import login_required
 from ..util.utils import *
 from flask_login import current_user
+from ..util.validators import parameter_validator
 
 
 @api.route('/config/add', methods=['POST'])
@@ -11,26 +12,22 @@ from flask_login import current_user
 def add_scene_config():
     """ 添加配置 """
     data = request.json
-    project_id = data.get('projectId')
-    name = data.get('sceneConfigName')
+    project_id = parameter_validator(data.get('projectId'), msg='请先选择项目', status=0)
+    name = parameter_validator(data.get('name'), msg='配置名称不能为空', status=0)
     ids = data.get('id')
     func_address = json.dumps(data.get('funcAddress'))
     variable = data.get('variable')
-    if not project_id:
-        return jsonify({'msg': '请选择项目', 'status': 0})
     if re.search('\${(.*?)}', variable, flags=0) and not func_address:
         return jsonify({'msg': '参数引用函数后，必须引用函数文件', 'status': 0})
-
     num = auto_num(data.get('num'), Config, project_id=project_id)
-
     if ids:
+        # form = ConfigForm().validate_for_api()
+        # print(form.name.data)
         old_data = Config.query.filter_by(id=ids).first()
         old_num = old_data.num
         list_data = Config.query.filter_by(project_id=project_id).all()
-
         if Config.query.filter_by(name=name, project_id=project_id).first() and name != old_data.name:
             return jsonify({'msg': '配置名字重复', 'status': 0})
-
         num_sort(num, old_num, list_data, old_data)
         old_data.name = name
         old_data.func_address = func_address
@@ -41,7 +38,6 @@ def add_scene_config():
     else:
         if Config.query.filter_by(name=name, project_id=project_id).first():
             return jsonify({'msg': '配置名字重复', 'status': 0})
-
         else:
             new_config = Config(name=name, variables=variable, project_id=project_id, num=num,
                                 func_address=func_address)

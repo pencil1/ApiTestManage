@@ -1,6 +1,8 @@
 import random
 import datetime
-
+import json
+from copy import deepcopy
+# from case_gener import Util
 
 def identity_generator():
     # 身份证号的前两位，省份代号
@@ -92,3 +94,141 @@ class TraverseDict(object):
             elif path[0].find('request') != -1:
                 self.del_key(result, path[:-1])
         self.d_list.clear()  # 清理list，防止下次使用时保留上次的数据引起报错
+
+def encode_object(obj):
+    """ json.dumps转化时，先把属于bytes类型的解码，若解码失败返回str类型，和其他对象属性统一转化成str"""
+    if isinstance(obj, bytes):
+        try:
+            return bytes.decode(obj)
+        except Exception as e:
+            return str(obj)
+    else:
+        return str(obj)
+
+
+def swagger_change(file_path):
+    with open(file_path, "r+", encoding="utf-8-sig") as f:
+        content_json = json.loads(f.read())
+    api_list = []
+    for k, v in content_json['paths'].items():
+        _temp_data = {
+            'name': '',
+            'desc': '',
+            'url': '',
+            'status_url': '0',
+            'skip': '',
+            # 'apiMsgId': '',
+            # 'gather_id': '',
+            'variable_type': '',
+            'variable': [],
+            'json_variable': '',
+            'swagger_json_variable': '',
+            'extract': [],
+            'validate': [],
+            'param': [],
+            'method': 'POST',
+            'header': [],
+        }
+
+        def get_param(schema, request_type, swagger=False):
+            if request_type == 'json':
+                if schema.get('type') == 'array':
+                    _list_d = [{}]
+                    for _k2, _v1 in content_json['definitions'][schema['items']['$ref'].split('/')[-1]][
+                        'properties'].items():
+                        if _v1.get('$ref'):
+                            _list_d[0][_k2] = get_param(_v1, request_type,swagger)
+                        elif _v1.get('type') == 'array':
+                            _list_d[0][_k2] = get_param(_v1, request_type,swagger)
+                        else:
+                            if swagger:
+                                if _v1.get('description'):
+                                    _v1['remark'] = _v1.pop('description')
+                                    # _v1['remark'] = _v1.get('description')
+                                _list_d[0][_k2] = _v1
+                            else:
+                                _list_d[0][_k2] = ''
+                    return _list_d
+                else:
+                    _dict = {}
+                    for _k, _v in content_json['definitions'][schema['$ref'].split('/')[-1]]['properties'].items():
+                        if _v.get('$ref'):
+                            _dict[_k] = get_param(_v, request_type,swagger)
+                        elif _v.get('type') == 'array':
+                            _dict[_k] = get_param(_v, request_type,swagger)
+                        else:
+                            if swagger:
+                                if _v.get('description'):
+                                    _v['remark'] = _v.pop('description')
+                                    # _v['remark'] = _v.get('description')
+                                    # del _v['description']
+                                _dict[_k] = _v
+                            else:
+                                _dict[_k] = ''
+                    return _dict
+            else:
+                _list = []
+                if schema.get('type') == 'array':
+                    _list_d = []
+                    r = content_json['definitions'][schema['items']['$ref'].split('/')[-1]]['properties'].items()
+                else:
+                    ref = schema['$ref'].split('/')[-1]
+                    for _key, _value in content_json['definitions'][ref]['properties'].items():
+                        _d = {'value': '', 'param_type': 'string', 'remark': _value['description'], 'key': _key}
+                        _d.update(_value)
+                        _list.append(_d)
+                        # if k.get('$ref'):
+                        #     pass
+
+        _temp_data['url'] = k
+        if not 'addLeaseSignSummary' in k:
+            continue
+
+        for k1, v1 in v.items():
+            _temp_data['method'] = k1.upper()
+            _temp_data['name'] = v1.get('summary')
+            # print(k1)
+            # if k1 != 'get':
+            if 'application/json' in json.dumps(v1.get('consumes')):
+                _temp_data['variable_type'] = 'json'
+                # else:
+                #     _temp_data['variableType'] = 'data'
+                # print()
+                # print(v1['consumes'])
+            if v1.get('parameters'):
+                for v3 in v1.get('parameters'):
+                    if v3.get('in') == 'query':
+                        _temp_data['param'].append(
+                            {'key': v3.get('name'), 'value': '', 'remark': v3.get('description')})
+                    if v3.get('in') == 'body':
+                        if _temp_data['variable_type'] == 'json':
+                            # _temp_data['json_variable'] = get_param(v3['schema'], _temp_data['variable_type'])
+                            _temp_data['swagger_json_variable'] = get_param(v3['schema'], _temp_data['variable_type'],
+                                                                            swagger=True)
+                            # print(_temp_data['swagger_json_variable'])
+                            # print(11111)
+                        else:
+                            _temp_data['variable'].append(get_param(v3['schema'], _temp_data['variable_type']))
+        api_list.append(deepcopy(_temp_data))
+    return api_list
+
+if __name__ == '__main__':
+
+    a = swagger_change('/Users/zw/Documents/auto/files/123.json')
+    print(a)
+    # for a1 in a:
+    #     if 'addLeaseSignSummary' in a1['url']:
+    #         Util().gen_cases(a1)
+    # for a1 in a:
+    #     if '/addLocationConstruction' in a1['url']:
+    #         print(a1['swagger_json_variable'])
+    # func_list = importlib.reload(importlib.import_module(r"func_list.abuild_in_fun.py"))
+    # module_functions_dict = {name: item for name, item in vars(func_list).items() if
+    #                          isinstance(item, types.FunctionType)}
+    # print(module_functions_dict)
+    # a = '${func({"birthday": "199-02-02"; "expire_age": "65周岁"; "sex": "2"},123,3245)}'
+    # b = '${func([123],123)}'
+    # print(extract_functions(a))
+    # matched = parse_function(extract_functions(b)[0])
+    #
+    # print(matched)

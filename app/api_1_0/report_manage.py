@@ -7,6 +7,7 @@ from ..util.http_run import RunCase
 from ..util.global_variable import *
 from ..util.report.report import render_html_report
 from flask_login import current_user
+from ..util.validators import parameter_validator
 
 
 @api.route('/report/run', methods=['POST'])
@@ -14,12 +15,8 @@ from flask_login import current_user
 def run_cases():
     """ 跑接口 """
     data = request.json
-    case_ids = data.get('sceneIds')
-    project_id = data.get('projectId')
-    if not project_id:
-        return jsonify({'msg': '请选择项目', 'status': 0})
-    if not case_ids:
-        return jsonify({'msg': '请选择用例', 'status': 0})
+    project_id = parameter_validator(data.get('projectId'), msg='请先选择项目', status=0)
+    case_ids = parameter_validator(data.get('sceneIds'), msg='请选择用例', status=0)
 
     d = RunCase(project_id)
     d.get_case_test(case_ids)

@@ -9,7 +9,7 @@ import json
 api = Blueprint('api', __name__)
 
 from . import api_msg_manage, api_set_manage, project_manage, report_manage, build_in_manage, case_manage, login, \
-    test_tool, task_manage, file_manage, config, case_set_manage, test_case_file_manage, errors
+    test_tool, task_manage, file_manage, config, case_set_manage, errors
 
 
 @api.before_request
@@ -17,7 +17,8 @@ def before_request():
     try:
         # print('url:{} ,method:{},请求参数:{}'.format(request.url, request.method, request.json))
         current_app.logger.info(
-            'ip:{}, url:{} ,method:{},请求参数:{}'.format(request.headers.get('X-Forwarded-For'), request.url, request.method, request.json))
+            'ip:{}, url:{} ,method:{},请求参数:{}'.format(request.headers.get('X-Forwarded-For'), request.url,
+                                                      request.method, request.json))
     except Exception as e:
         pass
     # print(request.remote_addr)

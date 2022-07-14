@@ -1,7 +1,7 @@
 from flask import jsonify, request, current_app
 from . import api, login_required
 from ..util.global_variable import *
-import traceback
+from ..util.validators import parameter_validator
 from ..util.utils import *
 from app.models import FuncFile, db
 from flask_login import current_user
@@ -12,12 +12,11 @@ from flask_login import current_user
 def add_func_file():
     """ 添加函数文件 """
     data = request.json
-    name = data.get('name')
     higher_id = data.get('higherId')
     status = data.get('status')
     ids = data.get('id')
-    if not name:
-        return jsonify({'msg': '名称不能为空', 'status': 0})
+    name = parameter_validator(data.get('name'), msg='函数名称不能为空', status=0)
+
     num = auto_num(data.get('num'), FuncFile)
     if ids:
         old_data = FuncFile.query.filter_by(id=ids).first()
@@ -37,7 +36,6 @@ def add_func_file():
         if status == 1:
             with open('{}/{}'.format(FUNC_ADDRESS, name), 'w', encoding='utf8') as f:
                 pass
-
         return jsonify({'msg': '新建成功', 'status': 1, 'id': _new.id, 'higher_id': _new.higher_id, })
 
 
