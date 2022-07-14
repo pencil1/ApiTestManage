@@ -98,7 +98,7 @@ def add_project():
     """ 项目增加、编辑 """
     data = request.json
     project_name = parameter_validator(data.get('projectName'), msg='项目名称不能为空', status=0)
-    principal = parameter_validator(data.get('principal'), msg='请选择负责人', status=0)
+    principal = parameter_validator(json.dumps(data.get('principal')), msg='请选择负责人', status=0)
     user_id = data.get('userId')
     environment_choice = data.get('environmentChoice')
     environment_list = json.dumps(data.get('environmentList'))
