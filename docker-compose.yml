@@ -1,0 +1,33 @@
+version: '3'
+services:
+  # 服务名称
+  apitestmanage:
+    # 镜像:版本
+    container_name: apitestmanage
+    image: apitest:v1
+    # 数据卷 映射本地文件到容器
+    volumes:
+      - /home/apitestmanage:/Project/apitest/apitestmanage
+      - /usr/share/zoneinfo/Asia/:/usr/share/zoneinfo/Asia/
+    ports:
+      - "8091:8091"
+    extra_hosts:
+    - "apiassethktest1.aulton.com:10.100.3.227"
+    - "govdev.aulton.com:10.100.3.151"
+    - "drivertest1.aulton.com:10.100.3.227"
+    - "ecosystemdev.aulton.com:10.100.3.151"
+    - "appdev.aulton.com:10.100.3.151"
+    - "apptest.aulton.com:10.100.3.151"
+    - "sync-test.aulton.com:10.100.3.151"
+    - "driverdev.aulton.com:10.100.3.151"
+    - "apptest1.aulton.com:10.100.3.227"
+    environment:
+      FLASK_CONFIG: Production
+      TZ: Asia/Shanghai
+    command: gunicorn -c ./apitestmanage/gunicorn_config.py manage:app --chdir /Project/apitest/apitestmanage
+    networks: #加入指定网络
+      - front
+networks:
+  front:
+    # Use a custom driver
+    driver: bridge
