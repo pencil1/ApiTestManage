@@ -214,6 +214,7 @@ class Case(BaseModel):
     name = db.Column(db.String(128), nullable=True, comment='用例名称')
     desc = db.Column(db.String(256), comment='用例描述')
     func_address = db.Column(db.String(256), comment='用例需要引用的函数')
+    up_case_id = db.Column(db.String(256), comment='前置用例')
     variable = db.Column(db.Text(), comment='用例公共参数')
     times = db.Column(db.Integer(), nullable=True, comment='执行次数')
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), comment='所属的项目id')
@@ -276,7 +277,7 @@ class CaseData(BaseModel):
 class Report(db.Model):
     __tablename__ = 'report'
     id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
-    case_names = db.Column(db.String(128), nullable=True, comment='用例的名称集合')
+    case_names = db.Column(db.String(2048), nullable=True, comment='用例的名称集合')
     read_status = db.Column(db.String(16), nullable=True, comment='阅读状态')
     performer = db.Column(db.String(16), nullable=True, comment='执行者')
     project_id = db.Column(db.String(16), nullable=True)
@@ -295,6 +296,9 @@ class Task(BaseModel):
     task_type = db.Column(db.String(16))
     task_to_email_address = db.Column(db.String(256), comment='收件人邮箱')
     task_send_email_address = db.Column(db.String(256), comment='发件人邮箱')
+    webhook = db.Column(db.String(256), comment='钉钉机器人webhook字段')
+    secret = db.Column(db.String(256), comment='钉钉机器人secret字段')
+    title = db.Column(db.String(256), comment='钉钉标题')
     email_password = db.Column(db.String(256), comment='发件人邮箱密码')
     status = db.Column(db.String(16), default=u'创建', comment='任务的运行状态，默认是创建')
     project_id = db.Column(db.String(16), nullable=True)

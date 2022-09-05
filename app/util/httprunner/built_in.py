@@ -155,6 +155,7 @@ def endswith(check_value, expect_value):
 
 
 def list_equals(check_value, expect_value):
+    # 查询出来的结果是完成相等的，check_value：【1，1，1】，expect_value：1，主要用来查询接口的断言
     if isinstance(check_value, list):
         assert check_value == [expect_value] * len(check_value)
     else:
@@ -162,6 +163,7 @@ def list_equals(check_value, expect_value):
 
 
 def in_list_equals(check_value, expect_value):
+    # 查询出来的结果是包含关系，check_value：【12，13，14】，expect_value：1，主要用来查询接口的断言
     if isinstance(check_value, list):
         for c in check_value:
             assert expect_value in c

@@ -18,6 +18,7 @@ def add_case():
     ids = data.get('ids')
     times = data.get('times')
     func_address = json.dumps(data.get('funcAddress'))
+    up_case_id = json.dumps(data.get('upCaseId'))
     project_id = data.get('projectId')
     project_data = Project.query.filter_by(id=project_id).first()
     variable = data.get('variable')
@@ -56,8 +57,9 @@ def add_case():
             old_data.environment = environment
             old_data.case_set_id = case_set_id
             old_data.func_address = func_address
+            old_data.up_case_id = up_case_id
             old_data.variable = variable
-            db.session.commit()
+            # db.session.commit()
         for _num, c in enumerate(api_cases):
             if c.get('id'):
                 old_api_case = CaseData.query.filter_by(id=c.get('id')).first()
@@ -86,7 +88,7 @@ def add_case():
                 old_api_case.up_func = c['up_func']
                 old_api_case.down_func = c['down_func']
                 old_api_case.skip = c['skip']
-                db.session.commit()
+                # db.session.commit()
             else:
                 new_api_case = CaseData(num=_num,
                                         json_variable=c['json_variable'],
@@ -109,7 +111,7 @@ def add_case():
                                         skip=c['skip'],
                                         name=c['name'], up_func=c['up_func'], down_func=c['down_func'])
                 db.session.add(new_api_case)
-                db.session.commit()
+        db.session.commit()
         return jsonify({'msg': '修改成功', 'status': 1, 'case_id': ids})
     else:
         if Case.query.filter_by(name=name, project_id=project_id, case_set_id=case_set_id).first():
@@ -119,7 +121,8 @@ def add_case():
         else:
 
             new_case = Case(num=num, name=name, desc=desc, project_id=project_id, variable=variable,
-                            func_address=func_address, case_set_id=case_set_id, times=times, environment=environment)
+                            func_address=func_address, up_case_id=up_case_id,
+                            case_set_id=case_set_id, times=times, environment=environment)
             db.session.add(new_case)
             db.session.commit()
             case_id = new_case.id
@@ -145,7 +148,7 @@ def add_case():
                                         skip=c['skip'],
                                         name=c['name'], up_func=c['up_func'], down_func=c['down_func'])
                 db.session.add(new_api_case)
-                db.session.commit()
+            db.session.commit()
             return jsonify({'msg': '新建成功', 'status': 1, 'case_id': case_id, 'num': new_case.num})
 
 
@@ -155,21 +158,29 @@ def find_case():
     """ 查找用例 """
     data = request.json
     case_name = data.get('caseName')
-    set_id = data.get('setId')
+    case_set_id = data.get('caseSetId')
+    project_id = data.get('projectId')
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
+    conditions = {}
+    if case_set_id:
+        conditions['case_set_id'] = case_set_id
+    if project_id:
+        conditions['project_id'] = project_id
     # project_id = parameter_validator(data.get('projectId'), msg='请先选择项目', status=0)
+    # print(conditions)
     if case_name:
-        _data = Case.query.filter_by(case_set_id=set_id).filter(Case.name.like('%{}%'.format(case_name)))
+        _data = Case.query.filter_by(**conditions).filter(
+            Case.name.like('%{}%'.format(case_name)))
         if not _data:
             return jsonify({'msg': '没有该用例', 'status': 0})
     else:
-        _data = Case.query.filter_by(case_set_id=set_id)
+        _data = Case.query.filter_by(**conditions)
 
     pagination = _data.order_by(Case.num.asc()).paginate(page, per_page=per_page, error_out=False)
     items = pagination.items
     total = pagination.total
-    end_data = [{'num': c.num, 'name': c.name, 'label': c.name, 'leaf': True, 'desc': c.desc, 'sceneId': c.id,
+    end_data = [{'num': c.num, 'name': c.name, 'label': c.name, 'leaf': True, 'desc': c.desc, 'caseId': c.id,
                  }
                 for c in items]
     return jsonify({'data': end_data, 'total': total, 'status': 1})
@@ -182,8 +193,8 @@ def del_case():
     data = request.json
     case_id = data.get('caseId')
     wait_del_case_data = Case.query.filter_by(id=case_id).first()
-    if current_user.id != Project.query.filter_by(id=wait_del_case_data.project_id).first().user_id:
-        return jsonify({'msg': '不能删除别人项目下的用例', 'status': 0})
+    # if current_user.id != Project.query.filter_by(id=wait_del_case_data.project_id).first().user_id:
+    #     return jsonify({'msg': '不能删除别人项目下的用例', 'status': 0})
 
     _del_data = CaseData.query.filter_by(case_id=case_id).all()
     if _del_data:
@@ -200,6 +211,8 @@ def del_api_case():
     """ 删除用例下的接口步骤信息 """
     data = request.json
     case_id = data.get('id')
+    # if current_user.id not in json.loads(Project.query.filter_by(id=project_id).first().principal):
+    #     return jsonify({'msg': '不能删除别人项目下的接口', 'status': 0})
     _data = CaseData.query.filter_by(id=case_id).first()
     db.session.delete(_data)
     db.session.commit()
@@ -217,14 +230,17 @@ def edit_case():
     steps = CaseData.query.filter_by(case_id=case_id).order_by(CaseData.num.asc()).all()
     case_data = []
     for step in steps:
-        if status:
-            case_id = ''
-        else:
-            case_id = step.id
         _api_data = ApiMsg.query.filter_by(id=step.api_msg_id).first()
+        if status == 'copy':
+            step_id = ''
+            api_msg_id = ''
+        else:
+            step_id = step.id
+            api_msg_id = step.api_msg_id
         case_data.append({'num': step.num, 'name': step.name,
-                          'desc': ApiMsg.query.filter_by(id=step.api_msg_id).first().desc, 'apiMsgId': step.api_msg_id,
-                          'id': case_id,
+                          'desc': _api_data.desc, 'apiMsgId': api_msg_id,
+                          'url': _api_data.url,
+                          'id': step_id,
                           'status': json.loads(step.status),
                           'variableType': _api_data.variable_type,
                           'api_name': _api_data.name,
@@ -249,8 +265,9 @@ def edit_case():
                                          },
                           })
     _data2 = {'num': _data.num, 'name': _data.name, 'desc': _data.desc, 'cases': case_data, 'setId': _data.case_set_id,
-              'func_address': json.loads(_data.func_address), 'times': _data.times, 'environment': _data.environment
-        , 'project_id': _data.project_id}
+              'func_address': json.loads(_data.func_address),
+              'up_case_id': json.loads(_data.up_case_id) if _data.up_case_id else [],
+              'times': _data.times, 'environment': _data.environment, 'project_id': _data.project_id}
     if _data.variable:
         _data2['variable'] = json.loads(_data.variable)
     else:

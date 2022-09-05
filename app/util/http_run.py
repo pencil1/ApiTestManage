@@ -5,10 +5,24 @@ import types
 from app.models import *
 from .httprunner.api import HttpRunner
 from ..util.global_variable import *
-from ..util.utils import encode_object, try_switch_data
+from ..util.utils import encode_object, try_switch_data, is_chinese
 import importlib
 from app import scheduler
 from flask.json import JSONEncoder
+from urllib import parse
+from .httprunner.parser import parse_data
+
+
+def parse_quote(value):
+    if isinstance(value, int):
+        return str(value)
+    elif isinstance(value, str):
+        if is_chinese(value):
+            return parse.quote(value)
+        else:
+            return value
+    else:
+        return value
 
 
 class RunCase(object):
@@ -25,15 +39,7 @@ class RunCase(object):
         self.pro_base_url = json.loads(pro_data.environment_list)
         # for pro_data in Project.query.all():
         self.pro_environment = json.loads(pro_data.environment_list)[int(pro_data.environment_choice) - 1]['urls']
-        # if pro_data.environment_choice == 'first':
-        #     self.pro_environment = json.loads(pro_data.host)
-        # elif pro_data.environment_choice == 'second':
-        #     self.pro_environment = json.loads(pro_data.host_two)
-        # if pro_data.environment_choice == 'third':
-        #     self.pro_environment = json.loads(pro_data.host_three)
-        # if pro_data.environment_choice == 'fourth':
-        #     self.pro_environment = json.loads(pro_data.host_four)
-        # self.pro_base_url = pro_base_url
+
         self.pro_config(Project.query.filter_by(id=self.project_ids).first())
 
     def pro_config(self, project_data):
@@ -42,10 +48,25 @@ class RunCase(object):
         :param project_data:
         :return:
         """
-        self.TEST_DATA['project_mapping']['variables'] = {h['key']: h['value'] for h in
-                                                          json.loads(project_data.variables) if h.get('key')}
+
+        def project_parse(content):
+            """"把数据中引用变量和函数解析出来"""
+            return parse_data(content, self.TEST_DATA['project_mapping']['variables'],
+                              self.TEST_DATA['project_mapping']['functions'])
+
         if project_data.func_file:
             self.extract_func(['{}'.format(f[-1].replace('.py', '')) for f in json.loads(project_data.func_file)])
+
+        self.TEST_DATA['project_mapping']['variables'] = {h['key']: project_parse(h['value']) for h in
+                                                          json.loads(project_data.variables) if h.get('key')}
+
+        # {headers['key']: parse.quote(headers['value'].replace('%', '&')) for headers in
+        #  _header if headers.get('key')} if _header else {}
+
+        self.TEST_DATA['project_mapping']['headers'] = {h['key']: parse_quote(project_parse(h['value'])) for h in
+                                                        json.loads(project_data.headers) if h.get('key')}
+        # print(111)
+        # print(self.TEST_DATA['project_mapping']['headers'])
 
     def extract_func(self, func_list):
         for f in func_list:
@@ -53,6 +74,7 @@ class RunCase(object):
             module_functions_dict = {name: item for name, item in vars(func_list).items()
                                      if isinstance(item, types.FunctionType)}
             self.TEST_DATA['project_mapping']['functions'].update(module_functions_dict)
+        # print(self.TEST_DATA['project_mapping']['functions'])
 
     def assemble_step(self, api_id=None, step_data=None, pro_base_url=None, status=False):
         """
@@ -73,17 +95,24 @@ class RunCase(object):
 
         _data = {'name': step_data.name,
                  'request': {'method': api_data.method,
-
                              'files': {},
                              'data': {}}}
-
         # _data['request']['headers'] = {h['key']: h['value'] for h in json.loads(api_data.header)
         #                                if h['key']} if json.loads(api_data.header) else {}
         # print(pro_base_url)
         # print(pro_base_url[int(api_data.status_url)])
         # print(api_data.url.split('?')[0])
-        if api_data.status_url != '-1':
-            _data['request']['url'] = pro_base_url[int(api_data.status_url)]['value'] + api_data.url.split('?')[0]
+        # print(api_data.url)
+        # print(api_data.status_url)
+        # print(api_data.id)
+        # print(api_data.url.split('?'))
+
+        if api_data.status_url:
+            if (os.getenv('FLASK_CONFIG') or 'default') == 'default':
+                _data['request']['url'] = pro_base_url[int(api_data.status_url)]['value'] + ':1443' + \
+                                          api_data.url.split('?')[0]
+            else:
+                _data['request']['url'] = pro_base_url[int(api_data.status_url)]['value'] + api_data.url.split('?')[0]
         else:
             _data['request']['url'] = api_data.url
 
@@ -154,8 +183,23 @@ class RunCase(object):
         _data['request']['params'] = {param['key']: param['value'].replace('%', '&') for param in
                                       _param if param.get('key')} if _param else {}
 
-        _data['request']['headers'] = {headers['key']: headers['value'].replace('%', '&') for headers in
-                                       _header if headers.get('key')} if _header else {}
+        # parse.quote修复headers带中文报错
+        # _data['request']['headers'] = {headers['key']: parse.quote(headers['value'].replace('%', '&')) for headers in
+        #                                _header if headers.get('key')} if _header else {}
+        step_headers = {headers['key']: parse_quote(headers['value']) for headers in
+                        _header if headers.get('key')} if _header else {}
+
+        project_headers = copy.deepcopy(self.TEST_DATA['project_mapping']['headers'])
+        # print(project_headers)
+        # print(step_headers)
+        project_headers.update(step_headers)
+        _data['request']['headers'] = project_headers
+        # print(_data['request']['headers'])
+
+        # _data['request']['headers'] = copy.deepcopy(self.TEST_DATA['project_mapping']['headers']).update(
+        #     {headers['key']: parse.quote(headers['value'].replace('%', '&')) for headers in
+        #      _header if headers.get('key')} if _header else {})
+        # _data['request']['headers'].update(self.TEST_DATA['project_mapping']['headers'])
 
         _data['extract'] = [{ext['key']: ext['value']} for ext in json.loads(_extract) if
                             ext.get('key')] if _extract else []
@@ -211,6 +255,7 @@ class RunCase(object):
         self.TEST_DATA['testcases'].append(_steps)
 
     def get_case_step_test(self, step_id):
+        # 获取用例中的单个步骤拼接数据进行调试
         scheduler.app.logger.info('本次测试的步骤id：{}'.format(step_id))
         step_data = CaseData.query.filter_by(id=step_id).first()
         case_data = Case.query.filter_by(id=step_data.case_id).first()
@@ -243,43 +288,68 @@ class RunCase(object):
             _steps['teststeps'].append(_steps_data)
         self.TEST_DATA['testcases'].append(_steps)
 
+    def get_case_test_data(self, case_id):
+
+        case_data = Case.query.filter_by(id=case_id).first()
+        # print(case_id)
+        # case_times = case_data.times if case_data.times else 1
+        if case_data.environment == -1 or not case_data.environment:
+            url_environment = self.pro_environment
+        else:
+            url_environment = self.pro_base_url[case_data.environment]
+        # for s in range(case_times):
+        one_case = {'teststeps': [], 'config': {'variables': {}, 'name': ''}}
+        one_case['config']['name'] = case_data.name
+
+        # 获取业务集合的配置数据
+        _config = json.loads(case_data.variable) if case_data.variable else []
+        one_case['config']['variables'].update({v['key']: v['value'] for v in _config if v['key']})
+
+        module_functions_dict = {}
+        for f in ['{}'.format(f[-1].replace('.py', '')) for f in json.loads(case_data.func_address)]:
+            func_list = importlib.reload(importlib.import_module('func_list.{}'.format(f)))
+            # func_list = importlib.reload(importlib.import_module('debugtalk'))
+            module_functions_dict.update({name: item for name, item in vars(func_list).items()
+                                          if isinstance(item, types.FunctionType)})
+
+        one_case['config']['functions'] = module_functions_dict
+        # # 获取需要导入的函数
+        # self.extract_func(['{}'.format(f[-1].replace('.py', '')) for f in json.loads(case_data.func_address)])
+        # print(case_id)
+        # print(CaseData.query.filter_by(case_id=case_id).order_by(CaseData.num.asc()).all())
+        for _step in CaseData.query.filter_by(case_id=case_id).order_by(CaseData.num.asc()).all():
+            if _step.status == 'true':  # 判断用例状态，是否执行
+                _steps_data = self.assemble_step(None, _step, url_environment, True)
+                if isinstance(_steps_data, list):
+                    one_case['teststeps'] += _steps_data
+                else:
+                    one_case['teststeps'].append(_steps_data)
+        return one_case
+
     def get_case_test(self, case_ids):
         scheduler.app.logger.info('本次测试的用例id：{}'.format(case_ids))
         for case_id in case_ids:
-            case_data = Case.query.filter_by(id=case_id).first()
-            case_times = case_data.times if case_data.times else 1
-            if case_data.environment == -1 or not case_data.environment:
-                url_environment = self.pro_environment
-            else:
-                url_environment = self.pro_base_url[case_data.environment]
-            for s in range(case_times):
-                _steps = {'teststeps': [], 'config': {'variables': {}, 'name': ''}}
-                _steps['config']['name'] = case_data.name
+            id_list = []
 
-                # 获取业务集合的配置数据
-                _config = json.loads(case_data.variable) if case_data.variable else []
-                _steps['config']['variables'].update({v['key']: v['value'] for v in _config if v['key']})
+            def get_all_case_id(i):
+                # 获取待测用例下所有的前置用例id
+                _d = Case.query.filter_by(id=i).first()
+                id_list.append(i)
+                if not _d.up_case_id:
+                    return
+                else:
+                    for _i in json.loads(_d.up_case_id):
+                        get_all_case_id(_i)
 
-                module_functions_dict = {}
-                for f in ['{}'.format(f[-1].replace('.py', '')) for f in json.loads(case_data.func_address)]:
-                    func_list = importlib.reload(importlib.import_module('func_list.{}'.format(f)))
-                    # func_list = importlib.reload(importlib.import_module('debugtalk'))
-                    module_functions_dict.update({name: item for name, item in vars(func_list).items()
-                                                  if isinstance(item, types.FunctionType)})
-
-                _steps['config']['functions'] = module_functions_dict
-                # # 获取需要导入的函数
-                # self.extract_func(['{}'.format(f[-1].replace('.py', '')) for f in json.loads(case_data.func_address)])
-
-                for _step in CaseData.query.filter_by(case_id=case_id).order_by(CaseData.num.asc()).all():
-                    if _step.status == 'true':  # 判断用例状态，是否执行
-                        _steps_data = self.assemble_step(None, _step, url_environment, True)
-                        if isinstance(_steps_data, list):
-                            _steps['teststeps'] += _steps_data
-                        else:
-                            _steps['teststeps'].append(_steps_data)
-                        # _steps['teststeps'].append(self.assemble_step(None, _step, url_environment, True))
-                self.TEST_DATA['testcases'].append(_steps)
+            get_all_case_id(case_id)
+            # print(id_list)
+            _data = {'teststeps': [], 'config': {'variables': {}, 'name': '', 'functions': {}}}
+            for _case_data in [self.get_case_test_data(i) for i in id_list[::-1]]:
+                _data['config']['variables'].update(_case_data['config']['variables'])
+                _data['config']['functions'].update(_case_data['config']['functions'])
+                _data['config']['name'] = _case_data['config']['name']
+                _data['teststeps'] += _case_data['teststeps']
+            self.TEST_DATA['testcases'].append(_data)
 
     def build_report(self, jump_res, case_ids, performer):
         # if self.run_type and self.make_report:

@@ -140,6 +140,7 @@ class Runner(object):
                 # format 1
                 # {"var": "${func()}"}
                 var_name, hook_content = list(action.items())[0]
+                # print(var_name,hook_content)
                 hook_content_eval = self.session_context.eval_content(hook_content)
                 logger.log_debug(
                     "assignment with hook: {} = {} => {}".format(

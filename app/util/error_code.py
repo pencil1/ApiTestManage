@@ -56,10 +56,12 @@ class ServerError(APIException):
     msg = 'sorry, we made a mistake!'
     error_code = 999
 
+
 class SwaggerParseError(APIException):
     code = 500
     msg = 'swagger接口解析生成异常!'
     error_code = 999
+
 
 class ClientTypeError(APIException):
     code = 400
@@ -89,5 +91,3 @@ class Forbidden(APIException):
     code = 403
     error_code = 1004
     msg = 'forbidden, not in scope'
-
-

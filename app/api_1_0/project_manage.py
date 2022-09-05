@@ -6,6 +6,7 @@ from ..util.custom_decorator import login_required
 from ..util.utils import auto_num, num_sort, tree_change
 from flask_login import current_user
 from ..util.validators import parameter_validator
+import os
 
 
 @api.route('/proGather/list')
@@ -13,11 +14,18 @@ from ..util.validators import parameter_validator
 def get_pro_gather():
     """ 获取基本信息 """
     _d = []
-    sql = """
-        SELECT * FROM `project`
-        ORDER BY CASE when  user_id={} then 0 end DESC, num ASC
-        """.format(current_user.id)
+    if os.getenv('FLASK_CONFIG'):
+        sql = """
+                SELECT * FROM `project` ORDER BY CASE when  principal REGEXP '[^1-9]{}[^1-9]' then 0 end DESC, num ASC
+                    """.format(current_user.id)
+    else:
+        sql = """
+                SELECT * FROM `project`
+                ORDER BY CASE when  user_id={} then 0 end DESC, num ASC
+                """.format(current_user.id)
+
     project_data = list(db.session.execute(sql))
+
     sql = """
     select project.id, config.id as config_id, config.name as config_name from project 
     left join config
@@ -46,9 +54,9 @@ def get_pro_gather():
          list(db.session.execute(sql))])
     user_pros = False
     for p in project_data:
-        if p.user_id == current_user.id:
+        if current_user.id in json.loads(p.principal):
+            # print(current_user.id,json.loads(p.principal))
             user_pros = True
-
         _d.append({'name': p.name,
                    'id': p.id,
                    'url': json.loads(p.environment_list)[int(p.environment_choice)-1]['urls'],
@@ -150,8 +158,7 @@ def del_project():
     data = request.json
     ids = data.get('id')
     pro_data = Project.get_first(id=ids)
-
-    if current_user.id != 1 and current_user.id != pro_data.user_id:
+    if current_user.id not in json.loads(pro_data.principal):
         return jsonify({'msg': '不能删除别人创建的项目', 'status': 0})
     if pro_data.api_sets.all():
         return jsonify({'msg': '请先删除项目下的接口模块', 'status': 0})

@@ -26,7 +26,6 @@ def initdata():
     click.echo('Initializing the roles and permissions and admin...')
     Role.init_role()
     User.init_user()  # 初始化
-
     click.echo('Done.')
 
 # manager.add_command("shell", Shell(make_context=make_shell_context))
@@ -37,6 +36,6 @@ def initdata():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8081, debug=True)
+    app.run(host='0.0.0.0', port=8091, debug=True)
     # manager.run(default_command='runserver')
     # manager.run(default_command='shell')

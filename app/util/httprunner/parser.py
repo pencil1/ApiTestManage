@@ -8,8 +8,19 @@ from . import exceptions, utils
 from .compat import basestring, builtin_str, numeric_types, str
 
 variable_regexp = r"\$([\w_]+)"
-function_regexp = r"\$\{([\w_]+\([\$\w\.\-/_ =,]*\))\}"
-function_regexp_compile = re.compile(r"^([\w_]+)\(([\$\w\.\-/_ =,]*)\)$")
+function_regexp = r"\$\{([\w_]+\([\$\w\.\-/_ =,\S]*\))\}"
+function_regexp_compile = re.compile(r"^([\w_]+)\(([\$\w\.\-/_ =,\S]*)\)$")
+
+
+# variable_regexp = r"\$([\w_]+)"
+# function_regexp = r"\$\{([\w_]+\([\$\w\.\-/_ =,]*\))\}"
+# function_regexp_compile = re.compile(r"^([\w_]+)\(([\$\w\.\-/_ =,]*)\)$")
+def eval_value(str_value):
+    try:
+        str_value = eval(str_value)
+    except:
+        str_value = str_value
+    return str_value
 
 
 def parse_string_value(str_value):
@@ -265,6 +276,7 @@ def substitute_variables(content, variables_mapping):
 
     return content
 
+
 def parse_parameters(parameters, variables_mapping=None, functions_mapping=None):
     """ parse parameters and generate cartesian product.
 
@@ -463,7 +475,8 @@ def parse_string_functions(content, variables_mapping, functions_mapping):
                 func_content,
                 str(eval_value), 1
             )
-
+    # print(content)
+    # print(type(content))
     return content
 
 
@@ -485,11 +498,14 @@ def parse_string_variables(content, variables_mapping, functions_mapping):
 
     """
     variables_list = extract_variables(content)
+    # print(content)
+    # print(variables_list)
+    # print(1111)
     for variable_name in variables_list:
         variable_value = get_mapping_variable(variable_name, variables_mapping)
-
+        # print(variable_value)
         if variable_name == "request" and isinstance(variable_value, dict) \
-            and "url" in variable_value and "method" in variable_value:
+                and "url" in variable_value and "method" in variable_value:
             # call setup_hooks action with $request
             for key, value in variable_value.items():
                 variable_value[key] = parse_data(
@@ -518,12 +534,17 @@ def parse_string_variables(content, variables_mapping, functions_mapping):
             # content contains one or several variables
             if not isinstance(parsed_variable_value, str):
                 parsed_variable_value = builtin_str(parsed_variable_value)
-
+            # print(111)
+            # print(content)
             content = content.replace(
                 "${}".format(variable_name),
                 parsed_variable_value, 1
             )
-
+            # print(content)
+            #
+            content = eval_value(content)
+            # print(content)
+            # print(1111)
     return content
 
 

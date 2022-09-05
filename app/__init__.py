@@ -24,7 +24,6 @@ naming_convention = {
     "pk": "pk_%(table_name)s"
 }
 db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention), use_native_unicode='utf8')
-
 # db = SQLAlchemy()
 
 scheduler = APScheduler()
@@ -45,7 +44,10 @@ def create_app(config_name):
     # 坑在这2个的区别 db = SQLAlchemy() db = SQLAlchemy(app)
     db.init_app(app)
     db.app = app
+    # a = db.create_engine()
+
     db.create_all()
+
     login_manager.init_app(app)
 
     # if 'Linux' in platform.system():

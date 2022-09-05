@@ -15,7 +15,6 @@ from ..util.case_maker import gener
 @login_required
 def gen_cases():
     """ 根据某接口生成一系列测试用例  """
-    s = time.time()
     data = request.json
     # return jsonify({'msg': '接口名字重复', 'status': 0})
     module_id = data.get('apiId')
@@ -37,30 +36,29 @@ def gen_cases():
     if str(c.method).upper() == 'POST' and c.variable_type == 'json':
         end_data_list = gener.gen_cases(_simple[0])  # 接收字典返回列表
         current_app.logger.info(end_data_list)
-        print(type(end_data_list[0]))
-        print(time.time()-s)
+        # print(type(end_data_list[0]))
         return jsonify([{'num': c.num,
-                 'name': c.name,
-                 'desc': c.desc,
-                 'url': c.url,
-                 'skip': c.skip,
-                 'apiMsgId': c.id,
-                 'method': c.method,
-                 'api_set_id': c.api_set_id,
-                 'variableType': c.variable_type,
-                 'variable': json.loads(c.variable),
-                 'json_variable': _data,
-                 'extract': json.loads(c.extract),
-                 'validate': json.loads(c.validate),
-                 'param': json.loads(c.param),
-                 'header': json.loads(c.header),
-                 'parameters': '[]',
-                 # 'check': False,
-                 'statusCase': {'extract': [True, True], 'variable': [True, True],
-                                'validate': [True, True], 'param': [True, True],
-                                'header': [True, True], 'parameters': False},
-                 'status': True, 'case_name': c.name, 'down_func': c.down_func, 'up_func': c.up_func, 'time': 1}
-                for _data in end_data_list])
+                         'name': c.name,
+                         'desc': c.desc,
+                         'url': c.url,
+                         'skip': c.skip,
+                         'apiMsgId': c.id,
+                         'method': c.method,
+                         'api_set_id': c.api_set_id,
+                         'variableType': c.variable_type,
+                         'variable': json.loads(c.variable),
+                         'json_variable': json.dumps(_data),
+                         'extract': json.loads(c.extract),
+                         'validate': json.loads(c.validate),
+                         'param': json.loads(c.param),
+                         'header': json.loads(c.header),
+                         'parameters': '[]',
+                         # 'check': False,
+                         'statusCase': {'extract': [True, True], 'variable': [True, True],
+                                        'validate': [True, True], 'param': [True, True],
+                                        'header': [True, True], 'parameters': False},
+                         'status': True, 'case_name': c.name, 'down_func': c.down_func, 'up_func': c.up_func, 'time': 1}
+                        for _data in end_data_list])
 
 
 @api.route('/apiMsg/add', methods=['POST'])
@@ -87,7 +85,7 @@ def add_api_msg():
     api_msg_name = parameter_validator(data.get('apiMsgName'), msg='接口名称不能为空', status=0)
     method = parameter_validator(data.get('method'), msg='请求方式不能为空', status=0)
     url = parameter_validator(data.get('url').split('?')[0], msg='接口地址不能为空', status=0)
-    if status_url == -1:
+    if not isinstance(status_url, int):
         if 'http' not in url:
             return jsonify({'msg': '基础url为空时，请补全api地址', 'status': 0})
     num = auto_num(data.get('num'), ApiMsg, api_set_id=api_set_id)
@@ -155,7 +153,7 @@ def edit_api_msg():
     _edit = ApiMsg.query.filter_by(id=case_id).first()
     _data = {'name': _edit.name, 'num': _edit.num, 'desc': _edit.desc, 'url': _edit.url, 'skip': _edit.skip,
              'api_set_id': _edit.api_set_id,
-             'method': _edit.method, 'status_url': int(_edit.status_url),
+             'method': _edit.method, 'status_url': int(_edit.status_url) if _edit.status_url else None,
              'up_func': _edit.up_func, 'down_func': _edit.down_func,
              'variableType': _edit.variable_type,
              'param': json.loads(_edit.param),
@@ -247,7 +245,7 @@ def del_api_msg():
     _data = ApiMsg.query.filter_by(id=api_msg_id).first()
 
     project_id = ApiSet.query.filter_by(id=_data.api_set_id).first().project_id
-    if current_user.id != Project.query.filter_by(id=project_id).first().user_id:
+    if current_user.id not in json.loads(Project.query.filter_by(id=project_id).first().principal):
         return jsonify({'msg': '不能删除别人项目下的接口', 'status': 0})
 
     # 同步删除接口信息下对应用例下的接口步骤信息
@@ -274,11 +272,15 @@ def file_change():
         # if '/api/v1.0/weaver/submitRequest' in api_msg['url']:
         api_msg.update({k: json.dumps(v, ensure_ascii=False) for k, v in api_msg.items() if
                         isinstance(v, dict) or isinstance(v, list)})
+        print(api_msg['name'])
         _data = ApiMsg.query.filter_by(api_set_id=api_set_id).filter(
-            and_(ApiMsg.url.like('%{}%'.format(api_msg['url'])),
-                 ApiMsg.method.is_(api_msg['method']))).first()
+            and_(ApiMsg.url.like('%{}%'.format(api_msg['url'])), ApiMsg.method == api_msg['method'])).first()
+        # print(_data)
+        print(_data)
+        # print(api_msg['url'])
         if not _data:
             new_case = ApiMsg(project_id=project_id, api_set_id=api_set_id, num=case_num + num, **api_msg)
             db.session.add(new_case)
             db.session.commit()
+        # break
     return jsonify({'msg': '导入成功', 'status': 1})

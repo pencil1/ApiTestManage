@@ -303,24 +303,6 @@ def swagger_change(file_path):
         content_json = json.loads(f.read().replace('null', '""'))
     api_list = []
     for k, v in content_json['paths'].items():
-        _temp_data = {
-            'name': '',
-            'desc': '',
-            'url': '',
-            'status_url': '0',
-            'skip': '',
-            # 'apiMsgId': '',
-            # 'gather_id': '',
-            'variable_type': '',
-            'variable': [],
-            'json_variable': '',
-            'swagger_json_variable': '',
-            'extract': [],
-            'validate': [],
-            'param': [],
-            'method': 'POST',
-            'header': [],
-        }
 
         def get_param(schema, request_type, swagger=False):
             """
@@ -385,12 +367,37 @@ def swagger_change(file_path):
                         _list.append(_d)
                         # if k.get('$ref'):
                         #     pass
-        if 'assetLeaseSign/getCurNode' not in k:
-            continue
-        _temp_data['url'] = content_json.get('basePath') + k if content_json.get('basePath') else k
+
+        # if 'assetLeaseSign/getCurNode' not in k:
+        #     continue
+
+        # print(v)
         for k1, v1 in v.items():
+            _temp_data = {
+                'name': '',
+                'desc': '',
+                'url': '',
+                'status_url': '0',
+                'skip': '',
+                # 'apiMsgId': '',
+                # 'gather_id': '',
+                'variable_type': '',
+                'variable': [],
+                'json_variable': '',
+                'swagger_json_variable': '',
+                'extract': [],
+                'validate': [],
+                'param': [],
+                'method': 'POST',
+                'header': [],
+            }
+            _temp_data['url'] = content_json.get('basePath') + k if content_json.get('basePath') else k
             _temp_data['method'] = k1.upper()
             _temp_data['name'] = v1.get('summary')
+            # print(_temp_data['name'])
+            # if _temp_data['name'] != '获取换电站型号详情':
+            #     continue
+            # print(_temp_data)
             # print(k1)
             # if k1 != 'get':
             if 'application/json' in json.dumps(v1.get('consumes')):
@@ -401,7 +408,8 @@ def swagger_change(file_path):
                 for v3 in v1.get('parameters'):
                     if v3.get('in') == 'query':
                         _temp_data['variable'].append(
-                            {'key': v3.get('name'), 'value': '', 'remark': v3.get('description'),'param_type':'string'})
+                            {'key': v3.get('name'), 'value': '', 'remark': v3.get('description'),
+                             'param_type': 'string'})
                     if v3.get('in') == 'body':
                         if _temp_data['variable_type'] == 'json':
                             _temp_data['json_variable'] = get_param(v3['schema'], _temp_data['variable_type'])
@@ -411,13 +419,27 @@ def swagger_change(file_path):
                             # print(11111)
                         else:
                             _temp_data['variable'].append(get_param(v3['schema'], _temp_data['variable_type']))
-        api_list.append(deepcopy(_temp_data))
+            # print(_temp_data)
+            api_list.append(deepcopy(_temp_data))
     return api_list
 
 
-if __name__ == '__main__':
-    swagger_change('/Users/zw/Documents/auto/files/建站管理服务_OpenAPI.json')
+def is_chinese(string):
+    """
+    检查整个字符串是否包含中文
+    :param string: 需要检查的字符串
+    :return: bool
+    """
+    for ch in string:
+        if u'\u4e00' <= ch <= u'\u9fff':
+            return True
 
+    return False
+
+
+if __name__ == '__main__':
+    a = swagger_change('/Users/zw/Documents/auto/files/基础信息管理服务_OpenAPI.json')
+    print(a)
     # func_list = importlib.reload(importlib.import_module(r"func_list.abuild_in_fun.py"))
     # module_functions_dict = {name: item for name, item in vars(func_list).items() if
     #                          isinstance(item, types.FunctionType)}

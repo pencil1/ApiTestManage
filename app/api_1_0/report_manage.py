@@ -1,5 +1,7 @@
 import json
 import copy
+import time
+
 from flask import jsonify, request
 from . import api, login_required
 from app.models import *
@@ -16,12 +18,11 @@ def run_cases():
     """ 跑接口 """
     data = request.json
     project_id = parameter_validator(data.get('projectId'), msg='请先选择项目', status=0)
-    case_ids = parameter_validator(data.get('sceneIds'), msg='请选择用例', status=0)
+    case_ids = parameter_validator(data.get('caseIds'), msg='请选择用例', status=0)
 
     d = RunCase(project_id)
     d.get_case_test(case_ids)
     jump_res = d.run_case()
-
     if data.get('reportStatus'):
         performer = User.query.filter_by(id=current_user.id).first().name
         d.build_report(jump_res, case_ids, performer)
@@ -31,7 +32,6 @@ def run_cases():
 
 
 @api.route('/report/list', methods=['POST'])
-@login_required
 def get_report():
     """ 查看报告 """
     data = request.json

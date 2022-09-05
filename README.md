@@ -1,10 +1,3 @@
-# ApiTestManage
-感觉项目不错的点个star！！您的支持是作者源源不断的动力~谢谢！！如有疑问可联系qq：362508572   或q群：700387899 或issue
-
-前端传送门：https://github.com/pencil1/ApiTestWeb
-
-线上demo地址：http://122.51.184.120/#/login （账号：ceshi 密码：123456）
-
 
 ## Environment
 python => 3
@@ -69,14 +62,3 @@ python => 3
     flask db migrate -> 相当于commit 更新到/migrate目录
     flask db upgrade -> 数据库会更新
 	
-
-## 微信打赏及广告
-
-您的支持是作者源源不断的动力~谢谢！！
-
-[阿里云双12活动，服务器最低仅限89](https://www.aliyun.com/minisite/goods?userCode=xd46ktom&share_source=aliyun_app)
-
-![image](http://www.heiman.website/notes/2021-03-06-20-17-264.png)
-
-
-

@@ -106,7 +106,7 @@ def del_set():
     set_id = data.get('id')
     _edit = CaseSet.query.filter_by(id=set_id).first()
     case = Case.query.filter_by(case_set_id=set_id).first()
-    if current_user.id != Project.query.filter_by(id=_edit.project_id).first().user_id:
+    if current_user.id not in json.loads(Project.query.filter_by(id=_edit.project_id).first().principal):
         return jsonify({'msg': '不能删除别人项目下的模块', 'status': 0})
     if case:
         return jsonify({'msg': '请先删除集合下的接口用例', 'status': 0})

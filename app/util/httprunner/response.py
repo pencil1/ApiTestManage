@@ -78,22 +78,24 @@ class ResponseObject(object):
             "cookies": self.cookies,
             "body": self.body,
         }
+        # print(1111)
+        # print(self.cookies)
         # if "$" in field:
         #     # field contains variable or function
         #     field = self.parser.parse_data(field, variables_mapping)
-        # print(22)
-        # print(resp_obj_meta)
-        # print(field)
-        # print(11)
+        # print(1111)
+        # print(field,resp_obj_meta)
         result = jmespath.search(field, resp_obj_meta)
-        # print()
-        if result:
-            if isinstance(result, list) and len(result) == 1:
-                return result[0]
-            else:
-                return result
-        else:
-            raise exceptions.ExtractFailure("\tjmespath {} get nothing\n".format(field))
+        # print(result)
+        # if result:
+        # print(result)
+        return result
+        # if isinstance(result, list) and len(result) == 1:
+        #     return result[0]
+        # else:
+        #     return result
+        # else:
+        #     raise exceptions.ExtractFailure("\tjmespath {} get nothing\n".format(field))
 
     def _extract_field_with_delimiter(self, field):
         """ response content could be json or html text.

@@ -6,14 +6,14 @@ from ..util.custom_decorator import login_required
 from app import scheduler
 from ..util.http_run import RunCase
 from ..util.utils import change_cron, auto_num
-from ..util.emails.SendEmail import SendEmail
+from ..util.emails.SendEmail import SendEmail, send_ding_ding_msg
 from ..util.report.report import render_html_report
 from flask_login import current_user
 from ..util.validators import parameter_validator
 
 
 def aps_test(project_id, case_ids, send_address=None, send_password=None, task_to_address=None, performer='无',
-             send_email_status='1'):
+             send_email_status='1', webhook=None, secret=None, title=None):
     # global db
     # db.session.remove()
     # db.create_scoped_session()
@@ -24,17 +24,21 @@ def aps_test(project_id, case_ids, send_address=None, send_password=None, task_t
     res = json.loads(jump_res)
 
     if send_email_status == '1' or (send_email_status == '2' and not res['success']):
-        task_to_address = task_to_address.split(',')
+
         file = render_html_report(res)
-        s = SendEmail(send_address, send_password, task_to_address, file)
-        s.send_email()
+        if task_to_address:
+            task_to_address = task_to_address.split(',')
+            SendEmail('yuanzhenwei@aulton.com', 'kPB7hmVVU9FZgGCn', task_to_address, file).send_email()
+        if webhook and secret:
+            msg = f"用例结果：成功{res['stat']['testcases']['success']}条，失败{res['stat']['testcases']['fail']}条"
+            report_address = f'http://test_tools.aulton.com:18080/#/reportShow?reportId={d.new_report_id}'
+            send_ding_ding_msg(report_address, webhook, secret, msg, title)
 
     db.session.rollback()  # 把连接放回连接池，不知道为什么定时任务跑完不会自动放回去，导致下次跑的时候，mysql连接超时断开报错
     return d.new_report_id
 
 
 def get_case_id(pro_id, set_id, case_id):
-
     if len(case_id) != 0:
         return case_id
         # case_ids += [i['id'] for i in case_id]
@@ -62,7 +66,7 @@ def run_task():
     cases_id = get_case_id(_data.project_id, json.loads(_data.set_id), json.loads(_data.case_id))
     new_report_id = aps_test(_data.project_id, cases_id, _data.task_send_email_address, _data.email_password,
                              _data.task_to_email_address, User.query.filter_by(id=current_user.id).first().name,
-                             _data.send_email_status)
+                             _data.send_email_status, _data.webhook, _data.secret, _data.title, )
 
     return jsonify({'msg': '测试成功', 'status': 1, 'data': {'report_id': new_report_id}})
 
@@ -79,7 +83,7 @@ def start_task():
     scheduler.add_job(func=aps_test, trigger='cron', misfire_grace_time=60, coalesce=False,
                       args=[_data.project_id, cases_id, _data.task_send_email_address, _data.email_password,
                             _data.task_to_email_address, User.query.filter_by(id=current_user.id).first().name,
-                            _data.send_email_status],
+                            _data.send_email_status, _data.webhook, _data.secret,_data.title,  ],
                       id=str(ids), **config_time)  # 添加任务
     _data.status = '启动'
     db.session.commit()
@@ -101,11 +105,14 @@ def add_task():
     task_type = 'cron'
     to_email = data.get('toEmail')
     send_email = data.get('sendEmail')
+    webhook = data.get('webhook')
+    secret = data.get('secret')
+    title = data.get('title')
     password = data.get('password')
     send_email_status = data.get('sendEmailStatus')
     # 0 0 1 * * *
-    if not (not to_email and not send_email and not password) and not (to_email and send_email and password):
-        return jsonify({'msg': '发件人、收件人、密码3个必须都为空，或者都必须有值', 'status': 0})
+    # if not (not to_email and not send_email and not password) and not (to_email and send_email and password):
+    #     return jsonify({'msg': '发件人、收件人、密码3个必须都为空，或者都必须有值', 'status': 0})
 
     time_config = data.get('timeConfig')
     if len(time_config.strip().split(' ')) != 6:
@@ -123,6 +130,9 @@ def add_task():
             old_task_data.task_type = task_type
             old_task_data.task_to_email_address = to_email
             old_task_data.task_send_email_address = send_email
+            old_task_data.webhook = webhook
+            old_task_data.secret = secret
+            old_task_data.title = title
             old_task_data.email_password = password
             old_task_data.num = num
             old_task_data.send_email_status = send_email_status
@@ -146,6 +156,9 @@ def add_task():
                             task_type=task_type,
                             task_to_email_address=to_email,
                             task_send_email_address=send_email,
+                            webhook=webhook,
+                            secret=secret,
+                            title=title,
                             task_config_time=time_config,
                             send_email_status=send_email_status,
                             num=num)
@@ -161,10 +174,19 @@ def edit_task():
     data = request.json
     task_id = data.get('id')
     c = Task.query.filter_by(id=task_id).first()
-    _data = {'num': c.num, 'task_name': c.task_name, 'task_config_time': c.task_config_time, 'task_type': c.task_type,
-             'set_ids': json.loads(c.set_id), 'case_ids': json.loads(c.case_id),
-             'task_to_email_address': c.task_to_email_address, 'task_send_email_address': c.task_send_email_address,
-             'password': c.email_password, 'send_email_status': c.send_email_status}
+    _data = {'num': c.num,
+             'task_name': c.task_name,
+             'task_config_time': c.task_config_time,
+             'task_type': c.task_type,
+             'set_ids': json.loads(c.set_id),
+             'case_ids': json.loads(c.case_id),
+             'task_to_email_address': c.task_to_email_address,
+             'task_send_email_address': c.task_send_email_address,
+             'webhook': c.webhook,
+             'secret': c.secret,
+             'title': c.title,
+             'password': c.email_password,
+             'send_email_status': c.send_email_status}
 
     return jsonify({'data': _data, 'status': 1})
 
