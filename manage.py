@@ -26,6 +26,7 @@ def initdata():
     click.echo('Initializing the roles and permissions and admin...')
     Role.init_role()
     User.init_user()  # 初始化
+
     click.echo('Done.')
 
 # manager.add_command("shell", Shell(make_context=make_shell_context))
