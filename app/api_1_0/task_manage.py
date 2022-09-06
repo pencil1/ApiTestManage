@@ -6,7 +6,7 @@ from ..util.custom_decorator import login_required
 from app import scheduler
 from ..util.http_run import RunCase
 from ..util.utils import change_cron, auto_num
-from ..util.emails.SendEmail import SendEmail, send_ding_ding_msg
+# from ..util.emails.SendEmail import SendEmail, send_ding_ding_msg
 from ..util.report.report import render_html_report
 from flask_login import current_user
 from ..util.validators import parameter_validator
@@ -28,7 +28,7 @@ def aps_test(project_id, case_ids, send_address=None, send_password=None, task_t
         file = render_html_report(res)
         if task_to_address:
             task_to_address = task_to_address.split(',')
-            SendEmail('yuanzhenwei@aulton.com', 'kPB7hmVVU9FZgGCn', task_to_address, file).send_email()
+            # SendEmail('yuanzhenwei@aulton.com', 'kPB7hmVVU9FZgGCn', task_to_address, file).send_email()
         if webhook and secret:
             pass
             # msg = f"用例结果：成功{res['stat']['testcases']['success']}条，失败{res['stat']['testcases']['fail']}条"
