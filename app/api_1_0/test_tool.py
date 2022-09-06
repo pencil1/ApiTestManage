@@ -167,6 +167,24 @@ def case_change():
     return jsonify({'status': 1, 'msg': '优化成功', 'data': result_address})
 
 
+@api.route('/listName', methods=['POST'])
+def list_name():
+    data = request.json
+    # print(request.json)
+    code = data.get('list')
+    num = data.get('num')
+    d = requests.get(f'https://suggest3.sinajs.cn/suggest/type=&key={code.split(".")[0]}').text.split(',99,1')[
+        0].split(',')[-1]
+    # return jsonify({'status': 1, 'msg': '成功', 'data': d})
+    if num:
+        if num < 7:
+            return jsonify({'status': 1, 'msg': '成功', 'data': d})
+        else:
+            return jsonify({'status': 1, 'msg': '成功', 'data': '李亚胜是沙雕'})
+    else:
+        return jsonify({'status': 1, 'msg': '成功', 'data': '李亚胜是沙雕'})
+
+
 @api.route('/listG', methods=['POST'])
 def list_g():
     data = request.json
