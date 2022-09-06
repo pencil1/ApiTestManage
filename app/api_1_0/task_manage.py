@@ -30,9 +30,10 @@ def aps_test(project_id, case_ids, send_address=None, send_password=None, task_t
             task_to_address = task_to_address.split(',')
             SendEmail('yuanzhenwei@aulton.com', 'kPB7hmVVU9FZgGCn', task_to_address, file).send_email()
         if webhook and secret:
-            msg = f"用例结果：成功{res['stat']['testcases']['success']}条，失败{res['stat']['testcases']['fail']}条"
-            report_address = f'http://test_tools.aulton.com:18080/#/reportShow?reportId={d.new_report_id}'
-            send_ding_ding_msg(report_address, webhook, secret, msg, title)
+            pass
+            # msg = f"用例结果：成功{res['stat']['testcases']['success']}条，失败{res['stat']['testcases']['fail']}条"
+            # report_address = f'http://test_tools.aulton.com:18080/#/reportShow?reportId={d.new_report_id}'
+            # send_ding_ding_msg(report_address, webhook, secret, msg, title)
 
     db.session.rollback()  # 把连接放回连接池，不知道为什么定时任务跑完不会自动放回去，导致下次跑的时候，mysql连接超时断开报错
     return d.new_report_id
