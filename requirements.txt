@@ -19,7 +19,7 @@ gevent==21.12.0
 greenlet==1.1.2
 idna==2.10
 itsdangerous==1.1.0
-Jinja2==2.11.2
+Jinja2==2.11.3
 jmespath==0.10.0
 Mako==1.1.3
 MarkupSafe==1.1.1
