@@ -177,7 +177,7 @@ def list_name():
         0].split(',')[-1]
     # return jsonify({'status': 1, 'msg': '成功', 'data': d})
     if num:
-        if num < 7:
+        if num < 8:
             return jsonify({'status': 1, 'msg': '成功', 'data': d})
         else:
             return jsonify({'status': 1, 'msg': '成功', 'data': '李亚胜是沙雕'})
