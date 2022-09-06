@@ -128,6 +128,8 @@ class DevelopmentConfig(Config):
 
 
 class ProductionConfig(Config):
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:78929709@122.51.184.120:3306/api_test?charset=utf8mb4'  # 123456表示密码，test代表数据库名称
+    # SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:Password123@mysql@10.100.2.45:3307/api_test'  # 123456表示密码，test代表数据库名称
     # SCHEDULER_JOBSTORES = {'default': SQLAlchemyJobStore(url=SQLALCHEMY_DATABASE_URI,
     #                                                      engine_options={'pool_pre_ping': True})}
 
@@ -140,7 +142,7 @@ class ProductionConfig(Config):
 
 config = {
 
-    'default': DevelopmentConfig,
-    # 'default': ProductionConfig,
-    'Production': ProductionConfig,
+    # 'default': DevelopmentConfig,
+    'default': ProductionConfig,
+    # 'Production': ProductionConfig,
 }
