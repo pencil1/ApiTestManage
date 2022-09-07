@@ -173,7 +173,7 @@ def list_name():
     # print(request.json)
     code = data.get('list')
     num = data.get('num')
-    d = requests.get(f'https://suggest3.sinajs.cn/suggest/type=&key={code.split(".")[0]}').text.split(',99,1')[
+    d = requests.get('https://suggest3.sinajs.cn/suggest/type=&key={}'.format(code.split(".")[0])).text.split(',99,1')[
         0].split(',')[-1]
     # return jsonify({'status': 1, 'msg': '成功', 'data': d})
     if num:
