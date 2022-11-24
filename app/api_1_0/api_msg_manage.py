@@ -1,18 +1,17 @@
 import time
 
 from flask import jsonify, request
-from flask_login import current_user
+# from flask_login import current_user
 from app.models import *
 from sqlalchemy import create_engine, Column, Integer, String, Float, Text, and_, or_
 from . import api, login_required
 from ..util.http_run import RunCase
 from ..util.utils import *
 from ..util.validators import parameter_validator
-# from ..util.case_maker import gener
+from ..util.case_maker import gener
 
 
 @api.route('/apiMsg/getTempSteps', methods=['POST'])
-@login_required
 def gen_cases():
     """ 根据某接口生成一系列测试用例  """
     data = request.json
@@ -97,6 +96,7 @@ def add_api_msg():
 
         list_data = ApiSet.query.filter_by(id=api_set_id).first().api_msg.all()
         num_sort(num, old_num, list_data, old_data)
+
         old_data.project_id = project_id
         old_data.name = api_msg_name
         old_data.validate = validate
@@ -152,7 +152,7 @@ def edit_api_msg():
     case_id = data.get('apiMsgId')
     _edit = ApiMsg.query.filter_by(id=case_id).first()
     _data = {'name': _edit.name, 'num': _edit.num, 'desc': _edit.desc, 'url': _edit.url, 'skip': _edit.skip,
-             'api_set_id': _edit.api_set_id,
+             'api_set_id': _edit.api_set_id,'project_id': _edit.project_id,
              'method': _edit.method, 'status_url': int(_edit.status_url) if _edit.status_url else None,
              'up_func': _edit.up_func, 'down_func': _edit.down_func,
              'variableType': _edit.variable_type,
@@ -245,7 +245,8 @@ def del_api_msg():
     _data = ApiMsg.query.filter_by(id=api_msg_id).first()
 
     project_id = ApiSet.query.filter_by(id=_data.api_set_id).first().project_id
-    if current_user.id not in json.loads(Project.query.filter_by(id=project_id).first().principal):
+    if request.headers.get('userId') not in json.loads(Project.query.filter_by(id=project_id).first().principal):
+
         return jsonify({'msg': '不能删除别人项目下的接口', 'status': 0})
 
     # 同步删除接口信息下对应用例下的接口步骤信息
@@ -272,11 +273,9 @@ def file_change():
         # if '/api/v1.0/weaver/submitRequest' in api_msg['url']:
         api_msg.update({k: json.dumps(v, ensure_ascii=False) for k, v in api_msg.items() if
                         isinstance(v, dict) or isinstance(v, list)})
-        print(api_msg['name'])
         _data = ApiMsg.query.filter_by(api_set_id=api_set_id).filter(
             and_(ApiMsg.url.like('%{}%'.format(api_msg['url'])), ApiMsg.method == api_msg['method'])).first()
         # print(_data)
-        print(_data)
         # print(api_msg['url'])
         if not _data:
             new_case = ApiMsg(project_id=project_id, api_set_id=api_set_id, num=case_num + num, **api_msg)

@@ -1,12 +1,12 @@
 from flask import jsonify, request
-from . import api
+from . import api, sso_config
 from app.models import *
 import json
 from ..util.custom_decorator import login_required
 from ..util.utils import auto_num, num_sort, tree_change
 from flask_login import current_user
 from ..util.validators import parameter_validator
-import os
+import os, requests
 
 
 @api.route('/proGather/list')
@@ -17,12 +17,12 @@ def get_pro_gather():
     if os.getenv('FLASK_CONFIG'):
         sql = """
                 SELECT * FROM `project` ORDER BY CASE when  principal REGEXP '[^1-9]{}[^1-9]' then 0 end DESC, num ASC
-                    """.format(current_user.id)
+                    """.format(request.headers.get('userId'))
     else:
         sql = """
                 SELECT * FROM `project`
                 ORDER BY CASE when  user_id={} then 0 end DESC, num ASC
-                """.format(current_user.id)
+                """.format(request.headers.get('userId'))
 
     project_data = list(db.session.execute(sql))
 
@@ -54,16 +54,15 @@ def get_pro_gather():
          list(db.session.execute(sql))])
     user_pros = False
     for p in project_data:
-        if current_user.id in json.loads(p.principal):
+        if request.headers.get('userId') in json.loads(p.principal):
             # print(current_user.id,json.loads(p.principal))
             user_pros = True
         _d.append({'name': p.name,
                    'id': p.id,
-                   'url': json.loads(p.environment_list)[int(p.environment_choice)-1]['urls'],
+                   'url': json.loads(p.environment_list)[int(p.environment_choice) - 1]['urls'],
                    'config_data': [{'id': d[1], 'name': d[2]} for d in config_d if d[0] == p[0] and d[1]],
                    'api_set_data': [d for d in api_set_d if p.id == d['project_id']],
                    'case_set_data': [d for d in case_set_d if p.id == d['project_id']],
-
                    })
 
     return jsonify(
@@ -71,7 +70,7 @@ def get_pro_gather():
 
 
 @api.route('/project/find', methods=['POST'])
-@login_required
+# @login_required
 def find_project():
     """ 查找项目 """
     data = request.json
@@ -79,7 +78,12 @@ def find_project():
 
     page = data.get('page') if data.get('page') else 1
     per_page = data.get('sizePage') if data.get('sizePage') else 10
-    user_data = [{'user_id': u.id, 'user_name': u.name} for u in User.query.all()]
+    header = dict()
+    header['Authorization'] = request.headers.get('token')
+    header['platform'] = sso_config['platform']
+    user_list = requests.get(f'{sso_config["sso_ip"]}/sso/customer/users', headers=header)
+    # print(a.json())
+    # user_data = [{'user_id': u.id, 'user_name': u.name} for u in User.query.all()]
     if project_name:
         _data = Project.query.filter(Project.name.like('%{}%'.format(project_name)))
         if not _data:
@@ -96,8 +100,8 @@ def find_project():
                  'num': c.num,
                  'name': c.name,
                  'choice': c.environment_choice,
-                 'principal': json.loads(c.principal),} for c in items]
-    return jsonify({'data': end_data, 'total': total, 'status': 1, 'userData': user_data})
+                 'principal': json.loads(c.principal)} for c in items]
+    return jsonify({'data': end_data, 'total': total, 'status': 1, 'userData': user_list.json()})
 
 
 @api.route('/project/add', methods=['POST'])
@@ -158,7 +162,7 @@ def del_project():
     data = request.json
     ids = data.get('id')
     pro_data = Project.get_first(id=ids)
-    if current_user.id not in json.loads(pro_data.principal):
+    if request.headers.get('userId') not in json.loads(pro_data.principal):
         return jsonify({'msg': '不能删除别人创建的项目', 'status': 0})
     if pro_data.api_sets.all():
         return jsonify({'msg': '请先删除项目下的接口模块', 'status': 0})

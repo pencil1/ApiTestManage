@@ -3,7 +3,7 @@ from . import api
 from app.models import *
 from ..util.custom_decorator import login_required
 from ..util.utils import *
-from flask_login import current_user
+# from flask_login import current_user
 from ..util.validators import parameter_validator
 
 
@@ -78,7 +78,7 @@ def del_config():
     data = request.json
     ids = data.get('id')
     _edit = Config.query.filter_by(id=ids).first()
-    if current_user.id != Project.query.filter_by(id=_edit.project_id).first().user_id:
+    if request.headers.get('userId') != Project.query.filter_by(id=_edit.project_id).first().user_id:
         return jsonify({'msg': '不能删除别人项目下的配置', 'status': 0})
     db.session.delete(_edit)
     db.session.commit()

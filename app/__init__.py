@@ -73,6 +73,9 @@ def create_app(config_name):
     from .api_1_0 import api as api_blueprint
     app.register_blueprint(api_blueprint, url_prefix='/api')
 
+    from .mock import mock
+    app.register_blueprint(mock, url_prefix='/mock')
+
     # from .api_1_0.model import api_1_0 as api_blueprint
     # app.register_blueprint(api_blueprint, url_prefix='/api_1_0')
     return app

@@ -343,32 +343,26 @@ class HtmlTestResult(unittest.TextTestResult):
     def addSuccess(self, test):
         super(HtmlTestResult, self).addSuccess(test)
         self._record_test(test, 'success')
-        print("")
 
     def addError(self, test, err):
         super(HtmlTestResult, self).addError(test, err)
         self._record_test(test, 'error', self._exc_info_to_string(err, test))
-        print("")
 
     def addFailure(self, test, err):
         super(HtmlTestResult, self).addFailure(test, err)
         self._record_test(test, 'failure', self._exc_info_to_string(err, test))
-        print("")
 
     def addSkip(self, test, reason):
         super(HtmlTestResult, self).addSkip(test, reason)
         self._record_test(test, 'skipped', reason)
-        print("")
 
     def addExpectedFailure(self, test, err):
         super(HtmlTestResult, self).addExpectedFailure(test, err)
         self._record_test(test, 'ExpectedFailure', self._exc_info_to_string(err, test))
-        print("")
 
     def addUnexpectedSuccess(self, test):
         super(HtmlTestResult, self).addUnexpectedSuccess(test)
         self._record_test(test, 'UnexpectedSuccess')
-        print("")
 
     @property
     def duration(self):

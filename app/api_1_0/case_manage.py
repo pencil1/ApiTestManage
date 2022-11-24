@@ -1,7 +1,6 @@
 from flask import jsonify, request
 from . import api, login_required
 from app.models import *
-from flask_login import current_user
 from ..util.utils import *
 from ..util.http_run import RunCase
 from ..util.validators import parameter_validator
@@ -50,6 +49,7 @@ def add_case():
             list_data = Case.query.filter_by(case_set_id=case_set_id).all()
             # list_data = CaseSet.query.filter_by(id=case_set_id).first().cases.all()
             num_sort(num, old_num, list_data, old_data)
+
             old_data.name = name
             old_data.times = times
             old_data.project_id = project_id
@@ -68,14 +68,9 @@ def add_case():
                 old_api_case.validate = json.dumps(c['validate'], ensure_ascii=False)
                 old_api_case.variable = json.dumps(c['variable'], ensure_ascii=False)
                 old_api_case.header = json.dumps(c['header'], ensure_ascii=False)
-                # print(11)
-                # print(c['parameters'])
                 old_api_case.parameters = c['parameters']
-                # print(type(c['statusCase']['parameters']))
-                # print(c['statusCase']['parameters'])
                 old_api_case.status_parameters = c['statusCase']['parameters']
                 old_api_case.json_variable = c['json_variable']
-
                 old_api_case.param = json.dumps(c['param'], ensure_ascii=False)
                 old_api_case.time = c['time']
                 old_api_case.status_variables = json.dumps(c['statusCase']['variable'])
@@ -180,7 +175,7 @@ def find_case():
     pagination = _data.order_by(Case.num.asc()).paginate(page, per_page=per_page, error_out=False)
     items = pagination.items
     total = pagination.total
-    end_data = [{'num': c.num, 'name': c.name, 'label': c.name, 'leaf': True, 'desc': c.desc, 'caseId': c.id,
+    end_data = [{'num': c.num, 'name': c.name, 'label': c.name, 'desc': c.desc, 'caseId': c.id,
                  }
                 for c in items]
     return jsonify({'data': end_data, 'total': total, 'status': 1})
@@ -200,14 +195,15 @@ def del_case():
     if _del_data:
         for d in _del_data:
             db.session.delete(d)
+        db.session.commit()
     db.session.delete(wait_del_case_data)
     db.session.commit()
     return jsonify({'msg': '删除成功', 'status': 1})
 
 
-@api.route('/apiCase/del', methods=['POST'])
+@api.route('/step/del', methods=['POST'])
 @login_required
-def del_api_case():
+def del_step():
     """ 删除用例下的接口步骤信息 """
     data = request.json
     case_id = data.get('id')
@@ -233,14 +229,16 @@ def edit_case():
         _api_data = ApiMsg.query.filter_by(id=step.api_msg_id).first()
         if status == 'copy':
             step_id = ''
-            api_msg_id = ''
+            # api_msg_id = ''
         else:
             step_id = step.id
-            api_msg_id = step.api_msg_id
+            # api_msg_id = step.api_msg_id
         case_data.append({'num': step.num, 'name': step.name,
-                          'desc': _api_data.desc, 'apiMsgId': api_msg_id,
+                          'desc': _api_data.desc,
+                          'apiMsgId': step.api_msg_id,
                           'url': _api_data.url,
                           'id': step_id,
+                          'caseId': case_id,
                           'status': json.loads(step.status),
                           'variableType': _api_data.variable_type,
                           'api_name': _api_data.name,
@@ -286,6 +284,68 @@ def data_config():
     return jsonify({'data': {'variables': json.loads(_data.variables),
                              'func_address': json.loads(_data.func_address)},
                     'status': 1})
+
+
+@api.route('/step/add', methods=['POST'])
+@login_required
+def add_step():
+    """ 新增用例下的步骤信息 """
+    data = request.json
+    step_id = data.get('id')
+    if step_id:
+        old_step = CaseData.query.filter_by(id=step_id).first()
+        old_step.num = data['num']
+        old_step.extract = json.dumps(data['extract'], ensure_ascii=False)
+        old_step.validate = json.dumps(data['validate'], ensure_ascii=False)
+        old_step.variable = json.dumps(data['variable'], ensure_ascii=False)
+        old_step.header = json.dumps(data['header'], ensure_ascii=False)
+        old_step.parameters = data['parameters']
+        old_step.status_parameters = data['statusCase']['parameters']
+        old_step.json_variable = data['json_variable']
+        old_step.param = json.dumps(data['param'], ensure_ascii=False)
+        old_step.time = data['time']
+        old_step.status_variables = json.dumps(data['statusCase']['variable'])
+        old_step.status_extract = json.dumps(data['statusCase']['extract'])
+        old_step.status_validate = json.dumps(data['statusCase']['validate'])
+        old_step.status_param = json.dumps(data['statusCase']['param'])
+        old_step.status_header = json.dumps(data['statusCase']['header'])
+        old_step.name = data['name']
+        old_step.status = json.dumps(data['status'])
+        old_step.up_func = data['up_func']
+        old_step.down_func = data['down_func']
+        old_step.skip = data['skip']
+        db.session.commit()
+        return jsonify({'msg': '修改成功', 'step_id': old_step.id})
+    else:
+        new_step = CaseData(num=data['num'],
+                            variable=json.dumps(data['variable'], ensure_ascii=False),
+                            json_variable=data['json_variable'],
+                            extract=json.dumps(data['extract'], ensure_ascii=False),
+                            param=json.dumps(data['param'], ensure_ascii=False),
+                            time=data['time'],
+                            validate=json.dumps(data['validate'], ensure_ascii=False),
+                            case_id=data['caseId'],
+                            api_msg_id=data['apiMsgId'],
+                            status_variables=json.dumps(data['statusCase']['variable']),
+                            status_extract=json.dumps(data['statusCase']['extract']),
+                            status_validate=json.dumps(data['statusCase']['validate']),
+                            status_param=json.dumps(data['statusCase']['param']),
+                            header=json.dumps(data['header'], ensure_ascii=False),
+                            status_header=json.dumps(data['statusCase']['header']),
+                            parameters=json.dumps(data['parameters'], ensure_ascii=False) if data.get(
+                                'parameters') else '[]',
+                            status_parameters=data['statusCase']['parameters'],
+                            status=json.dumps(data['status']),
+                            skip=data['skip'],
+                            name=data['name'], up_func=data['up_func'], down_func=data['down_func'])
+        db.session.add(new_step)
+        db.session.commit()
+        return jsonify({'msg': '新建成功', 'step_id': new_step.id})
+    # if current_user.id not in json.loads(Project.query.filter_by(id=project_id).first().principal):
+    #     return jsonify({'msg': '不能删除别人项目下的接口', 'status': 0})
+    # _data = CaseData.query.filter_by(id=case_id).first()
+    # db.session.delete(_data)
+    # db.session.commit()
 
 
 @api.route('/step/run', methods=['POST'])

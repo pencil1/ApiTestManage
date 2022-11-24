@@ -15,9 +15,8 @@ roles_permissions = db.Table('roles_permissions',
 class BaseModel(db.Model):
     """ 基类模型 """
     __abstract__ = True
-
     # is_delete = db.Column(db.SmallInteger, default=0, comment='通过更改状态来判断记录是否被删除, 0数据有效, 1数据已删除')
-    id = db.Column(db.Integer(), primary_key=True, comment='主键，自增')
+    id = db.Column(db.Integer(), primary_key=True,  comment='主键，自增')
     created_time = db.Column(db.DateTime, index=True, default=datetime.now, comment='创建时间')
     update_time = db.Column(db.DateTime, index=True, default=datetime.now, onupdate=datetime.now, comment='修改时间')
 
@@ -158,7 +157,7 @@ class User(UserMixin, db.Model):
 
 class Project(BaseModel):
     __tablename__ = 'project'
-    user_id = db.Column(db.Integer(), nullable=True, comment='所属的用户id')
+    user_id = db.Column(db.String(128), nullable=True, comment='所属的用户id')
     num = db.Column(db.Integer(), comment='编号')
     name = db.Column(db.String(64), nullable=True, unique=True, comment='项目名称')
     # host = db.Column(db.String(1024), nullable=True, comment='测试环境')
@@ -169,7 +168,7 @@ class Project(BaseModel):
     environment_list = db.Column(db.String(1024), comment='环境列表')
     environment = db.Column(db.String(1024), comment='环境')
     # environment_status = db.Column(db.Integer(), comment='环境选择')
-    principal = db.Column(db.String(16), nullable=True)
+    principal = db.Column(db.String(128), nullable=True)
     variables = db.Column(db.String(2048), comment='项目的公共变量')
     headers = db.Column(db.String(1024), comment='项目的公共头部信息')
     func_file = db.Column(db.String(128), comment='函数地址')
@@ -306,14 +305,14 @@ class Task(BaseModel):
     __mapper_args__ = {"order_by": num.asc()}
 
 
-class TestCaseFile(BaseModel):
-    __tablename__ = 'test_case_file'
-    num = db.Column(db.Integer(), nullable=True, comment='测试用例文件序号')
-    name = db.Column(db.String(128), nullable=True, comment='测试用例文件名称')
-    status = db.Column(db.Integer(), comment='0代表文件夹；1代表用例文件')
-    higher_id = db.Column(db.Integer(), comment='上级id，父级为0')
-    user_id = db.Column(db.Integer(), comment='创建人id')
-    __mapper_args__ = {"order_by": num.asc()}
+# class TestCaseFile(BaseModel):
+#     __tablename__ = 'test_case_file'
+#     num = db.Column(db.Integer(), nullable=True, comment='测试用例文件序号')
+#     name = db.Column(db.String(128), nullable=True, comment='测试用例文件名称')
+#     status = db.Column(db.Integer(), comment='0代表文件夹；1代表用例文件')
+#     higher_id = db.Column(db.Integer(), comment='上级id，父级为0')
+#     user_id = db.Column(db.Integer(), comment='创建人id')
+#     __mapper_args__ = {"order_by": num.asc()}
 
 
 class FuncFile(BaseModel):
@@ -322,7 +321,7 @@ class FuncFile(BaseModel):
     num = db.Column(db.Integer(), nullable=True, comment='内置函数文件序号')
     status = db.Column(db.Integer(), comment='0代表文件夹；1代表用例文件')
     higher_id = db.Column(db.Integer(), comment='上级id，父级为0')
-    user_id = db.Column(db.Integer(), comment='创建人id')
+    user_id = db.Column(db.String(128), comment='创建人id')
     __mapper_args__ = {"order_by": num.asc()}
 
 
@@ -330,7 +329,23 @@ class Logs(BaseModel):
     __tablename__ = 'logs'
     ip = db.Column(db.String(128), comment='ip')
     uid = db.Column(db.String(128), comment='uid')
-    url = db.Column(db.String(128), comment='url')
+    url = db.Column(db.String(1024), comment='url')
+    log_type = db.Column(db.Integer(), comment='1:url访问类型；2:接口测试类型')
+    project_id = db.Column(db.Integer(), comment='项目id')
+    project_name = db.Column(db.String(128), comment='项目名称')
+    api = db.Column(db.String(1024), comment='接口地址')
+    api_status = db.Column(db.String(128), comment='failure:失败；1:成功')
+    report_id = db.Column(db.Integer(), comment='报告id')
+
+
+class MockApi(BaseModel):
+    __tablename__ = 'mock_api'
+    method = db.Column(db.String(10))
+    name = db.Column(db.String(50))
+    url = db.Column(db.String(100), nullable=True)
+    param_body = db.Column(db.TEXT)
+    func = db.Column(db.TEXT)
+    project_id = db.Column(db.Integer(), nullable=True, comment='所属的项目id')
 
 
 @login_manager.user_loader

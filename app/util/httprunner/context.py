@@ -40,8 +40,11 @@ class SessionContext(object):
 
         self.test_variables_mapping = {}
         # priority: extracted variable > teststep variable
+        # print(variables_mapping)
+        # print(self.session_variables_mapping)
         self.test_variables_mapping.update(variables_mapping)
         self.test_variables_mapping.update(self.session_variables_mapping)
+        # print(self.test_variables_mapping)
 
         for variable_name, variable_value in variables_mapping.items():
             variable_value = self.eval_content(variable_value)
@@ -56,6 +59,8 @@ class SessionContext(object):
         """ update session with extracted variables mapping.
             these variables are valid in the whole running session.
         """
+        # print(variables_mapping)
+        # print(self.session_variables_mapping)
         variables_mapping = utils.ensure_mapping_format(variables_mapping)
         self.session_variables_mapping.update(variables_mapping)
         self.test_variables_mapping.update(self.session_variables_mapping)

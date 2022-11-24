@@ -1,15 +1,19 @@
 from flask import Blueprint, current_app, request
-from flask_login import current_user
+# from flask_login import current_user
 
 from ..models import Logs, db
 from ..util.custom_decorator import login_required
-import copy
+import copy, yaml, os
 import json
 
 api = Blueprint('api', __name__)
 
+with open(r'{}/app/pom.yaml'.format(os.path.abspath('.')), 'r', encoding='utf-8') as f:
+    sso_config = yaml.load(f.read(), Loader=yaml.FullLoader)
+
 from . import api_msg_manage, api_set_manage, project_manage, report_manage, build_in_manage, case_manage, login, \
     test_tool, task_manage, file_manage, config, case_set_manage, errors
+
 
 
 @api.before_request
@@ -26,10 +30,12 @@ def before_request():
 
 @api.after_request
 def after_request(r):
-    uid = current_user.id if getattr(current_user, 'id', None) else None
+    uid = request.headers.get('userId')
+    # uid = current_user.id if getattr(current_user, 'id', None) else None
     new_project = Logs(ip=request.headers.get('X-Forwarded-For'),
                        uid=uid,
-                       url=request.url, )
+                       url=request.url,
+                       log_type=1)
     db.session.add(new_project)
     db.session.commit()
     if 'downloadFile' in request.url:

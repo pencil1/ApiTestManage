@@ -21,6 +21,12 @@ services:
     - "sync-test.aulton.com:10.100.3.151"
     - "driverdev.aulton.com:10.100.3.151"
     - "apptest1.aulton.com:10.100.3.227"
+    - "mptest1.aulton.com:10.100.3.227"
+    - "apiusercentertest1.aulton.com:10.100.3.227"
+    - "apioperationtest1.aulton.com:10.100.3.227"
+    - "apiusercenterdev.aulton.com:10.100.3.151"
+    - "apioperationdev.aulton.com:10.100.3.151"
+
     environment:
       FLASK_CONFIG: Production
       TZ: Asia/Shanghai

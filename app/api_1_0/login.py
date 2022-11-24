@@ -1,3 +1,4 @@
+import requests
 from flask import request
 from . import api
 from app.models import *
@@ -76,6 +77,18 @@ def logout():
     """ 登出 """
     logout_user()
     return jsonify({'msg': '登出成功', 'status': 1})
+
+
+@api.route('/loginSso', methods=['POST'])
+def login_sso():
+    """ 登录 """
+    data = request.json
+    token = data.get('token')
+    header = dict()
+    header['Authorization'] = token
+    header['platform'] = common_config['platform']
+    result = requests.get(f'{common_config["sso_ip"]}/sso/customer/info', headers=header)
+    return jsonify(result.json())
 
 
 @api.route('/login', methods=['POST'])
@@ -179,6 +192,8 @@ def change_status_user():
 def msg_user():
     """ 改变用户状态 """
     now = datetime.now()
+
+    print(type(request.headers.get('name')))
     _d = {'other_data': {'project_num': Project.query.count(),
                          'case_num': Case.query.count(),
                          'api_num': ApiMsg.query.count(),

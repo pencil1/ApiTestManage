@@ -53,7 +53,6 @@ def coloring(text, color="WHITE"):
 
 def color_print(msg, color="WHITE"):
     fore_color = getattr(Fore, color.upper())
-    print(fore_color + msg)
 
 
 def log_with_color(level):

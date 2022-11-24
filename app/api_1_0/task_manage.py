@@ -1,15 +1,16 @@
 import json
 from flask import jsonify, request
 from . import api
-from app.models import Task, CaseSet, Case, db, User
+from app.models import Task, CaseSet, Case, db
 from ..util.custom_decorator import login_required
 from app import scheduler
 from ..util.http_run import RunCase
 from ..util.utils import change_cron, auto_num
-# from ..util.emails.SendEmail import SendEmail, send_ding_ding_msg
+from ..util.emails.SendEmail import SendEmail, send_ding_ding_msg
 from ..util.report.report import render_html_report
-from flask_login import current_user
+# from flask_login import current_user
 from ..util.validators import parameter_validator
+from urllib import parse
 
 
 def aps_test(project_id, case_ids, send_address=None, send_password=None, task_to_address=None, performer='无',
@@ -21,6 +22,7 @@ def aps_test(project_id, case_ids, send_address=None, send_password=None, task_t
     d.get_case_test(case_ids)
     jump_res = d.run_case()
     d.build_report(jump_res, case_ids, performer)
+    d.insert_api_log()
     res = json.loads(jump_res)
 
     if send_email_status == '1' or (send_email_status == '2' and not res['success']):
@@ -28,12 +30,9 @@ def aps_test(project_id, case_ids, send_address=None, send_password=None, task_t
         file = render_html_report(res)
         if task_to_address:
             task_to_address = task_to_address.split(',')
-            # SendEmail('yuanzhenwei@aulton.com', 'kPB7hmVVU9FZgGCn', task_to_address, file).send_email()
         if webhook and secret:
-            pass
-            # msg = f"用例结果：成功{res['stat']['testcases']['success']}条，失败{res['stat']['testcases']['fail']}条"
-            # report_address = f'http://test_tools.aulton.com:18080/#/reportShow?reportId={d.new_report_id}'
-            # send_ding_ding_msg(report_address, webhook, secret, msg, title)
+            msg = f"用例结果：成功{res['stat']['testcases']['success']}条，失败{res['stat']['testcases']['fail']}条"
+            send_ding_ding_msg('report_address', webhook, secret, msg, title)
 
     db.session.rollback()  # 把连接放回连接池，不知道为什么定时任务跑完不会自动放回去，导致下次跑的时候，mysql连接超时断开报错
     return d.new_report_id
@@ -66,7 +65,7 @@ def run_task():
     _data = Task.query.filter_by(id=ids).first()
     cases_id = get_case_id(_data.project_id, json.loads(_data.set_id), json.loads(_data.case_id))
     new_report_id = aps_test(_data.project_id, cases_id, _data.task_send_email_address, _data.email_password,
-                             _data.task_to_email_address, User.query.filter_by(id=current_user.id).first().name,
+                             _data.task_to_email_address, parse.unquote(request.headers.get('name')),
                              _data.send_email_status, _data.webhook, _data.secret, _data.title, )
 
     return jsonify({'msg': '测试成功', 'status': 1, 'data': {'report_id': new_report_id}})
@@ -83,8 +82,8 @@ def start_task():
     cases_id = get_case_id(_data.project_id, json.loads(_data.set_id), json.loads(_data.case_id))
     scheduler.add_job(func=aps_test, trigger='cron', misfire_grace_time=60, coalesce=False,
                       args=[_data.project_id, cases_id, _data.task_send_email_address, _data.email_password,
-                            _data.task_to_email_address, User.query.filter_by(id=current_user.id).first().name,
-                            _data.send_email_status, _data.webhook, _data.secret,_data.title,  ],
+                            _data.task_to_email_address, parse.unquote(request.headers.get('name')),
+                            _data.send_email_status, _data.webhook, _data.secret, _data.title, ],
                       id=str(ids), **config_time)  # 添加任务
     _data.status = '启动'
     db.session.commit()

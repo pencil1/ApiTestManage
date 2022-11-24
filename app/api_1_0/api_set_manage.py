@@ -87,8 +87,8 @@ def del_api_set():
     data = request.json
     ids = data.get('id')
     _edit = ApiSet.get_first(id=ids)
-    print(current_user.id)
-    if current_user.id not in json.loads(Project.query.filter_by(id=_edit.project_id).first().principal):
+    # print(current_user.id)
+    if request.headers.get('userId') not in json.loads(Project.query.filter_by(id=_edit.project_id).first().principal):
         return jsonify({'msg': '不能删除别人项目下的模块', 'status': 0})
     if _edit.api_msg.all():
         return jsonify({'msg': '请先删除模块下的接口用例', 'status': 0})

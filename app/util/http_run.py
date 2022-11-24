@@ -30,12 +30,15 @@ class RunCase(object):
         self.project_ids = project_ids
         self.pro_environment = None
         self.pro_base_url = None
+        self.pro_name = None
         self.new_report_id = None
         self.TEST_DATA = {'testcases': [], 'project_mapping': {'functions': {}, 'variables': {}}}
         self.init_project_data()
+        self.result = None
 
     def init_project_data(self):
         pro_data = Project.query.filter_by(id=self.project_ids).first()
+        self.pro_name = pro_data.name
         self.pro_base_url = json.loads(pro_data.environment_list)
         # for pro_data in Project.query.all():
         self.pro_environment = json.loads(pro_data.environment_list)[int(pro_data.environment_choice) - 1]['urls']
@@ -109,6 +112,7 @@ class RunCase(object):
 
         if api_data.status_url:
             if (os.getenv('FLASK_CONFIG') or 'default') == 'default':
+                # _data['request']['url'] = pro_base_url[int(api_data.status_url)]['value'] + api_data.url.split('?')[0]
                 _data['request']['url'] = pro_base_url[int(api_data.status_url)]['value'] + ':1443' + \
                                           api_data.url.split('?')[0]
             else:
@@ -224,22 +228,40 @@ class RunCase(object):
             return _list_data
 
         elif (api_data.variable_type == 'text' or api_data.variable_type == 'data') and _variables:
-            for variable in _variables:
-                if variable['param_type'] == 'string' and variable.get('key'):
-                    if api_data.variable_type == 'text':
-                        _data['request']['files'].update({variable['key']: (None, variable['value'])})
-                    else:
-                        _data['request']['data'].update({variable['key']: variable['value']})
-                elif variable['param_type'] == 'file' and variable.get('key'):
-                    _data['request']['files'].update({variable['key']: (
-                        variable['value'].split('/')[-1], open(variable['value'], 'rb'),
-                        CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
+            # print(_data['request']['headers'])
+            if _data['request']['headers'].get('Content-Type') and 'multipart/form-data' in _data['request']['headers'][
+                'Content-Type']:
+                _data['request']['files'] = ()
+                _data['request']['data'] = ()
+                for variable in _variables:
+                    if variable['param_type'] == 'string' and variable.get('key'):
+                        if api_data.variable_type == 'text':
+                            _data['request']['files'] += ((variable['key'], (None, variable['value'])),)
+                        else:
+                            _data['request']['data'] += ((variable['key'], variable['value']),)
+                    elif variable['param_type'] == 'file' and variable.get('key'):
+                        _data['request']['files'] += ((variable['key'], (
+                            variable['value'].split('/')[-1], open(variable['value'], 'rb'),
+                            CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])),)
+
+            else:
+                for variable in _variables:
+                    if variable['param_type'] == 'string' and variable.get('key'):
+                        if api_data.variable_type == 'text':
+                            _data['request']['files'].update({variable['key']: (None, variable['value'])})
+                        else:
+                            _data['request']['data'].update({variable['key']: variable['value']})
+                    elif variable['param_type'] == 'file' and variable.get('key'):
+                        _data['request']['files'].update({variable['key']: (
+                            variable['value'].split('/')[-1], open(variable['value'], 'rb'),
+                            CONTENT_TYPE['.{}'.format(variable['value'].split('.')[-1])])})
 
         elif api_data.variable_type == 'json':
             if _json_variables:
                 # print(_json_variables)
                 _data['request']['json'] = json.loads(_json_variables)
-
+        # print(_data)
+        # print(1)
         return _data
 
     def get_api_test(self, api_ids, config_id):
@@ -351,6 +373,24 @@ class RunCase(object):
                 _data['teststeps'] += _case_data['teststeps']
             self.TEST_DATA['testcases'].append(_data)
 
+    def insert_api_log(self):
+        # print(json.loads(self.result)['details'])
+        for r1 in json.loads(self.result)['details']:
+            for r2 in r1['records']:
+                try:
+                    new_log = Logs(log_type=2,
+                                   project_id=self.project_ids,
+                                   project_name=self.pro_name,
+                                   api='/' + r2['meta_datas']['data'][0]['request']['url'].split('/', 3)[-1].split('?')[
+                                       0],
+                                   api_status=r2['status'],
+                                   report_id=self.new_report_id)
+                    db.session.add(new_log)
+                except:
+                    pass
+
+        db.session.commit()
+
     def build_report(self, jump_res, case_ids, performer):
         # if self.run_type and self.make_report:
         new_report = Report(performer=performer,
@@ -364,6 +404,7 @@ class RunCase(object):
         self.new_report_id = new_report.id
 
         def dict_c(d):
+            # 存在content返回数据特别多情况，直接砍掉
             if isinstance(d, dict):
                 for d1 in d:
                     if d1 == 'content':
@@ -384,9 +425,9 @@ class RunCase(object):
     def run_case(self):
         scheduler.app.logger.info('测试数据：{}'.format(self.TEST_DATA))
         # res = main_ate(self.TEST_DATA)
-        print(self.TEST_DATA)
+        # print(self.TEST_DATA)
         runner = HttpRunner()
 
         runner.run(self.TEST_DATA)
-        jump_res = json.dumps(runner._summary, ensure_ascii=False, default=encode_object, cls=JSONEncoder)
-        return jump_res
+        self.result = json.dumps(runner._summary, ensure_ascii=False, default=encode_object, cls=JSONEncoder)
+        return self.result

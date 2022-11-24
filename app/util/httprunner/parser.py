@@ -15,9 +15,19 @@ function_regexp_compile = re.compile(r"^([\w_]+)\(([\$\w\.\-/_ =,\S]*)\)$")
 # variable_regexp = r"\$([\w_]+)"
 # function_regexp = r"\$\{([\w_]+\([\$\w\.\-/_ =,]*\))\}"
 # function_regexp_compile = re.compile(r"^([\w_]+)\(([\$\w\.\-/_ =,]*)\)$")
-def eval_value(str_value):
+
+
+def eval_value_func(str_value):
+
     try:
-        str_value = eval(str_value)
+        if '[' in str_value:
+            str_value = eval(str_value)
+        # if str_value.isdigit():
+        #     return str_value
+        # elif str_value.isalpha():
+        #     return str_value
+        # else:
+        #     str_value = eval(str_value)
     except:
         str_value = str_value
     return str_value
@@ -475,8 +485,7 @@ def parse_string_functions(content, variables_mapping, functions_mapping):
                 func_content,
                 str(eval_value), 1
             )
-    # print(content)
-    # print(type(content))
+            content = eval_value_func(content)
     return content
 
 
@@ -498,12 +507,8 @@ def parse_string_variables(content, variables_mapping, functions_mapping):
 
     """
     variables_list = extract_variables(content)
-    # print(content)
-    # print(variables_list)
-    # print(1111)
     for variable_name in variables_list:
         variable_value = get_mapping_variable(variable_name, variables_mapping)
-        # print(variable_value)
         if variable_name == "request" and isinstance(variable_value, dict) \
                 and "url" in variable_value and "method" in variable_value:
             # call setup_hooks action with $request
@@ -534,17 +539,11 @@ def parse_string_variables(content, variables_mapping, functions_mapping):
             # content contains one or several variables
             if not isinstance(parsed_variable_value, str):
                 parsed_variable_value = builtin_str(parsed_variable_value)
-            # print(111)
-            # print(content)
             content = content.replace(
                 "${}".format(variable_name),
                 parsed_variable_value, 1
             )
-            # print(content)
-            #
-            content = eval_value(content)
-            # print(content)
-            # print(1111)
+            content = eval_value_func(content)
     return content
 
 
@@ -775,11 +774,9 @@ def __parse_config(config, project_mapping):
     override_variables = utils.deepcopy_dict(project_mapping.get("variables", {}))
     functions = project_mapping.get("functions", {})
     functions.update(config.pop("functions", {}))
-
+    override_variables.update(raw_config_variables_mapping)
+    raw_config_variables_mapping = override_variables
     # override config variables with passed in variables
-    raw_config_variables_mapping.update(override_variables)
-    # print(222)
-    # print(raw_config_variables_mapping)
     # parse config variables
     parsed_config_variables = {}
     for key in raw_config_variables_mapping:
@@ -1028,9 +1025,6 @@ def __get_parsed_testsuite_testcases(testcases, testsuite_config, project_mappin
             parsed_testcase["config"]["variables"] = parsed_config_variables
 
         # parse parameters
-        # print(11)
-        # print(testcase)
-        # print(testcase["parameters"])
         if "parameters" in testcase and testcase["parameters"]:
             cartesian_product_parameters = parse_parameters(
                 testcase["parameters"],

@@ -6,7 +6,9 @@ import re
 import types
 from copy import deepcopy
 from .httprunner.parser import variable_regexp, function_regexp, function_regexp_compile
-
+# variable_regexp = r"\$([\w_]+)"
+# function_regexp = r"\$\{([\w_]+\([\$\w\.\-/_ =,\S]*\))\}"
+# function_regexp_compile = re.compile(r"^([\w_]+)\(([\$\w\.\-/_ =,\S]*)\)$")
 
 # 全角转成半角
 def full_to_half(s):
@@ -439,14 +441,14 @@ def is_chinese(string):
 
 if __name__ == '__main__':
     a = swagger_change('/Users/zw/Documents/auto/files/基础信息管理服务_OpenAPI.json')
-    print(a)
-    # func_list = importlib.reload(importlib.import_module(r"func_list.abuild_in_fun.py"))
+    # print(a)
+    # func_list = importlib.reload(importlib.import_module(r"func_list.ziguanjia.py"))
     # module_functions_dict = {name: item for name, item in vars(func_list).items() if
     #                          isinstance(item, types.FunctionType)}
     # print(module_functions_dict)
-    # a = '${func({"birthday": "199-02-02"; "expire_age": "65周岁"; "sex": "2"},123,3245)}'
-    # b = '${func([123],123)}'
+    # a = '${get_time(}'
+    # b = '${get_time(}'
     # print(extract_functions(a))
     # matched = parse_function(extract_functions(b)[0])
     #
-    # print(matched)
+    print(a)

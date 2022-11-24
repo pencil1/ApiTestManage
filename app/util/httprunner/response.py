@@ -85,7 +85,11 @@ class ResponseObject(object):
         #     field = self.parser.parse_data(field, variables_mapping)
         # print(1111)
         # print(field,resp_obj_meta)
+        # print(1111)
+        # print(field)
+        # print(resp_obj_meta)
         result = jmespath.search(field, resp_obj_meta)
+
         # print(result)
         # if result:
         # print(result)
@@ -240,12 +244,12 @@ class ResponseObject(object):
             raise exceptions.ParamsError(err_msg)
 
         msg = "extract: {}".format(field)
-
-        if text_extractor_regexp_compile.match(field):
-            value = self._extract_field_with_regex(field)
-        else:
-            # value = self._extract_field_with_delimiter(field)
-            value = self._extract_field_with_jmespath(field)
+        value = self._extract_field_with_jmespath(field)
+        # if text_extractor_regexp_compile.match(field):
+        #     value = self._extract_field_with_regex(field)
+        # else:
+        #     value = self._extract_field_with_jmespath(field)
+            # body.data[?contains(title, '测试')]
         # if is_py2 and isinstance(value, unicode):
         #     value = value.encode("utf-8")
 

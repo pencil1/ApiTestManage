@@ -4,7 +4,7 @@ from ..util.global_variable import *
 from ..util.validators import parameter_validator
 from ..util.utils import *
 from app.models import FuncFile, db
-from flask_login import current_user
+# from flask_login import current_user
 
 
 @api.route('/FuncFile/add', methods=['POST'])
@@ -30,7 +30,7 @@ def add_func_file():
     else:
         if os.path.exists('{}/{}'.format(FUNC_ADDRESS, name)):
             return jsonify({'msg': '文件名已存在', 'status': 0})
-        _new = FuncFile(name=name, higher_id=higher_id, num=num, status=status, user_id=current_user.id)
+        _new = FuncFile(name=name, higher_id=higher_id, num=num, status=status, user_id=request.headers.get('userId'))
         db.session.add(_new)
         db.session.commit()
         if status == 1:
@@ -49,7 +49,7 @@ def find_func_file():
 
     kwargs = {'higher_id': 0}
     if privates:
-        kwargs['user_id'] = current_user.id
+        kwargs['user_id'] = request.headers.get('userId')
 
     def get_data(all_data):
         if isinstance(all_data, list):
@@ -94,6 +94,8 @@ def save_func_file():
     data = request.json
     func_data = data.get('data')
     ids = data.get('ids')
+    # print(func_data)
+    # exec(func_data)
     func_name = FuncFile.query.filter_by(id=ids).first().name
     with open('{}/{}'.format(FUNC_ADDRESS, func_name), 'w', encoding='utf8') as f:
         f.write(func_data)
@@ -110,7 +112,7 @@ def del_func_file():
     ids = data.get('id')
     _edit = FuncFile.query.filter_by(id=ids).first()
     case = FuncFile.query.filter_by(higher_id=ids).first()
-    if current_user.id != _edit.user_id:
+    if request.headers.get('userId') != _edit.user_id:
         return jsonify({'msg': '不能删除别人创建的', 'status': 0})
     if case:
         return jsonify({'msg': '请先删除该文件的下级内容', 'status': 0})
@@ -121,56 +123,6 @@ def del_func_file():
     return jsonify({'msg': '删除成功', 'status': 1})
 
 
-# ------------------------------------------------
-#
-# @api.route('/func/find', methods=['POST'])
-# @login_required
-# def get_func():
-#     """ 获取函数文件信息 """
-#     data = request.json
-#     func_name = data.get('funcName')
-#     if not func_name:
-#         return jsonify({'msg': '请输入文件名', 'status': 0})
-#     if not os.path.exists('{}/{}'.format(FUNC_ADDRESS, func_name)):
-#         return jsonify({'msg': '文件名不存在', 'status': 0})
-#     with open('{}/{}'.format(FUNC_ADDRESS, func_name), 'r', encoding='utf8') as f:
-#         d = f.read()
-#     return jsonify({'msg': '获取成功', 'func_data': d, 'status': 1})
-#
-#
-# @api.route('/func/getAddress', methods=['POST'])
-# @login_required
-# def get_funcs():
-#     """ 查找所以函数文件 """
-#     for root, dirs, files in os.walk(os.path.abspath('.') + r'/func_list'):
-#         if '__init__.py' in files:
-#             files.remove('__init__.py')
-#         files = [{'value': f} for f in files]
-#         break
-#     return jsonify({'data': files, 'status': 1})
-#
-#
-# @api.route('/func/save', methods=['POST'])
-# @login_required
-# def save_func():
-#     """ 保存函数文件 """
-#     data = request.json
-#     func_data = data.get('funcData')
-#     func_name = data.get('funcName')
-#     if not os.path.exists('{}/{}'.format(FUNC_ADDRESS, func_name)):
-#         return jsonify({'msg': '文件名不存在', 'status': 0})
-#     with open('{}/{}'.format(FUNC_ADDRESS, func_name), 'w', encoding='utf8') as f:
-#         f.write(func_data)
-#     return jsonify({'msg': '保存成功', 'status': 1})
-#
-#
-# def is_function(tup):
-#     """ Takes (name, object) tuple, returns True if it is a function.
-#     """
-#     name, item = tup
-#     return isinstance(item, types.FunctionType)
-#
-#
 @api.route('/func/check', methods=['POST'])
 @login_required
 def check_func():
@@ -192,7 +144,7 @@ def check_func():
     func = parse_function(ext_func[0])
     # print(ext_func)
     # print(func)
-    print(module_functions_dict)
+    # print(module_functions_dict)
     return jsonify({'msg': '请查看', 'status': 1, 'result': module_functions_dict[func['func_name']](*func['args'])})
 
 #     except Exception as e:
