@@ -16,6 +16,4 @@ services:
       FLASK_CONFIG: Production
       TZ: Asia/Shanghai
     command: gunicorn -c ./ApiTestManage/gunicorn_config.py manage:app --chdir /Project/apitest/ApiTestManage
-    networks: #加入指定网络
-      ApiTestManage:
-        ipv4_address: 172.17.0.23
+
