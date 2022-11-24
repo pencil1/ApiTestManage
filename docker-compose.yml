@@ -1,36 +1,21 @@
 version: '3'
 services:
   # 服务名称
-  apitestmanage:
+  ApiTestManage:
     # 镜像:版本
-    container_name: apitestmanage
+    container_name: ApiTestManage
     image: apitest:v1
     # 数据卷 映射本地文件到容器
     volumes:
-      - /home/apitestmanage:/Project/apitest/apitestmanage
+      - /home/ApiTestManage:/Project/apitest/ApiTestManage
       - /usr/share/zoneinfo/Asia/:/usr/share/zoneinfo/Asia/
     ports:
       - "8091:8091"
-    extra_hosts:
-    - "apiassethktest1.aulton.com:10.100.3.227"
-    - "govdev.aulton.com:10.100.3.151"
-    - "drivertest1.aulton.com:10.100.3.227"
-    - "ecosystemdev.aulton.com:10.100.3.151"
-    - "appdev.aulton.com:10.100.3.151"
-    - "apptest.aulton.com:10.100.3.151"
-    - "sync-test.aulton.com:10.100.3.151"
-    - "driverdev.aulton.com:10.100.3.151"
-    - "apptest1.aulton.com:10.100.3.227"
-    - "mptest1.aulton.com:10.100.3.227"
-    - "apiusercentertest1.aulton.com:10.100.3.227"
-    - "apioperationtest1.aulton.com:10.100.3.227"
-    - "apiusercenterdev.aulton.com:10.100.3.151"
-    - "apioperationdev.aulton.com:10.100.3.151"
 
     environment:
       FLASK_CONFIG: Production
       TZ: Asia/Shanghai
-    command: gunicorn -c ./apitestmanage/gunicorn_config.py manage:app --chdir /Project/apitest/apitestmanage
+    command: gunicorn -c ./ApiTestManage/gunicorn_config.py manage:app --chdir /Project/apitest/ApiTestManage
     networks: #加入指定网络
       - front
 networks:
