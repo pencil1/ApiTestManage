@@ -17,8 +17,5 @@ services:
       TZ: Asia/Shanghai
     command: gunicorn -c ./ApiTestManage/gunicorn_config.py manage:app --chdir /Project/apitest/ApiTestManage
     networks: #加入指定网络
-      - front
-networks:
-  front:
-    # Use a custom driver
-    driver: bridge
+      extnetwork:
+        ipv4_address: 172.17.0.23

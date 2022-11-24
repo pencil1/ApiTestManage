@@ -7,7 +7,7 @@ gunicorn的配置文件
 # gevent的猴子魔法 变成非阻塞
 gevent.monkey.patch_all()
 
-bind = '172.17.0.4:8091'
+bind = '172.17.0.23:8091'
 
 # 启动的进程数
 # workers = multiprocessing.cpu_count() * 2 + 1
