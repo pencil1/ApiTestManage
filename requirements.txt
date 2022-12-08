@@ -3,7 +3,7 @@ allpairspy==2.5.0
 APScheduler==3.6.3
 backports.zoneinfo==0.2.1
 Brotli==1.0.9
-certifi==2020.6.20
+certifi==2022.12.7
 chardet==3.0.4
 click==7.1.2
 colorama==0.4.3
